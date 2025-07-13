@@ -270,7 +270,7 @@ class Chess {
 
   /// Check the formatting of a FEN String is correct
   /// Returns a Map with keys valid, error_number, and error
-  static Map validateFen(fen) {
+  static Map validateFen(String fen) {
     const errors = {
       0: 'No errors.',
       1: 'FEN string must contain six space-delimited fields.',
@@ -431,7 +431,7 @@ class Chess {
   }
 
   /// Updates [header] with the List of args and returns it
-  Map setHeader(args) {
+  Map setHeader(dynamic args) {
     for (var i = 0; i < args.length; i += 2) {
       if (args[i] is String && args[i + 1] is String) {
         header[args[i]] = args[i + 1];
@@ -1450,7 +1450,7 @@ class Chess {
   ///      })
   /// or it can be called with a Move object
   /// It returns true if the move was made, or false if it could not be.
-  bool move(move) {
+  bool move(dynamic move) {
     Move? moveObj;
     final moves = generateMoves();
 
@@ -1523,7 +1523,7 @@ class Chess {
   }
 
   /// Returns the color of the square ('light' or 'dark'), or null if [square] is invalid
-  String? squareColor(square) {
+  String? squareColor(dynamic square) {
     if (squares.containsKey(square)) {
       final sq_0x88 = squares[square];
       return ((rank(sq_0x88) + file(sq_0x88)) % 2 == 0) ? 'light' : 'dark';

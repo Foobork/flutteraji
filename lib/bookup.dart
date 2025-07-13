@@ -75,11 +75,11 @@ class HomePageState extends State<HomePage> {
   String _turn = "";
   PlayerColor _orientation = white;
 
-  _moveButton(String move) {
+  dynamic _moveButton(String move) {
     return _button(move, () => _controller.makeMoveWithNormalNotation(move));
   }
 
-  _movesTable() {
+  dynamic _movesTable() {
     var rows = _knownMoves.map((MoveInfo info) {
       return TableRow(
         children: [
@@ -101,7 +101,7 @@ class HomePageState extends State<HomePage> {
     );
   }
 
-  _movesColumn() {
+  dynamic _movesColumn() {
     return _padded(
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,7 +139,7 @@ class HomePageState extends State<HomePage> {
     _eval = graph.v[_bfen]?.assigned?.toString() ?? "";
   }
 
-  _compare(PlayerColor turn) => (MoveInfo i, MoveInfo j) {
+  int Function(MoveInfo i, MoveInfo j) _compare(PlayerColor turn) => (MoveInfo i, MoveInfo j) {
         var a = i.eval;
         var b = j.eval;
 
@@ -195,28 +195,28 @@ class HomePageState extends State<HomePage> {
     _export();
   }
 
-  _button(text, action) {
+  TextButton _button(String text, action) {
     var child = Text(text, style: _textStyle);
     return TextButton(onPressed: action, child: child);
   }
 
-  _padded(child) {
+  Container _padded(dynamic child) {
     var padding = const EdgeInsets.symmetric(horizontal: 8, vertical: 8);
     return Container(padding: padding, child: child);
   }
 
-  _evaluationWidget() {
+  dynamic _evaluationWidget() {
     return _textField("Evaluation", _eval, _updateEval);
   }
 
-  _updateEval(String newEval) {
+  void _updateEval(String newEval) {
     String bfen = _controller.game.bfen;
     graph.assign(bfen, double.tryParse(newEval));
     graph.solveBfen(bfen);
     _export();
   }
 
-  _textField(label, initialValue, onSubmitted) {
+  SizedBox _textField(String label, initialValue, onSubmitted) {
     return SizedBox(
       width: 200,
       child: TextField(
