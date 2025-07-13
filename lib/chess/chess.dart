@@ -2,7 +2,8 @@
 
 library;
 
-/*  Copyright (c) 2014, David Kopec (my first name at oaksnow dot com)
+/*  Based on chess.dart
+ *  Copyright (c) 2014, David Kopec (my first name at oaksnow dot com)
  *  Released under the MIT license
  *  https://github.com/davecom/chess.dart/blob/master/LICENSE
  *
@@ -12,8 +13,12 @@ library;
  *  https://github.com/jhlywa/chess.js/blob/master/LICENSE
  */
 
-const PlayerColor black = PlayerColor.black;
-const PlayerColor white = PlayerColor.white;
+enum PlayerColor { red, blue, yellow, green }
+
+const PlayerColor red = PlayerColor.red;
+const PlayerColor blue = PlayerColor.blue;
+const PlayerColor yellow = PlayerColor.yellow;
+const PlayerColor green = PlayerColor.green;
 
 const PieceType pawn = PieceType.pawn;
 const PieceType knight = PieceType.knight;
@@ -41,8 +46,8 @@ class Chess {
   static const List possibleResults = ['1-0', '0-1', '1/2-1/2', '*'];
 
   static const Map<PlayerColor, List<int>> pawnOffsets = {
-    black: [16, 32, 17, 15],
-    white: [-16, -32, -17, -15]
+    red: [16, 32, 17, 15],
+    yellow: [-16, -32, -17, -15]
   };
 
   static const Map<PieceType, List<int>> pieceOffsets = {
@@ -146,11 +151,11 @@ class Chess {
   static const int squaresH8 = 7;
 
   static final Map<PlayerColor, List> rooks = {
-    white: [
+    red: [
       {'square': squaresA1, 'flag': bitsQsideCastle},
       {'square': squaresH1, 'flag': bitsKsideCastle}
     ],
-    black: [
+    yellow: [
       {'square': squaresA8, 'flag': bitsQsideCastle},
       {'square': squaresH8, 'flag': bitsKsideCastle}
     ]
@@ -159,7 +164,7 @@ class Chess {
   // Instance Variables
   List<Piece?> board = []..length = 128;
   ColorMap<int> kings = ColorMap(-1);
-  PlayerColor turn = white;
+  PlayerColor turn = red;
   ColorMap<int> castling = ColorMap(0);
   int? epSquare;
   int halfMoves = 0;
@@ -195,7 +200,7 @@ class Chess {
   void clear() {
     board = []..length = 128;
     kings = ColorMap(-1);
-    turn = white;
+    turn = red;
     castling = ColorMap(0);
     epSquare = null;
     halfMoves = 0;
@@ -232,34 +237,19 @@ class Chess {
       } else if (isDigit(piece)) {
         square += int.parse(piece);
       } else {
-        var color = (piece == piece.toUpperCase()) ? white : black;
+        var color = (piece == piece.toUpperCase()) ? red : yellow;
         var type = pieceTypes[piece.toLowerCase()]!;
         put(Piece(type, color), algebraic(square));
         square++;
       }
     }
 
-    if (tokens[1] == 'w') {
-      turn = white;
+    if (tokens[1] == 'r') {
+      turn = red;
     } else {
-      assert(tokens[1] == 'b');
-      turn = black;
+      turn = yellow;
     }
 
-    if (tokens[2].indexOf('K') > -1) {
-      castling[white] |= bitsKsideCastle;
-    }
-    if (tokens[2].indexOf('Q') > -1) {
-      castling[white] |= bitsQsideCastle;
-    }
-    if (tokens[2].indexOf('k') > -1) {
-      castling[black] |= bitsKsideCastle;
-    }
-    if (tokens[2].indexOf('q') > -1) {
-      castling[black] |= bitsQsideCastle;
-    }
-
-    epSquare = (tokens[3] == '-') ? null : squares[tokens[3]];
     halfMoves = int.parse(tokens[4]);
     moveNumber = int.parse(tokens[5]);
 
@@ -384,7 +374,7 @@ class Chess {
         var color = board[i]!.color;
         PieceType? type = board[i]!.type;
 
-        fen += (color == white) ? type.toUpperCase() : type.toLowerCase();
+        fen += (color == red) ? type.toUpperCase() : type.toLowerCase();
       }
 
       if (((i + 1) & 0x88) != 0) {
@@ -401,28 +391,9 @@ class Chess {
       }
     }
 
-    var cflags = '';
-    if ((castling[white] & bitsKsideCastle) != 0) {
-      cflags += 'K';
-    }
-    if ((castling[white] & bitsQsideCastle) != 0) {
-      cflags += 'Q';
-    }
-    if ((castling[black] & bitsKsideCastle) != 0) {
-      cflags += 'k';
-    }
-    if ((castling[black] & bitsQsideCastle) != 0) {
-      cflags += 'q';
-    }
+    final turnStr = (turn == red) ? 'r' : 'y';
 
-    /* do we have an empty castling flag? */
-    if (cflags == '') {
-      cflags = '-';
-    }
-    final epflags = (epSquare == null) ? '-' : algebraic(epSquare!);
-    final turnStr = (turn == white) ? 'w' : 'b';
-
-    return [fen, turnStr, cflags, epflags].join(' ');
+    return [fen, turnStr].join(' ');
   }
 
   /// Returns a FEN String representing the current position
@@ -532,8 +503,8 @@ class Chess {
     final us = turn;
     final them = swapColor(us);
     final secondRank = ColorMap<int>(0);
-    secondRank[black] = rank7;
-    secondRank[white] = rank2;
+    secondRank[yellow] = rank7;
+    secondRank[red] = rank2;
 
     var firstSq = squaresA8;
     var lastSq = squaresH1;
@@ -570,12 +541,6 @@ class Chess {
         final square = i + pawnOffsets[us]![0];
         if (board[square] == null) {
           addMove(board, moves, i, square, bitsNormal);
-
-          /* double square */
-          final square2 = i + pawnOffsets[us]![1];
-          if (secondRank[us] == rank(i) && board[square2] == null) {
-            addMove(board, moves, i, square2, bitsBigPawn);
-          }
         }
 
         /* pawn captures */
@@ -729,9 +694,9 @@ class Chess {
       if ((attacks[index] & (1 << type.shift)) != 0) {
         if (type == pawn) {
           if (difference > 0) {
-            if (color == white) return true;
+            if (color == red) return true;
           } else {
-            if (color == black) return true;
+            if (color == yellow) return true;
           }
           continue;
         }
@@ -867,15 +832,6 @@ class Chess {
     board[move.to] = board[move.from];
     board[move.from] = null;
 
-    /* if ep capture, remove the captured pawn */
-    if ((move.flags & bitsEpCapture) != 0) {
-      if (turn == black) {
-        board[move.to - 16] = null;
-      } else {
-        board[move.to + 16] = null;
-      }
-    }
-
     /* if pawn promotion, replace with new piece */
     if ((move.flags & bitsPromotion) != 0) {
       board[move.to] = Piece(move.promotion!, us);
@@ -922,18 +878,6 @@ class Chess {
       }
     }
 
-    /* if big pawn move, update the en passant square */
-    var theirPawn = Piece(pawn, them);
-    if ((move.flags & bitsBigPawn) != 0 && (theirPawn.eq(board[move.to - 1]) || theirPawn.eq(board[move.to + 1]))) {
-      if (turn == black) {
-        epSquare = move.to - 16;
-      } else {
-        epSquare = move.to + 16;
-      }
-    } else {
-      epSquare = null;
-    }
-
     /* reset the 50 move counter if a pawn is moved or a piece is captured */
     if (move.piece == pawn) {
       halfMoves = 0;
@@ -943,7 +887,7 @@ class Chess {
       halfMoves++;
     }
 
-    if (turn == black) {
+    if (turn == green) {
       moveNumber++;
     }
     turn = swapColor(turn);
@@ -975,7 +919,7 @@ class Chess {
       board[move.to] = Piece(move.captured!, them);
     } else if ((move.flags & bitsEpCapture) != 0) {
       int index;
-      if (us == black) {
+      if (us == yellow) {
         index = move.to - 16;
       } else {
         index = move.to + 16;
@@ -1069,7 +1013,7 @@ class Chess {
       } else {
         var type = board[i]!.type;
         var color = board[i]!.color;
-        var symbol = (color == white) ? type.toUpperCase() : type.toLowerCase();
+        var symbol = (color == red) ? type.toUpperCase() : type.toLowerCase();
         s += ' $symbol ';
       }
 
@@ -1099,7 +1043,7 @@ class Chess {
   }
 
   static PlayerColor swapColor(PlayerColor c) {
-    return c == white ? black : white;
+    return c == red ? yellow : red;
   }
 
   static bool isDigit(String c) {
@@ -1232,10 +1176,10 @@ class Chess {
       final move = reversedHistory.removeLast()!;
 
       /* if the position started with black to move, start PGN with 1. ... */
-      if (pgnMoveNumber == 1 && move.color == black) {
+      if (pgnMoveNumber == 1 && move.color == yellow) {
         moveString = '1. ...';
         pgnMoveNumber++;
-      } else if (move.color == white) {
+      } else if (move.color == red) {
         /* store the previous generated move_string if we have one */
         if (moveString.isNotEmpty) {
           moves.add(moveString);
@@ -1583,8 +1527,6 @@ class PieceType {
   String toUpperCase() => name.toUpperCase();
 }
 
-enum PlayerColor { white, black }
-
 class ColorMap<T> {
   T _white;
   T _black;
@@ -1596,11 +1538,11 @@ class ColorMap<T> {
         _black = other._black;
 
   T operator [](PlayerColor color) {
-    return (color == white) ? _white : _black;
+    return (color == red) ? _white : _black;
   }
 
   void operator []=(PlayerColor color, T value) {
-    if (color == white) {
+    if (color == red) {
       _white = value;
     } else {
       _black = value;

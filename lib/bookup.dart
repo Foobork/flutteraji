@@ -73,7 +73,7 @@ class HomePageState extends State<HomePage> {
   String _bfen = "";
   String _eval = "";
   String _turn = "";
-  PlayerColor _orientation = white;
+  PlayerColor _orientation = red;
 
   dynamic _moveButton(String move) {
     return _button(move, () => _controller.makeMoveWithNormalNotation(move));
@@ -134,7 +134,7 @@ class HomePageState extends State<HomePage> {
   void _update() {
     _knownMovesToSan();
     _bfen = _controller.game.bfen;
-    _turn = _controller.game.turn == white ? "White to move" : "Black to move";
+    _turn = _controller.game.turn == red ? "White to move" : "Black to move";
     Clipboard.setData(ClipboardData(text: _bfen));
     _eval = graph.v[_bfen]?.assigned?.toString() ?? "";
   }
@@ -149,7 +149,7 @@ class HomePageState extends State<HomePage> {
                 : 1
             : b == null
                 ? 0
-                : turn == white
+                : turn == red
                     ? b.compareTo(a)
                     : a.compareTo(b);
       };
@@ -179,7 +179,7 @@ class HomePageState extends State<HomePage> {
   }
 
   void _doFlip() {
-    _orientation = _orientation == white ? black : white;
+    _orientation = _orientation == red ? red : yellow;
   }
 
   void _flip() {

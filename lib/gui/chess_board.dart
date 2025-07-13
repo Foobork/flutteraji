@@ -43,7 +43,7 @@ class ChessBoard extends StatefulWidget {
     this.size,
     this.enableUserMoves = true,
     this.boardColor = BoardColor.brown,
-    this.boardOrientation = white,
+    this.boardOrientation = red,
     this.onMove,
     this.arrows = const [],
   });
@@ -74,8 +74,8 @@ class _ChessBoardState extends State<ChessBoard> {
                   itemBuilder: (context, index) {
                     var row = index ~/ 8;
                     var column = index % 8;
-                    var boardRank = widget.boardOrientation == black ? '${row + 1}' : '${(7 - row) + 1}';
-                    var boardFile = widget.boardOrientation == white ? _files[column] : _files[7 - column];
+                    var boardRank = widget.boardOrientation == yellow ? '${row + 1}' : '${(7 - row) + 1}';
+                    var boardFile = widget.boardOrientation == red ? _files[column] : _files[7 - column];
 
                     var squareName = '$boardFile$boardRank';
                     var pieceOnSquare = game.get(squareName);
@@ -92,7 +92,7 @@ class _ChessBoardState extends State<ChessBoard> {
                             data: PieceMoveData(
                               squareName: squareName,
                               pieceType: pieceOnSquare?.type.toUpperCase() ?? 'P',
-                              pieceColor: pieceOnSquare?.color ?? white,
+                              pieceColor: pieceOnSquare?.color ?? red,
                             ),
                             child: piece,
                           )
@@ -110,10 +110,10 @@ class _ChessBoardState extends State<ChessBoard> {
                       if (pieceMoveData.pieceType == "P" &&
                           ((pieceMoveData.squareName[1] == "7" &&
                                   squareName[1] == "8" &&
-                                  pieceMoveData.pieceColor == white) ||
+                                  pieceMoveData.pieceColor == red) ||
                               (pieceMoveData.squareName[1] == "2" &&
                                   squareName[1] == "1" &&
-                                  pieceMoveData.pieceColor == black))) {
+                                  pieceMoveData.pieceColor == yellow))) {
                         var val = await _promotionDialog(context);
 
                         if (val != null) {
@@ -250,11 +250,11 @@ class BoardPiece extends StatelessWidget {
       return Container();
     }
 
-    String piece = (square?.color == white ? 'W' : 'B') + (square?.type.toUpperCase() ?? 'P');
+    String piece = (square?.color == red ? 'W' : 'B') + (square?.type.toUpperCase() ?? 'P');
 
     switch (piece) {
       case "WP":
-        imageToDisplay = WhitePawn();
+        imageToDisplay = WhitePawn(fillColor: Colors.red);
         break;
       case "WR":
         imageToDisplay = WhiteRook();
@@ -331,7 +331,7 @@ class _ArrowPainter extends CustomPainter {
       int effectiveRowEnd = 0;
       int effectiveColumnEnd = 0;
 
-      if (boardOrientation == PlayerColor.black) {
+      if (boardOrientation == yellow) {
         effectiveColumnStart = 7 - startFile;
         effectiveColumnEnd = 7 - endFile;
         effectiveRowStart = startRank;
