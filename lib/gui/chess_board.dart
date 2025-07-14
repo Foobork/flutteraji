@@ -8,12 +8,7 @@ import 'board_arrow.dart';
 import 'chess_board_controller.dart';
 
 /// Enum which stores board types
-enum BoardColor {
-  brown,
-  darkBrown,
-  orange,
-  green,
-}
+enum BoardColor { brown, darkBrown, orange, green }
 
 const _files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
@@ -70,20 +65,23 @@ class _ChessBoardState extends State<ChessBoard> {
               AspectRatio(
                 aspectRatio: 1.0,
                 child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 8),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 8,
+                  ),
                   itemBuilder: (context, index) {
                     var row = index ~/ 8;
                     var column = index % 8;
-                    var boardRank = widget.boardOrientation == yellow ? '${row + 1}' : '${(7 - row) + 1}';
-                    var boardFile = widget.boardOrientation == red ? _files[column] : _files[7 - column];
+                    var boardRank = widget.boardOrientation == yellow
+                        ? '${row + 1}'
+                        : '${(7 - row) + 1}';
+                    var boardFile = widget.boardOrientation == red
+                        ? _files[column]
+                        : _files[7 - column];
 
                     var squareName = '$boardFile$boardRank';
                     var pieceOnSquare = game.get(squareName);
 
-                    var piece = BoardPiece(
-                      squareName: squareName,
-                      game: game,
-                    );
+                    var piece = BoardPiece(squareName: squareName, game: game);
 
                     var draggable = game.get(squareName) != null
                         ? Draggable<PieceMoveData>(
@@ -91,50 +89,59 @@ class _ChessBoardState extends State<ChessBoard> {
                             childWhenDragging: const SizedBox(),
                             data: PieceMoveData(
                               squareName: squareName,
-                              pieceType: pieceOnSquare?.type.toUpperCase() ?? 'P',
+                              pieceType:
+                                  pieceOnSquare?.type.toUpperCase() ?? 'P',
                               pieceColor: pieceOnSquare?.color ?? red,
                             ),
                             child: piece,
                           )
                         : Container();
 
-                    var dragTarget = DragTarget<PieceMoveData>(builder: (context, list, _) {
-                      return draggable;
-                    }, onWillAcceptWithDetails: (pieceMoveData) {
-                      return widget.enableUserMoves ? true : false;
-                    }, onAcceptWithDetails: (DragTargetDetails<PieceMoveData> dragTargetDetails) async {
-                      PieceMoveData pieceMoveData = dragTargetDetails.data;
-                      // A way to check if move occurred.
-                      PlayerColor moveColor = game.turn;
+                    var dragTarget = DragTarget<PieceMoveData>(
+                      builder: (context, list, _) {
+                        return draggable;
+                      },
+                      onWillAcceptWithDetails: (pieceMoveData) {
+                        return widget.enableUserMoves ? true : false;
+                      },
+                      onAcceptWithDetails:
+                          (
+                            DragTargetDetails<PieceMoveData> dragTargetDetails,
+                          ) async {
+                            PieceMoveData pieceMoveData =
+                                dragTargetDetails.data;
+                            // A way to check if move occurred.
+                            PlayerColor moveColor = game.turn;
 
-                      if (pieceMoveData.pieceType == "P" &&
-                          ((pieceMoveData.squareName[1] == "7" &&
-                                  squareName[1] == "8" &&
-                                  pieceMoveData.pieceColor == red) ||
-                              (pieceMoveData.squareName[1] == "2" &&
-                                  squareName[1] == "1" &&
-                                  pieceMoveData.pieceColor == yellow))) {
-                        var val = await _promotionDialog(context);
+                            if (pieceMoveData.pieceType == "P" &&
+                                ((pieceMoveData.squareName[1] == "7" &&
+                                        squareName[1] == "8" &&
+                                        pieceMoveData.pieceColor == red) ||
+                                    (pieceMoveData.squareName[1] == "2" &&
+                                        squareName[1] == "1" &&
+                                        pieceMoveData.pieceColor == yellow))) {
+                              var val = await _promotionDialog(context);
 
-                        if (val != null) {
-                          widget.controller.makeMoveWithPromotion(
-                            from: pieceMoveData.squareName,
-                            to: squareName,
-                            pieceToPromoteTo: val,
-                          );
-                        } else {
-                          return;
-                        }
-                      } else {
-                        widget.controller.makeMove(
-                          from: pieceMoveData.squareName,
-                          to: squareName,
-                        );
-                      }
-                      if (game.turn != moveColor) {
-                        widget.onMove?.call();
-                      }
-                    });
+                              if (val != null) {
+                                widget.controller.makeMoveWithPromotion(
+                                  from: pieceMoveData.squareName,
+                                  to: squareName,
+                                  pieceToPromoteTo: val,
+                                );
+                              } else {
+                                return;
+                              }
+                            } else {
+                              widget.controller.makeMove(
+                                from: pieceMoveData.squareName,
+                                to: squareName,
+                              );
+                            }
+                            if (game.turn != moveColor) {
+                              widget.onMove?.call();
+                            }
+                          },
+                    );
 
                     return dragTarget;
                   },
@@ -148,7 +155,10 @@ class _ChessBoardState extends State<ChessBoard> {
                   child: AspectRatio(
                     aspectRatio: 1.0,
                     child: CustomPaint(
-                      painter: _ArrowPainter(widget.arrows, widget.boardOrientation),
+                      painter: _ArrowPainter(
+                        widget.arrows,
+                        widget.boardOrientation,
+                      ),
                       child: Container(),
                     ),
                   ),
@@ -164,25 +174,13 @@ class _ChessBoardState extends State<ChessBoard> {
   Image _getBoardImage(BoardColor color) {
     switch (color) {
       case BoardColor.brown:
-        return Image.asset(
-          "images/brown_board.png",
-          fit: BoxFit.cover,
-        );
+        return Image.asset("images/brown_board.png", fit: BoxFit.cover);
       case BoardColor.darkBrown:
-        return Image.asset(
-          "images/dark_brown_board.png",
-          fit: BoxFit.cover,
-        );
+        return Image.asset("images/dark_brown_board.png", fit: BoxFit.cover);
       case BoardColor.green:
-        return Image.asset(
-          "images/green_board.png",
-          fit: BoxFit.cover,
-        );
+        return Image.asset("images/green_board.png", fit: BoxFit.cover);
       case BoardColor.orange:
-        return Image.asset(
-          "images/orange_board.png",
-          fit: BoxFit.cover,
-        );
+        return Image.asset("images/orange_board.png", fit: BoxFit.cover);
     }
   }
 
@@ -231,69 +229,51 @@ class _ChessBoardState extends State<ChessBoard> {
   }
 }
 
-class BoardPiece extends StatelessWidget {
+final class BoardPiece extends StatelessWidget {
   final String squareName;
   final Chess game;
 
-  const BoardPiece({
-    super.key,
-    required this.squareName,
-    required this.game,
-  });
+  const BoardPiece({super.key, required this.squareName, required this.game});
 
   @override
   Widget build(BuildContext context) {
-    late Widget imageToDisplay;
     var square = game.get(squareName);
 
     if (game.get(squareName) == null) {
       return Container();
     }
 
-    String piece = (square?.color == red ? 'W' : 'B') + (square?.type.toUpperCase() ?? 'P');
-
-    switch (piece) {
-      case "WP":
-        imageToDisplay = WhitePawn(fillColor: Colors.red);
-        break;
-      case "WR":
-        imageToDisplay = WhiteRook();
-        break;
-      case "WN":
-        imageToDisplay = WhiteKnight();
-        break;
-      case "WB":
-        imageToDisplay = WhiteBishop();
-        break;
-      case "WQ":
-        imageToDisplay = WhiteQueen();
-        break;
-      case "WK":
-        imageToDisplay = WhiteKing();
-        break;
-      case "BP":
-        imageToDisplay = BlackPawn();
-        break;
-      case "BR":
-        imageToDisplay = BlackRook();
-        break;
-      case "BN":
-        imageToDisplay = BlackKnight();
-        break;
-      case "BB":
-        imageToDisplay = BlackBishop();
-        break;
-      case "BQ":
-        imageToDisplay = BlackQueen();
-        break;
-      case "BK":
-        imageToDisplay = BlackKing();
-        break;
-      default:
-        imageToDisplay = WhitePawn();
-    }
-
-    return imageToDisplay;
+    return switch (square) {
+      Piece(type: pawn, color: red) => WhitePawn(fillColor: Colors.red),
+      Piece(type: rook, color: red) => WhiteRook(fillColor: Colors.red),
+      Piece(type: knight, color: red) => WhiteKnight(fillColor: Colors.red),
+      Piece(type: bishop, color: red) => WhiteBishop(fillColor: Colors.red),
+      Piece(type: queen, color: red) => WhiteQueen(fillColor: Colors.red),
+      Piece(type: king, color: red) => WhiteKing(fillColor: Colors.red),
+      Piece(type: pawn, color: yellow) => WhitePawn(fillColor: Colors.yellow),
+      Piece(type: rook, color: yellow) => WhiteRook(fillColor: Colors.yellow),
+      Piece(type: knight, color: yellow) => WhiteKnight(
+        fillColor: Colors.yellow,
+      ),
+      Piece(type: bishop, color: yellow) => WhiteBishop(
+        fillColor: Colors.yellow,
+      ),
+      Piece(type: queen, color: yellow) => WhiteQueen(fillColor: Colors.yellow),
+      Piece(type: king, color: yellow) => WhiteKing(fillColor: Colors.yellow),
+      Piece(type: pawn, color: blue) => WhitePawn(fillColor: Colors.blue),
+      Piece(type: rook, color: blue) => WhiteRook(fillColor: Colors.blue),
+      Piece(type: knight, color: blue) => WhiteKnight(fillColor: Colors.blue),
+      Piece(type: bishop, color: blue) => WhiteBishop(fillColor: Colors.blue),
+      Piece(type: queen, color: blue) => WhiteQueen(fillColor: Colors.blue),
+      Piece(type: king, color: blue) => WhiteKing(fillColor: Colors.blue),
+      Piece(type: pawn, color: green) => WhitePawn(fillColor: Colors.green),
+      Piece(type: rook, color: green) => WhiteRook(fillColor: Colors.green),
+      Piece(type: knight, color: green) => WhiteKnight(fillColor: Colors.green),
+      Piece(type: bishop, color: green) => WhiteBishop(fillColor: Colors.green),
+      Piece(type: queen, color: green) => WhiteQueen(fillColor: Colors.green),
+      Piece(type: king, color: green) => WhiteKing(fillColor: Colors.green),
+      _ => throw UnimplementedError(),
+    };
   }
 }
 
@@ -343,10 +323,14 @@ class _ArrowPainter extends CustomPainter {
         effectiveRowEnd = 7 - endRank;
       }
 
-      var startOffset = Offset(((effectiveColumnStart + 1) * blockSize) - halfBlockSize,
-          ((effectiveRowStart + 1) * blockSize) - halfBlockSize);
+      var startOffset = Offset(
+        ((effectiveColumnStart + 1) * blockSize) - halfBlockSize,
+        ((effectiveRowStart + 1) * blockSize) - halfBlockSize,
+      );
       var endOffset = Offset(
-          ((effectiveColumnEnd + 1) * blockSize) - halfBlockSize, ((effectiveRowEnd + 1) * blockSize) - halfBlockSize);
+        ((effectiveColumnEnd + 1) * blockSize) - halfBlockSize,
+        ((effectiveRowEnd + 1) * blockSize) - halfBlockSize,
+      );
 
       var yDist = 0.8 * (endOffset.dy - startOffset.dy);
       var xDist = 0.8 * (endOffset.dx - startOffset.dx);
@@ -355,13 +339,22 @@ class _ArrowPainter extends CustomPainter {
         ..strokeWidth = halfBlockSize * 0.8
         ..color = arrow.color;
 
-      canvas.drawLine(startOffset, Offset(startOffset.dx + xDist, startOffset.dy + yDist), paint);
+      canvas.drawLine(
+        startOffset,
+        Offset(startOffset.dx + xDist, startOffset.dy + yDist),
+        paint,
+      );
 
-      var slope = (endOffset.dy - startOffset.dy) / (endOffset.dx - startOffset.dx);
+      var slope =
+          (endOffset.dy - startOffset.dy) / (endOffset.dx - startOffset.dx);
 
       var newLineSlope = -1 / slope;
 
-      var points = _getNewPoints(Offset(startOffset.dx + xDist, startOffset.dy + yDist), newLineSlope, halfBlockSize);
+      var points = _getNewPoints(
+        Offset(startOffset.dx + xDist, startOffset.dy + yDist),
+        newLineSlope,
+        halfBlockSize,
+      );
       var newPoint1 = points[0];
       var newPoint2 = points[1];
 
@@ -378,14 +371,21 @@ class _ArrowPainter extends CustomPainter {
 
   List<Offset> _getNewPoints(Offset start, double slope, double length) {
     if (slope == double.infinity || slope == double.negativeInfinity) {
-      return [Offset(start.dx, start.dy + length), Offset(start.dx, start.dy - length)];
+      return [
+        Offset(start.dx, start.dy + length),
+        Offset(start.dx, start.dy - length),
+      ];
     }
 
     return [
       Offset(
-          start.dx + (length / sqrt(1 + (slope * slope))), start.dy + ((length * slope) / sqrt(1 + (slope * slope)))),
+        start.dx + (length / sqrt(1 + (slope * slope))),
+        start.dy + ((length * slope) / sqrt(1 + (slope * slope))),
+      ),
       Offset(
-          start.dx - (length / sqrt(1 + (slope * slope))), start.dy - ((length * slope) / sqrt(1 + (slope * slope)))),
+        start.dx - (length / sqrt(1 + (slope * slope))),
+        start.dy - ((length * slope) / sqrt(1 + (slope * slope))),
+      ),
     ];
   }
 
