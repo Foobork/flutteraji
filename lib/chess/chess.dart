@@ -241,7 +241,6 @@ class Chess {
   List<Piece?> board = []..length = 128;
   ColorMap<int> kings = ColorMap(-1);
   PlayerColor turn = red;
-  int? epSquare;
   int halfMoves = 0;
   int moveNumber = 1;
   List<GameState> history = [];
@@ -263,7 +262,6 @@ class Chess {
       ..board = List<Piece?>.from(board)
       ..kings = ColorMap<int>.clone(kings)
       ..turn = turn
-      ..epSquare = epSquare
       ..halfMoves = halfMoves
       ..moveNumber = moveNumber
       ..history = List<GameState>.from(history)
@@ -275,7 +273,6 @@ class Chess {
     board = []..length = 128;
     kings = ColorMap(-1);
     turn = red;
-    epSquare = null;
     halfMoves = 0;
     moveNumber = 1;
     history = [];
@@ -465,8 +462,6 @@ class Chess {
 
           if (board[square] != null && board[square]!.color != us) {
             addMove(board, moves, i, square, bitsCapture);
-          } else if (square == epSquare) {
-            addMove(board, moves, i, epSquare, bitsEpCapture);
           }
         }
       } else {
@@ -693,7 +688,6 @@ class Chess {
         move,
         ColorMap.clone(kings),
         turn,
-        epSquare,
         halfMoves,
         moveNumber,
       ),
@@ -742,7 +736,6 @@ class Chess {
     final move = old.move;
     kings = old.kings;
     turn = old.turn;
-    epSquare = old.epSquare;
     halfMoves = old.halfMoves;
     moveNumber = old.moveNumber;
 
@@ -1391,14 +1384,12 @@ class GameState {
   final Move move;
   final ColorMap<int> kings;
   final PlayerColor turn;
-  final int? epSquare;
   final int halfMoves;
   final int moveNumber;
   const GameState(
     this.move,
     this.kings,
     this.turn,
-    this.epSquare,
     this.halfMoves,
     this.moveNumber,
   );
