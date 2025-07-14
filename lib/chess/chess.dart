@@ -20,6 +20,13 @@ const PlayerColor blue = PlayerColor.blue;
 const PlayerColor yellow = PlayerColor.yellow;
 const PlayerColor green = PlayerColor.green;
 
+const Map<String, PlayerColor> colors = {
+  'r': red,
+  'b': blue,
+  'y': yellow,
+  'g': green,
+};
+
 const PieceType pawn = PieceType.pawn;
 const PieceType knight = PieceType.knight;
 const PieceType bishop = PieceType.bishop;
@@ -36,18 +43,19 @@ class Chess {
     'b': bishop,
     'r': rook,
     'q': queen,
-    'k': king
+    'k': king,
   };
 
   static const String symbols = 'pnbrqkPNBRQK';
 
-  static const String defaultPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+  static const String defaultPosition =
+      'bRbP2yKyByNyR/bNbP2yPyPyPyP/bBbP6/bKbP6/6gPgK/6gPgB/rPrPrPrP2gPgN/rRrNrBrK2gPgR r';
 
   static const List possibleResults = ['1-0', '0-1', '1/2-1/2', '*'];
 
   static const Map<PlayerColor, List<int>> pawnOffsets = {
     red: [16, 32, 17, 15],
-    yellow: [-16, -32, -17, -15]
+    yellow: [-16, -32, -17, -15],
   };
 
   static const Map<PieceType, List<int>> pieceOffsets = {
@@ -55,7 +63,7 @@ class Chess {
     bishop: [-17, -15, 17, 15],
     rook: [-16, 1, 16, -1],
     queen: [-17, -16, -15, 1, 17, 16, 15, -1],
-    king: [-17, -16, -15, 1, 17, 16, 15, -1]
+    king: [-17, -16, -15, 1, 17, 16, 15, -1],
   };
 
   static const List attacks = [
@@ -74,7 +82,7 @@ class Chess {
     0, 0, 0, 20, 0, 0, 0, 24, 0, 0, 0, 20, 0, 0, 0, 0,
     0, 0, 20, 0, 0, 0, 0, 24, 0, 0, 0, 0, 20, 0, 0, 0,
     0, 20, 0, 0, 0, 0, 0, 24, 0, 0, 0, 0, 0, 20, 0, 0,
-    20, 0, 0, 0, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0, 20
+    20, 0, 0, 0, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0, 20,
   ];
 
   static const List<int> rays = [
@@ -93,7 +101,7 @@ class Chess {
     0, 0, 0, -15, 0, 0, 0, -16, 0, 0, 0, -17, 0, 0, 0, 0,
     0, 0, -15, 0, 0, 0, 0, -16, 0, 0, 0, 0, -17, 0, 0, 0,
     0, -15, 0, 0, 0, 0, 0, -16, 0, 0, 0, 0, 0, -17, 0, 0,
-    -15, 0, 0, 0, 0, 0, 0, -16, 0, 0, 0, 0, 0, 0, -17
+    -15, 0, 0, 0, 0, 0, 0, -16, 0, 0, 0, 0, 0, 0, -17,
   ];
 
   static const Map<String, String> moveFlags = {
@@ -103,7 +111,7 @@ class Chess {
     'EP_CAPTURE': 'e',
     'PROMOTION': 'p',
     'KSIDE_CASTLE': 'k',
-    'QSIDE_CASTLE': 'q'
+    'QSIDE_CASTLE': 'q',
   };
 
   static const Map<String, int> bits = {
@@ -113,7 +121,7 @@ class Chess {
     'EP_CAPTURE': bitsEpCapture,
     'PROMOTION': bitsPromotion,
     'KSIDE_CASTLE': bitsKsideCastle,
-    'QSIDE_CASTLE': bitsQsideCastle
+    'QSIDE_CASTLE': bitsQsideCastle,
   };
 
   static const int bitsNormal = 1;
@@ -136,13 +144,62 @@ class Chess {
   static const Map squares = {
     // prevent aggressive reformat
     'a8': 0, 'b8': 1, 'c8': 2, 'd8': 3, 'e8': 4, 'f8': 5, 'g8': 6, 'h8': 7,
-    'a7': 16, 'b7': 17, 'c7': 18, 'd7': 19, 'e7': 20, 'f7': 21, 'g7': 22, 'h7': 23,
-    'a6': 32, 'b6': 33, 'c6': 34, 'd6': 35, 'e6': 36, 'f6': 37, 'g6': 38, 'h6': 39,
-    'a5': 48, 'b5': 49, 'c5': 50, 'd5': 51, 'e5': 52, 'f5': 53, 'g5': 54, 'h5': 55,
-    'a4': 64, 'b4': 65, 'c4': 66, 'd4': 67, 'e4': 68, 'f4': 69, 'g4': 70, 'h4': 71,
-    'a3': 80, 'b3': 81, 'c3': 82, 'd3': 83, 'e3': 84, 'f3': 85, 'g3': 86, 'h3': 87,
-    'a2': 96, 'b2': 97, 'c2': 98, 'd2': 99, 'e2': 100, 'f2': 101, 'g2': 102, 'h2': 103,
-    'a1': 112, 'b1': 113, 'c1': 114, 'd1': 115, 'e1': 116, 'f1': 117, 'g1': 118, 'h1': 119
+    'a7': 16,
+    'b7': 17,
+    'c7': 18,
+    'd7': 19,
+    'e7': 20,
+    'f7': 21,
+    'g7': 22,
+    'h7': 23,
+    'a6': 32,
+    'b6': 33,
+    'c6': 34,
+    'd6': 35,
+    'e6': 36,
+    'f6': 37,
+    'g6': 38,
+    'h6': 39,
+    'a5': 48,
+    'b5': 49,
+    'c5': 50,
+    'd5': 51,
+    'e5': 52,
+    'f5': 53,
+    'g5': 54,
+    'h5': 55,
+    'a4': 64,
+    'b4': 65,
+    'c4': 66,
+    'd4': 67,
+    'e4': 68,
+    'f4': 69,
+    'g4': 70,
+    'h4': 71,
+    'a3': 80,
+    'b3': 81,
+    'c3': 82,
+    'd3': 83,
+    'e3': 84,
+    'f3': 85,
+    'g3': 86,
+    'h3': 87,
+    'a2': 96,
+    'b2': 97,
+    'c2': 98,
+    'd2': 99,
+    'e2': 100,
+    'f2': 101,
+    'g2': 102,
+    'h2': 103,
+    'a1': 112,
+    'b1': 113,
+    'c1': 114,
+    'd1': 115,
+    'e1': 116,
+    'f1': 117,
+    'g1': 118,
+    'h1': 119,
   };
 
   static const int squaresA1 = 112;
@@ -153,12 +210,12 @@ class Chess {
   static final Map<PlayerColor, List> rooks = {
     red: [
       {'square': squaresA1, 'flag': bitsQsideCastle},
-      {'square': squaresH1, 'flag': bitsKsideCastle}
+      {'square': squaresH1, 'flag': bitsKsideCastle},
     ],
     yellow: [
       {'square': squaresA8, 'flag': bitsQsideCastle},
-      {'square': squaresH8, 'flag': bitsKsideCastle}
-    ]
+      {'square': squaresH8, 'flag': bitsKsideCastle},
+    ],
   };
 
   // Instance Variables
@@ -207,7 +264,6 @@ class Chess {
     moveNumber = 1;
     history = [];
     header = {};
-    updateSetup(generateFen());
   }
 
   /// Go back to the chess starting position
@@ -221,23 +277,18 @@ class Chess {
     String position = tokens[0];
     var square = 0;
 
-    final validMap = validateFen(fen);
-    if (!validMap['valid']) {
-      print(validMap['error']);
-      return false;
-    }
-
     clear();
 
     for (var i = 0; i < position.length; i++) {
-      final piece = position[i];
+      final c = position[i];
 
-      if (piece == '/') {
+      if (c == '/') {
         square += 8;
-      } else if (isDigit(piece)) {
-        square += int.parse(piece);
+      } else if (isDigit(c)) {
+        square += int.parse(c);
       } else {
-        var color = (piece == piece.toUpperCase()) ? red : yellow;
+        var color = colors[c]!;
+        final piece = position[++i];
         var type = pieceTypes[piece.toLowerCase()]!;
         put(Piece(type, color), algebraic(square));
         square++;
@@ -250,112 +301,7 @@ class Chess {
       turn = yellow;
     }
 
-    halfMoves = int.parse(tokens[4]);
-    moveNumber = int.parse(tokens[5]);
-
-    updateSetup(generateFen());
-
     return true;
-  }
-
-  /// Check the formatting of a FEN String is correct
-  /// Returns a Map with keys valid, error_number, and error
-  static Map validateFen(String fen) {
-    const errors = {
-      0: 'No errors.',
-      1: 'FEN string must contain six space-delimited fields.',
-      2: '6th field (move number) must be a positive integer.',
-      3: '5th field (half move counter) must be a non-negative integer.',
-      4: '4th field (en-passant square) is invalid.',
-      5: '3rd field (castling availability) is invalid.',
-      6: '2nd field (side to move) is invalid.',
-      7: '1st field (piece positions) does not contain 8 \'/\'-delimited rows.',
-      8: '1st field (piece positions) is invalid [consecutive numbers].',
-      9: '1st field (piece positions) is invalid [invalid piece].',
-      10: '1st field (piece positions) is invalid [row too large].',
-    };
-
-    /* 1st criterion: 6 space-separated fields? */
-    List tokens = fen.split(RegExp(r'\s+'));
-    if (tokens.length != 6) {
-      return {'valid': false, 'error_number': 1, 'error': errors[1]};
-    }
-
-    /* 2nd criterion: move number field is a integer value > 0? */
-    var temp = int.tryParse(tokens[5]);
-    if (temp != null) {
-      if (temp <= 0) {
-        return {'valid': false, 'error_number': 2, 'error': errors[2]};
-      }
-    } else {
-      return {'valid': false, 'error_number': 2, 'error': errors[2]};
-    }
-
-    /* 3rd criterion: half move counter is an integer >= 0? */
-    temp = int.tryParse(tokens[4]);
-    if (temp != null) {
-      if (temp < 0) {
-        return {'valid': false, 'error_number': 3, 'error': errors[3]};
-      }
-    } else {
-      return {'valid': false, 'error_number': 3, 'error': errors[3]};
-    }
-
-    /* 4th criterion: 4th field is a valid e.p.-string? */
-    final check4 = RegExp(r'^(-|[abcdefgh][36])$');
-    if (check4.firstMatch(tokens[3]) == null) {
-      return {'valid': false, 'error_number': 4, 'error': errors[4]};
-    }
-
-    /* 5th criterion: 3th field is a valid castle-string? */
-    final check5 = RegExp(r'^(KQ?k?q?|Qk?q?|kq?|q|-)$');
-    if (check5.firstMatch(tokens[2]) == null) {
-      return {'valid': false, 'error_number': 5, 'error': errors[5]};
-    }
-
-    /* 6th criterion: 2nd field is "w" (white) or "b" (black)? */
-    var check6 = RegExp(r'^([wb])$');
-    if (check6.firstMatch(tokens[1]) == null) {
-      return {'valid': false, 'error_number': 6, 'error': errors[6]};
-    }
-
-    /* 7th criterion: 1st field contains 8 rows? */
-    List rows = tokens[0].split('/');
-    if (rows.length != 8) {
-      return {'valid': false, 'error_number': 7, 'error': errors[7]};
-    }
-
-    /* 8th criterion: every row is valid? */
-    for (var i = 0; i < rows.length; i++) {
-      /* check for right sum of fields AND not two numbers in succession */
-      var sumFields = 0;
-      var previousWasNumber = false;
-
-      for (var k = 0; k < rows[i].length; k++) {
-        final temp2 = int.tryParse(rows[i][k]);
-        if (temp2 != null) {
-          if (previousWasNumber) {
-            return {'valid': false, 'error_number': 8, 'error': errors[8]};
-          }
-          sumFields += temp2;
-          previousWasNumber = true;
-        } else {
-          final checkOM = RegExp(r'^[prnbqkPRNBQK]$');
-          if (checkOM.firstMatch(rows[i][k]) == null) {
-            return {'valid': false, 'error_number': 9, 'error': errors[9]};
-          }
-          sumFields += 1;
-          previousWasNumber = false;
-        }
-      }
-
-      if (sumFields != 8) {
-        return {'valid': false, 'error_number': 10, 'error': errors[10]};
-      }
-    }
-
-    /* everything's okay! */
-    return {'valid': true, 'error_number': 0, 'error': errors[0]};
   }
 
   /// Returns a bookup FEN String representing the current position
@@ -411,23 +357,6 @@ class Chess {
     return header;
   }
 
-  /// called when the initial board setup is changed with put() or remove().
-  /// modifies the SetUp and FEN properties of the header object.  if the FEN is
-  /// equal to the default position, the SetUp and FEN are deleted
-  /// the setup is only updated if history.length is zero, ie moves haven't been
-  /// made.
-  void updateSetup(String fen) {
-    if (history.isNotEmpty) return;
-
-    if (fen != defaultPosition) {
-      header['SetUp'] = '1';
-      header['FEN'] = fen;
-    } else {
-      header.remove('SetUp');
-      header.remove('FEN');
-    }
-  }
-
   /// Returns the piece at the square in question or null
   /// if there is none
   Piece? get(String square) {
@@ -452,8 +381,6 @@ class Chess {
       kings[piece.color] = sq;
     }
 
-    updateSetup(generateFen());
-
     return true;
   }
 
@@ -465,8 +392,6 @@ class Chess {
     if (piece != null && piece.type == king) {
       kings[piece.color] = -1;
     }
-
-    updateSetup(generateFen());
 
     return piece;
   }
@@ -489,7 +414,8 @@ class Chess {
   List<Move> generateMoves([Map? options]) {
     void addMove(List<Piece?> board, List<Move> moves, from, to, flags) {
       /* if pawn promotion */
-      if (board[from]!.type == pawn && (rank(to) == rank8 || rank(to) == rank1)) {
+      if (board[from]!.type == pawn &&
+          (rank(to) == rank8 || rank(to) == rank1)) {
         const pieces = [queen, rook, bishop, knight];
         for (var i = 0, len = pieces.length; i < len; i++) {
           moves.add(buildMove(board, from, to, flags, pieces[i]));
@@ -511,7 +437,9 @@ class Chess {
     var singleSquare = false;
 
     /* do we want legal moves? */
-    final legal = (options != null && options.containsKey('legal')) ? options['legal'] : true;
+    final legal = (options != null && options.containsKey('legal'))
+        ? options['legal']
+        : true;
 
     /* are we generating moves for a single square? */
     if (options != null && options.containsKey('square')) {
@@ -754,7 +682,9 @@ class Chess {
 
       var piece = board[i];
       if (piece != null) {
-        pieces[piece.type] = (pieces.containsKey(piece.type)) ? pieces[piece.type] + 1 : 1;
+        pieces[piece.type] = (pieces.containsKey(piece.type))
+            ? pieces[piece.type] + 1
+            : 1;
         if (piece.type == bishop) {
           bishops.add(sqColor);
         }
@@ -765,11 +695,12 @@ class Chess {
     /* k vs. k */
     if (numPieces == 2) {
       return true;
-    } /* k vs. kn .... or .... k vs. kb */
-    else if (numPieces == 3 && (pieces[bishop] == 1 || pieces[knight] == 1)) {
+    } /* k vs. kn .... or .... k vs. kb */ else if (numPieces == 3 &&
+        (pieces[bishop] == 1 || pieces[knight] == 1)) {
       return true;
-    } /* kb vs. kb where any number of bishops are all on the same color */
-    else if (pieces.containsKey(bishop) && numPieces == (pieces[bishop] + 2)) {
+    } /* kb vs. kb where any number of bishops are all on the same color */ else if (pieces
+            .containsKey(bishop) &&
+        numPieces == (pieces[bishop] + 2)) {
       var sum = 0;
       var len = bishops.length;
       for (var i = 0; i < len; i++) {
@@ -820,8 +751,17 @@ class Chess {
   }
 
   void push(Move move) {
-    history
-        .add(GameState(move, ColorMap.clone(kings), turn, ColorMap.clone(castling), epSquare, halfMoves, moveNumber));
+    history.add(
+      GameState(
+        move,
+        ColorMap.clone(kings),
+        turn,
+        ColorMap.clone(castling),
+        epSquare,
+        halfMoves,
+        moveNumber,
+      ),
+    );
   }
 
   void makeMove(Move move) {
@@ -861,7 +801,8 @@ class Chess {
     /* turn off castling if we move a rook */
     if (castling[us] != 0) {
       for (var i = 0, len = rooks[us]!.length; i < len; i++) {
-        if (move.from == rooks[us]![i]['square'] && ((castling[us] & rooks[us]![i]['flag']) != 0)) {
+        if (move.from == rooks[us]![i]['square'] &&
+            ((castling[us] & rooks[us]![i]['flag']) != 0)) {
           castling[us] ^= rooks[us]![i]['flag'];
           break;
         }
@@ -871,7 +812,8 @@ class Chess {
     /* turn off castling if we capture a rook */
     if (castling[them] != 0) {
       for (var i = 0, len = rooks[them]!.length; i < len; i++) {
-        if (move.to == rooks[them]![i]['square'] && ((castling[them] & rooks[them]![i]['flag']) != 0)) {
+        if (move.to == rooks[them]![i]['square'] &&
+            ((castling[them] & rooks[them]![i]['flag']) != 0)) {
           castling[them] ^= rooks[them]![i]['flag'];
           break;
         }
@@ -985,11 +927,9 @@ class Chess {
         return algebraic(from);
       } /* if the moving piece rests on the same file, use the rank symbol as the
        * disambiguator
-       */
-      else if (sameFile > 0) {
+       */ else if (sameFile > 0) {
         return algebraic(from)[1];
-      } /* else use the file symbol */
-      else {
+      } /* else use the file symbol */ else {
         return algebraic(from)[0];
       }
     }
@@ -1124,7 +1064,9 @@ class Chess {
        */
 
     final uglyMoves = generateMoves(options);
-    if (options != null && options.containsKey('asObjects') && options['asObjects'] == true) {
+    if (options != null &&
+        options.containsKey('asObjects') &&
+        options['asObjects'] == true) {
       return uglyMoves;
     }
     final moves = [];
@@ -1133,7 +1075,9 @@ class Chess {
       /* does the user want a full move object (most likely not), or just
          * SAN
          */
-      if (options != null && options.containsKey('verbose') && options['verbose'] == true) {
+      if (options != null &&
+          options.containsKey('verbose') &&
+          options['verbose'] == true) {
         moves.add(makePretty(uglyMoves[i]));
       } else {
         moves.add(moveToSan(uglyMoves[i]));
@@ -1144,7 +1088,10 @@ class Chess {
   }
 
   bool get inDraw {
-    return halfMoves >= 100 || inStalemate || insufficientMaterial || inThreefoldRepetition;
+    return halfMoves >= 100 ||
+        inStalemate ||
+        insufficientMaterial ||
+        inThreefoldRepetition;
   }
 
   bool get gameOver {
@@ -1210,10 +1157,16 @@ class Chess {
     /* using the specification from http://www.chessclub.com/help/PGN-spec
        * example for html usage: .pgn({ max_width: 72, newline_char: "<br />" })
        */
-    final newline = (options != null && options.containsKey('newline_char') && options['newline_char'] != null)
+    final newline =
+        (options != null &&
+            options.containsKey('newline_char') &&
+            options['newline_char'] != null)
         ? options['newline_char']
         : '\n';
-    final maxWidth = (options != null && options.containsKey('max_width') && options['max_width'] != null)
+    final maxWidth =
+        (options != null &&
+            options.containsKey('max_width') &&
+            options['max_width'] != null)
         ? options['max_width']
         : 0;
     final result = [];
@@ -1278,7 +1231,8 @@ class Chess {
       final moves = generateMoves();
       for (var i = 0, len = moves.length; i < len; i++) {
         /* strip off any trailing move decorations: e.g Nf3+?! */
-        if (move.replaceAll(RegExp(r'[+#?!=]+$'), '') == moveToSan(moves[i]).replaceAll(RegExp(r'[+#?!=]+$'), '')) {
+        if (move.replaceAll(RegExp(r'[+#?!=]+$'), '') ==
+            moveToSan(moves[i]).replaceAll(RegExp(r'[+#?!=]+$'), '')) {
           return moves[i];
         }
       }
@@ -1290,7 +1244,10 @@ class Chess {
     }
 
     Map<String, String> parsePgnHeader(header, [Map? options]) {
-      final newlineChar = (options != null && options.containsKey('newline_char')) ? options['newline_char'] : '\r?\n';
+      final newlineChar =
+          (options != null && options.containsKey('newline_char'))
+          ? options['newline_char']
+          : '\r?\n';
       final headerObj = <String, String>{};
       final headers = header.split(RegExp(newlineChar));
       var key = '';
@@ -1317,7 +1274,9 @@ class Chess {
       return headerObj;
     }
 
-    final newlineChar = (options != null && options.containsKey('newline_char')) ? options['newline_char'] : '\r?\n';
+    final newlineChar = (options != null && options.containsKey('newline_char'))
+        ? options['newline_char']
+        : '\r?\n';
     //var regex = new RegExp(r'^(\[.*\]).*' + r'1\.'); //+ r"1\."); //+ mask(newline_char));
 
     final indexOfMoveStart = pgn!.indexOf(RegExp(newlineChar + r'1\.'));
@@ -1342,7 +1301,9 @@ class Chess {
     }
 
     /* delete header to get the moves */
-    var ms = pgn.replaceAll(headerString, '').replaceAll(RegExp(mask(newlineChar)), ' ');
+    var ms = pgn
+        .replaceAll(headerString, '')
+        .replaceAll(RegExp(mask(newlineChar)), ' ');
 
     /* delete comments */
     ms = ms.replaceAll(RegExp(r'({[^}]+\})+?'), '');
@@ -1428,7 +1389,8 @@ class Chess {
       for (var i = 0; i < moves.length; i++) {
         if (move['from'] == moves[i].fromAlgebraic &&
             move['to'] == moves[i].toAlgebraic &&
-            (moves[i].promotion == null || move['promotion'] == moves[i].promotion!.name)) {
+            (moves[i].promotion == null ||
+                move['promotion'] == moves[i].promotion!.name)) {
           moveObj = moves[i];
           break;
         }
@@ -1479,7 +1441,10 @@ class Chess {
   List getHistory([Map? options]) {
     final reversedHistory = <Move?>[];
     final moveHistory = [];
-    final verbose = (options != null && options.containsKey('verbose') && options['verbose'] == true);
+    final verbose =
+        (options != null &&
+        options.containsKey('verbose') &&
+        options['verbose'] == true);
 
     while (history.isNotEmpty) {
       reversedHistory.add(undoMove());
@@ -1530,12 +1495,8 @@ class PieceType {
 class ColorMap<T> {
   T _white;
   T _black;
-  ColorMap(T value)
-      : _white = value,
-        _black = value;
-  ColorMap.clone(ColorMap other)
-      : _white = other._white,
-        _black = other._black;
+  ColorMap(T value) : _white = value, _black = value;
+  ColorMap.clone(ColorMap other) : _white = other._white, _black = other._black;
 
   T operator [](PlayerColor color) {
     return (color == red) ? _white : _black;
@@ -1558,7 +1519,15 @@ class Move {
   final PieceType piece;
   final PieceType? captured;
   final PieceType? promotion;
-  const Move(this.color, this.from, this.to, this.flags, this.piece, this.captured, this.promotion);
+  const Move(
+    this.color,
+    this.from,
+    this.to,
+    this.flags,
+    this.piece,
+    this.captured,
+    this.promotion,
+  );
 
   String get fromAlgebraic {
     return Chess.algebraic(from);
@@ -1577,5 +1546,13 @@ class GameState {
   final int? epSquare;
   final int halfMoves;
   final int moveNumber;
-  const GameState(this.move, this.kings, this.turn, this.castling, this.epSquare, this.halfMoves, this.moveNumber);
+  const GameState(
+    this.move,
+    this.kings,
+    this.turn,
+    this.castling,
+    this.epSquare,
+    this.halfMoves,
+    this.moveNumber,
+  );
 }
