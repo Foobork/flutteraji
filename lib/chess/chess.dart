@@ -52,8 +52,10 @@ class Chess {
   static const List possibleResults = ['1-0', '0-1', '1/2-1/2', '*'];
 
   static const Map<PlayerColor, List<int>> pawnOffsets = {
-    red: [16, 32, 17, 15],
-    yellow: [-16, -32, -17, -15],
+    red: [-16, -32, -17, -15],
+    blue: [1, 2, -15, 17],
+    yellow: [16, 32, 17, 15],
+    green: [-1, -2, 15, -17],
   };
 
   static const Map<PieceType, List<int>> pieceOffsets = {
