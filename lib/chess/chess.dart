@@ -31,7 +31,6 @@ const PieceType pawn = PieceType.pawn;
 const PieceType knight = PieceType.knight;
 const PieceType bishop = PieceType.bishop;
 const PieceType rook = PieceType.rook;
-const PieceType queen = PieceType.queen;
 const PieceType king = PieceType.king;
 
 class Chess {
@@ -42,7 +41,6 @@ class Chess {
     'n': knight,
     'b': bishop,
     'r': rook,
-    'q': queen,
     'k': king,
   };
 
@@ -62,7 +60,6 @@ class Chess {
     knight: [-18, -33, -31, -14, 18, 33, 31, 14],
     bishop: [-17, -15, 17, 15],
     rook: [-16, 1, 16, -1],
-    queen: [-17, -16, -15, 1, 17, 16, 15, -1],
     king: [-17, -16, -15, 1, 17, 16, 15, -1],
   };
 
@@ -416,7 +413,7 @@ class Chess {
       /* if pawn promotion */
       if (board[from]!.type == pawn &&
           (rank(to) == rank8 || rank(to) == rank1)) {
-        const pieces = [queen, rook, bishop, knight];
+        const pieces = [rook, bishop, knight];
         for (var i = 0, len = pieces.length; i < len; i++) {
           moves.add(buildMove(board, from, to, flags, pieces[i]));
         }
@@ -434,7 +431,6 @@ class Chess {
 
     var firstSq = squaresA8;
     var lastSq = squaresH1;
-    var singleSquare = false;
 
     /* do we want legal moves? */
     final legal = (options != null && options.containsKey('legal'))
@@ -445,7 +441,6 @@ class Chess {
     if (options != null && options.containsKey('square')) {
       if (squares.containsKey(options['square'])) {
         firstSq = lastSq = squares[options['square']];
-        singleSquare = true;
       } else {
         /* invalid square */
         return [];
@@ -504,39 +499,6 @@ class Chess {
             /* break, if knight or king */
             if (piece.type == knight || piece.type == king) break;
           }
-        }
-      }
-    }
-
-    // check for castling if: a) we're generating all moves, or b) we're doing
-    // single square move generation on the king's square
-    if ((!singleSquare) || lastSq == kings[us]) {
-      /* king-side castling */
-      if ((castling[us] & bitsKsideCastle) != 0) {
-        final castlingFrom = kings[us];
-        final castlingTo = castlingFrom + 2;
-
-        if (board[castlingFrom + 1] == null &&
-            board[castlingTo] == null &&
-            !attacked(them, kings[us]) &&
-            !attacked(them, castlingFrom + 1) &&
-            !attacked(them, castlingTo)) {
-          addMove(board, moves, kings[us], castlingTo, bitsKsideCastle);
-        }
-      }
-
-      /* queen-side castling */
-      if ((castling[us] & bitsQsideCastle) != 0) {
-        final castlingFrom = kings[us];
-        final castlingTo = castlingFrom - 2;
-
-        if (board[castlingFrom - 1] == null &&
-            board[castlingFrom - 2] == null &&
-            board[castlingFrom - 3] == null &&
-            !attacked(them, kings[us]) &&
-            !attacked(them, castlingFrom - 1) &&
-            !attacked(them, castlingTo)) {
-          addMove(board, moves, kings[us], castlingTo, bitsQsideCastle);
         }
       }
     }
@@ -1483,7 +1445,6 @@ class PieceType {
   static const PieceType knight = PieceType._internal(1, 'n');
   static const PieceType bishop = PieceType._internal(2, 'b');
   static const PieceType rook = PieceType._internal(3, 'r');
-  static const PieceType queen = PieceType._internal(4, 'q');
   static const PieceType king = PieceType._internal(5, 'k');
 
   @override
