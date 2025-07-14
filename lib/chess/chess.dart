@@ -34,6 +34,13 @@ const Map<PlayerColor, String> colorNames = {
   green: 'Green',
 };
 
+const Map<PlayerColor, PlayerColor> nextColor = {
+  red: blue,
+  blue: yellow,
+  yellow: green,
+  green: red,
+};
+
 const PieceType pawn = PieceType.pawn;
 const PieceType knight = PieceType.knight;
 const PieceType bishop = PieceType.bishop;
@@ -301,11 +308,7 @@ class Chess {
       }
     }
 
-    if (tokens[1] == 'r') {
-      turn = red;
-    } else {
-      turn = yellow;
-    }
+    turn = colors[tokens[1]]!;
 
     return true;
   }
@@ -406,15 +409,7 @@ class Chess {
     if (promotion != null) {
       flags |= bitsPromotion;
     }
-
-    PieceType? captured;
-    final toPiece = board[to];
-    if (toPiece != null) {
-      captured = toPiece.type;
-    } else if ((flags & bitsEpCapture) != 0) {
-      captured = pawn;
-    }
-    return Move(turn, from, to, flags, board[from]!.type, captured, promotion);
+    return Move(turn, from, to, flags, board[from]!.type, board[to], promotion);
   }
 
   List<Move> generateMoves([Map? options]) {
@@ -433,18 +428,12 @@ class Chess {
 
     final moves = <Move>[];
     final us = turn;
-    final them = swapColor(us);
     final secondRank = ColorMap<int>(0);
     secondRank[yellow] = rank7;
     secondRank[red] = rank2;
 
     var firstSq = squaresA8;
     var lastSq = squaresH1;
-
-    /* do we want legal moves? */
-    final legal = (options != null && options.containsKey('legal'))
-        ? options['legal']
-        : true;
 
     /* are we generating moves for a single square? */
     if (options != null && options.containsKey('square')) {
@@ -480,7 +469,7 @@ class Chess {
           var square = i + pawnOffsets[us]![j];
           if ((square & 0x88) != 0) continue;
 
-          if (board[square] != null && board[square]!.color == them) {
+          if (board[square] != null && board[square]!.color != us) {
             addMove(board, moves, i, square, bitsCapture);
           } else if (square == epSquare) {
             addMove(board, moves, i, epSquare, bitsEpCapture);
@@ -512,24 +501,7 @@ class Chess {
       }
     }
 
-    /* return all pseudo-legal moves (this includes moves that allow the king
-     * to be captured)
-     */
-    if (!legal) {
-      return moves;
-    }
-
-    /* filter out illegal moves */
-    final legalMoves = <Move>[];
-    for (var i = 0, len = moves.length; i < len; i++) {
-      makeMove(moves[i]);
-      if (!kingAttacked(us)) {
-        legalMoves.add(moves[i]);
-      }
-      undoMove();
-    }
-
-    return legalMoves;
+    return moves;
   }
 
   /// Convert a move from 0x88 coordinates to Standard Algebraic Notation(SAN)
@@ -623,7 +595,7 @@ class Chess {
   }
 
   bool kingAttacked(PlayerColor color) {
-    return attacked(swapColor(color), kings[color]);
+    return attacked(color, kings[color]);
   }
 
   bool get inCheck {
@@ -737,7 +709,6 @@ class Chess {
 
   void makeMove(Move move) {
     final us = turn;
-    final them = swapColor(us);
     push(move);
 
     board[move.to] = board[move.from];
@@ -751,22 +722,6 @@ class Chess {
     /* if we moved the king */
     if (board[move.to]!.type == king) {
       kings[board[move.to]!.color] = move.to;
-
-      /* if we castled, move the rook next to the king */
-      if ((move.flags & bitsKsideCastle) != 0) {
-        final castlingTo = move.to - 1;
-        final castlingFrom = move.to + 1;
-        board[castlingTo] = board[castlingFrom];
-        board[castlingFrom] = null;
-      } else if ((move.flags & bitsQsideCastle) != 0) {
-        final castlingTo = move.to + 1;
-        final castlingFrom = move.to - 2;
-        board[castlingTo] = board[castlingFrom];
-        board[castlingFrom] = null;
-      }
-
-      /* turn off castling */
-      castling[us] = 0;
     }
 
     /* turn off castling if we move a rook */
@@ -775,17 +730,6 @@ class Chess {
         if (move.from == rooks[us]![i]['square'] &&
             ((castling[us] & rooks[us]![i]['flag']) != 0)) {
           castling[us] ^= rooks[us]![i]['flag'];
-          break;
-        }
-      }
-    }
-
-    /* turn off castling if we capture a rook */
-    if (castling[them] != 0) {
-      for (var i = 0, len = rooks[them]!.length; i < len; i++) {
-        if (move.to == rooks[them]![i]['square'] &&
-            ((castling[them] & rooks[them]![i]['flag']) != 0)) {
-          castling[them] ^= rooks[them]![i]['flag'];
           break;
         }
       }
@@ -803,7 +747,7 @@ class Chess {
     if (turn == green) {
       moveNumber++;
     }
-    turn = swapColor(turn);
+    turn = nextColor[turn]!;
   }
 
   /// Undoes a move and returns it, or null if move history is empty
@@ -821,23 +765,12 @@ class Chess {
     halfMoves = old.halfMoves;
     moveNumber = old.moveNumber;
 
-    final us = turn;
-    final them = swapColor(turn);
-
     board[move.from] = board[move.to];
     board[move.from]!.type = move.piece; // to undo any promotions
     board[move.to] = null;
 
     if ((move.flags & bitsCapture) != 0) {
-      board[move.to] = Piece(move.captured!, them);
-    } else if ((move.flags & bitsEpCapture) != 0) {
-      int index;
-      if (us == yellow) {
-        index = move.to - 16;
-      } else {
-        index = move.to + 16;
-      }
-      board[index] = Piece(pawn, them);
+      board[move.to] = move.captured!;
     }
 
     if ((move.flags & (bitsKsideCastle | bitsQsideCastle)) != 0) {
@@ -951,10 +884,6 @@ class Chess {
   static String algebraic(int i) {
     var f = file(i), r = rank(i);
     return 'abcdefgh'.substring(f, f + 1) + '87654321'.substring(r, r + 1);
-  }
-
-  static PlayerColor swapColor(PlayerColor c) {
-    return c == red ? yellow : red;
   }
 
   static bool isDigit(String c) {
@@ -1487,7 +1416,7 @@ class Move {
   final int to;
   final int flags;
   final PieceType piece;
-  final PieceType? captured;
+  final Piece? captured;
   final PieceType? promotion;
   const Move(
     this.color,
