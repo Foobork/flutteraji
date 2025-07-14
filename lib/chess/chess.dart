@@ -155,8 +155,14 @@ class Chess {
   static const int rank8 = 0;
 
   static const Map squares = {
-    // prevent aggressive reformat
-    'a8': 0, 'b8': 1, 'c8': 2, 'd8': 3, 'e8': 4, 'f8': 5, 'g8': 6, 'h8': 7,
+    'a8': 0,
+    'b8': 1,
+    'c8': 2,
+    'd8': 3,
+    'e8': 4,
+    'f8': 5,
+    'g8': 6,
+    'h8': 7,
     'a7': 16,
     'b7': 17,
     'c7': 18,
@@ -235,7 +241,6 @@ class Chess {
   List<Piece?> board = []..length = 128;
   ColorMap<int> kings = ColorMap(-1);
   PlayerColor turn = red;
-  ColorMap<int> castling = ColorMap(0);
   int? epSquare;
   int halfMoves = 0;
   int moveNumber = 1;
@@ -258,7 +263,6 @@ class Chess {
       ..board = List<Piece?>.from(board)
       ..kings = ColorMap<int>.clone(kings)
       ..turn = turn
-      ..castling = ColorMap<int>.clone(castling)
       ..epSquare = epSquare
       ..halfMoves = halfMoves
       ..moveNumber = moveNumber
@@ -271,7 +275,6 @@ class Chess {
     board = []..length = 128;
     kings = ColorMap(-1);
     turn = red;
-    castling = ColorMap(0);
     epSquare = null;
     halfMoves = 0;
     moveNumber = 1;
@@ -699,7 +702,6 @@ class Chess {
         move,
         ColorMap.clone(kings),
         turn,
-        ColorMap.clone(castling),
         epSquare,
         halfMoves,
         moveNumber,
@@ -722,17 +724,6 @@ class Chess {
     /* if we moved the king */
     if (board[move.to]!.type == king) {
       kings[board[move.to]!.color] = move.to;
-    }
-
-    /* turn off castling if we move a rook */
-    if (castling[us] != 0) {
-      for (var i = 0, len = rooks[us]!.length; i < len; i++) {
-        if (move.from == rooks[us]![i]['square'] &&
-            ((castling[us] & rooks[us]![i]['flag']) != 0)) {
-          castling[us] ^= rooks[us]![i]['flag'];
-          break;
-        }
-      }
     }
 
     /* reset the 50 move counter if a pawn is moved or a piece is captured */
@@ -760,7 +751,6 @@ class Chess {
     final move = old.move;
     kings = old.kings;
     turn = old.turn;
-    castling = old.castling;
     epSquare = old.epSquare;
     halfMoves = old.halfMoves;
     moveNumber = old.moveNumber;
@@ -839,37 +829,6 @@ class Chess {
     }
 
     return '';
-  }
-
-  /// Returns a String representation of the current position
-  /// complete with ascii art
-  String get ascii {
-    var s = '   +------------------------+\n';
-    for (var i = squaresA8; i <= squaresH1; i++) {
-      /* display the rank */
-      if (file(i) == 0) {
-        s += ' ${'87654321'[rank(i)]} |';
-      }
-
-      /* empty piece */
-      if (board[i] == null) {
-        s += ' . ';
-      } else {
-        var type = board[i]!.type;
-        var color = board[i]!.color;
-        var symbol = (color == red) ? type.toUpperCase() : type.toLowerCase();
-        s += ' $symbol ';
-      }
-
-      if (((i + 1) & 0x88) != 0) {
-        s += '|\n';
-        i += 8;
-      }
-    }
-    s += '   +------------------------+\n';
-    s += '     a  b  c  d  e  f  g  h\n';
-
-    return s;
   }
 
   // Utility Functions
@@ -1441,7 +1400,6 @@ class GameState {
   final Move move;
   final ColorMap<int> kings;
   final PlayerColor turn;
-  final ColorMap<int> castling;
   final int? epSquare;
   final int halfMoves;
   final int moveNumber;
@@ -1449,7 +1407,6 @@ class GameState {
     this.move,
     this.kings,
     this.turn,
-    this.castling,
     this.epSquare,
     this.halfMoves,
     this.moveNumber,

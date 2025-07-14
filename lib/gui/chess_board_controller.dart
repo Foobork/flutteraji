@@ -98,10 +98,6 @@ class ChessBoardController extends ValueNotifier<Chess> {
     return game.gameOver;
   }
 
-  String getAscii() {
-    return game.ascii;
-  }
-
   String getFen() {
     return game.fen;
   }
