@@ -27,6 +27,13 @@ const Map<String, PlayerColor> colors = {
   'g': green,
 };
 
+const Map<PlayerColor, String> colorNames = {
+  red: 'Red',
+  blue: 'Blue',
+  yellow: 'Yellow',
+  green: 'Green',
+};
+
 const PieceType pawn = PieceType.pawn;
 const PieceType knight = PieceType.knight;
 const PieceType bishop = PieceType.bishop;

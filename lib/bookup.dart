@@ -134,7 +134,7 @@ class HomePageState extends State<HomePage> {
   void _update() {
     _knownMovesToSan();
     _bfen = _controller.game.bfen;
-    _turn = _controller.game.turn == red ? "White to move" : "Black to move";
+    _turn = "${colorNames[_controller.game.turn]!} to move";
     Clipboard.setData(ClipboardData(text: _bfen));
     _eval = graph.v[_bfen]?.assigned?.toString() ?? "";
   }
