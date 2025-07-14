@@ -417,16 +417,7 @@ class Chess {
 
   List<Move> generateMoves([Map? options]) {
     void addMove(List<Piece?> board, List<Move> moves, from, to, flags) {
-      /* if pawn promotion */
-      if (board[from]!.type == pawn &&
-          (rank(to) == rank8 || rank(to) == rank1)) {
-        const pieces = [rook, bishop, knight];
-        for (var i = 0, len = pieces.length; i < len; i++) {
-          moves.add(buildMove(board, from, to, flags, pieces[i]));
-        }
-      } else {
-        moves.add(buildMove(board, from, to, flags));
-      }
+      moves.add(buildMove(board, from, to, flags));
     }
 
     final moves = <Move>[];
