@@ -62,10 +62,10 @@ class Chaturaji {
   static const List possibleResults = ['1-0', '0-1', '1/2-1/2', '*'];
 
   static const Map<PlayerColor, List<int>> pawnOffsets = {
-    red: [-16, -32, -17, -15],
-    blue: [1, 2, -15, 17],
-    yellow: [16, 32, 17, 15],
-    green: [-1, -2, 15, -17],
+    red: [-16, -17, -15],
+    blue: [1, -15, 17],
+    yellow: [16, 17, 15],
+    green: [-1, 15, -17],
   };
 
   static const Map<PieceType, List<int>> pieceOffsets = {
@@ -405,7 +405,26 @@ class Chaturaji {
 
   List<Move> generateMoves() {
     void addMove(List<Piece?> board, List<Move> moves, from, to, flags) {
-      moves.add(buildMove(board, from, to, flags));
+      if (board[from]!.type == pawn) {
+        switch (board[from]!.color) {
+          case red:
+            if (to <= 7) flags |= bitsPromotion;
+            break;
+          case blue:
+            if (to % 8 == 7) flags |= bitsPromotion;
+            break;
+          case yellow:
+            if (to >= 112) flags |= bitsPromotion;
+            break;
+          case green:
+            if (to % 8 == 0) flags |= bitsPromotion;
+            break;
+        }
+      }
+      PieceType? promotion = flags & bitsPromotion != 0
+          ? rook
+          : null;
+      moves.add(buildMove(board, from, to, flags, promotion));
     }
 
     final moves = <Move>[];
@@ -437,7 +456,7 @@ class Chaturaji {
         }
 
         /* pawn captures */
-        for (var j = 2; j < 4; j++) {
+        for (var j = 1; j < 3; j++) {
           var square = i + pawnOffsets[us]![j];
           if ((square & 0x88) != 0) continue;
 
@@ -879,9 +898,7 @@ class Chaturaji {
       /* convert the pretty move object to an ugly move object */
       for (var i = 0; i < moves.length; i++) {
         if (move['from'] == moves[i].fromAlgebraic &&
-            move['to'] == moves[i].toAlgebraic &&
-            (moves[i].promotion == null ||
-                move['promotion'] == moves[i].promotion!.name)) {
+            move['to'] == moves[i].toAlgebraic) {
           moveObj = moves[i];
           break;
         }
