@@ -249,7 +249,7 @@ final class BoardPiece extends StatelessWidget {
       return Container();
     }
 
-      return switch (square) {
+    return switch (square) {
       Piece(type: pawn, color: red) => WhitePawn(fillColor: Colors.red),
       Piece(type: rook, color: red) => WhiteRook(fillColor: Colors.red),
       Piece(type: knight, color: red) => WhiteKnight(fillColor: Colors.red),
