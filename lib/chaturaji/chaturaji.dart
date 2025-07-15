@@ -403,7 +403,7 @@ class Chaturaji {
     return Move(turn, from, to, flags, board[from]!.type, board[to], promotion);
   }
 
-  List<Move> generateMoves([Map? options]) {
+  List<Move> generateMoves() {
     void addMove(List<Piece?> board, List<Move> moves, from, to, flags) {
       moves.add(buildMove(board, from, to, flags));
     }
@@ -416,16 +416,6 @@ class Chaturaji {
 
     var firstSq = squaresA8;
     var lastSq = squaresH1;
-
-    /* are we generating moves for a single square? */
-    if (options != null && options.containsKey('square')) {
-      if (squares.containsKey(options['square'])) {
-        firstSq = lastSq = squares[options['square']];
-      } else {
-        /* invalid square */
-        return [];
-      }
-    }
 
     for (var i = firstSq; i <= lastSq; i++) {
       /* did we run off the end of the board */
@@ -512,16 +502,6 @@ class Chaturaji {
         output += '=${move.promotion!.toUpperCase()}';
       }
     }
-
-    makeMove(move);
-    if (inCheck) {
-      if (inCheckmate) {
-        output += '#';
-      } else {
-        output += '+';
-      }
-    }
-    undoMove();
 
     return output;
   }
@@ -792,28 +772,6 @@ class Chaturaji {
 
   String trim(String str) {
     return str.replaceAll(RegExp(r'^\s+|\s+$'), '');
-  }
-
-  // debug utility
-  int perft(int? depth) {
-    var moves = generateMoves({'legal': false});
-    var nodes = 0;
-    var color = turn;
-
-    for (var i = 0, len = moves.length; i < len; i++) {
-      makeMove(moves[i]);
-      if (!kingAttacked(color)) {
-        if (depth! - 1 > 0) {
-          var childNodes = perft(depth - 1);
-          nodes += childNodes;
-        } else {
-          nodes++;
-        }
-      }
-      undoMove();
-    }
-
-    return nodes;
   }
 
   //Public APIs

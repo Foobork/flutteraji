@@ -101,7 +101,7 @@ class ChaturajiBoardController extends ValueNotifier<Chaturaji> {
   }
 
   List<Move> getPossibleMoves() {
-    return game.generateMoves({'asObjects': true});
+    return game.generateMoves();
   }
 
   int getMoveCount() {
