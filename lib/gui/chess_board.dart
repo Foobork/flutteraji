@@ -81,7 +81,13 @@ class _ChessBoardState extends State<ChessBoard> {
                     var squareName = '$boardFile$boardRank';
                     var pieceOnSquare = game.get(squareName);
 
-                    var piece = BoardPiece(squareName: squareName, game: game);
+                    var piece = BoardPiece(
+                      key: ValueKey(
+                        '${squareName}_${pieceOnSquare?.type}_${pieceOnSquare?.color}',
+                      ),
+                      squareName: squareName,
+                      game: game,
+                    );
 
                     var draggable = game.get(squareName) != null
                         ? Draggable<PieceMoveData>(
@@ -243,7 +249,7 @@ final class BoardPiece extends StatelessWidget {
       return Container();
     }
 
-    return switch (square) {
+      return switch (square) {
       Piece(type: pawn, color: red) => WhitePawn(fillColor: Colors.red),
       Piece(type: rook, color: red) => WhiteRook(fillColor: Colors.red),
       Piece(type: knight, color: red) => WhiteKnight(fillColor: Colors.red),
