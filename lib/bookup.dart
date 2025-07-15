@@ -6,8 +6,8 @@ import 'package:flutter/services.dart';
 import 'chaturaji/chaturaji.dart';
 import 'graph/graph.dart';
 import 'graph/graph_export.dart';
-import 'gui/chess_board.dart';
-import 'gui/chess_board_controller.dart';
+import 'gui/chaturaji_board.dart';
+import 'gui/chaturaji_board_controller.dart';
 
 class Bookup extends StatelessWidget {
   const Bookup({super.key});

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../chaturaji/chaturaji.dart';
 import 'board_arrow.dart';
-import 'chess_board_controller.dart';
+import 'chaturaji_board_controller.dart';
 
 /// Enum which stores board types
 enum BoardColor { brown, darkBrown, orange, green }
