@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'chess/chess.dart';
+import 'chaturaji/chaturaji.dart';
 import 'graph/graph.dart';
 import 'graph/graph_export.dart';
 import 'gui/chess_board.dart';

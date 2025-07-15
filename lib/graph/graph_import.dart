@@ -3,7 +3,7 @@
 import 'dart:io';
 
 import 'graph.dart';
-import '../chess/chess.dart';
+import '../chaturaji/chaturaji.dart';
 
 var brackets = RegExp(r"[\[\]]");
 

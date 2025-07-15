@@ -1,7 +1,5 @@
 // ignore_for_file: avoid_print
 
-library;
-
 /*  Based on chess.dart
  *  Copyright (c) 2014, David Kopec (my first name at oaksnow dot com)
  *  Released under the MIT license
