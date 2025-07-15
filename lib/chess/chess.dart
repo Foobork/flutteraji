@@ -58,8 +58,6 @@ class Chess {
     'k': king,
   };
 
-  static const String symbols = 'pnbrqkPNBRQK';
-
   static const String defaultPosition =
       'bRbP2yKyByNyR/bNbP2yPyPyPyP/bBbP6/bKbP6/6gPgK/6gPgB/rPrPrPrP2gPgN/rRrNrBrK2gPgR r';
 
