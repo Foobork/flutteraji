@@ -52,12 +52,6 @@ class ChessBoardController extends ValueNotifier<Chess> {
     notifyListeners();
   }
 
-  /// Puts piece on a square
-  void putPiece(PieceType piece, String square, PlayerColor color) {
-    game.put(Piece(piece, color), square);
-    notifyListeners();
-  }
-
   /// Loads a PGN
   void loadPGN(String pgn) {
     game.loadPgn(pgn);

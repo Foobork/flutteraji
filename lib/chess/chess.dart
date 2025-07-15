@@ -374,11 +374,6 @@ class Chess {
 
   /// Put [piece] on [square]
   bool put(Piece piece, String square) {
-    /* check for piece */
-    if (!symbols.contains(piece.type.toLowerCase())) {
-      return false;
-    }
-
     /* check for valid square */
     if (!(squares.containsKey(square))) {
       return false;
