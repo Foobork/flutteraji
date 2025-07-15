@@ -818,56 +818,6 @@ class Chaturaji {
 
   //Public APIs
 
-  ///  Returns a list of legals moves from the current position.
-  ///  The function takes an optional parameter which controls the
-  ///  single-square move generation and verbosity.
-  ///
-  ///  The piece, captured, and promotion fields contain the lowercase
-  ///  representation of the applicable piece.
-  ///
-  ///  The flags field in verbose mode may contain one or more of the following values:
-  ///
-  ///  'n' - a non-capture
-  ///  'b' - a pawn push of two squares
-  ///  'e' - an en passant capture
-  ///  'c' - a standard capture
-  ///  'p' - a promotion
-  ///  'k' - kingside castling
-  ///  'q' - queenside castling
-  ///  A flag of 'pc' would mean that a pawn captured a piece on the 8th rank and promoted.
-  ///
-  ///  If "asObjects" is set to true in the options Map, then it returns a `List<Move>`
-  List moves([Map? options]) {
-    /* The internal representation of a move is in 0x88 format, and
-       * not meant to be human-readable.  The code below converts the 0x88
-       * square coordinates to algebraic coordinates.  It also prunes an
-       * unnecessary move keys resulting from a verbose call.
-       */
-
-    final uglyMoves = generateMoves(options);
-    if (options != null &&
-        options.containsKey('asObjects') &&
-        options['asObjects'] == true) {
-      return uglyMoves;
-    }
-    final moves = [];
-
-    for (var i = 0, len = uglyMoves.length; i < len; i++) {
-      /* does the user want a full move object (most likely not), or just
-         * SAN
-         */
-      if (options != null &&
-          options.containsKey('verbose') &&
-          options['verbose'] == true) {
-        moves.add(makePretty(uglyMoves[i]));
-      } else {
-        moves.add(moveToSan(uglyMoves[i]));
-      }
-    }
-
-    return moves;
-  }
-
   bool get inDraw {
     return halfMoves >= 100 || inStalemate || inThreefoldRepetition;
   }
