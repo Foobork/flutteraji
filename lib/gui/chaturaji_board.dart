@@ -12,12 +12,12 @@ enum BoardColor { brown, darkBrown, orange, green }
 
 const _files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
-class ChessBoard extends StatefulWidget {
-  /// An instance of [ChessBoardController] which holds the game and allows
+class ChaturajiBoard extends StatefulWidget {
+  /// An instance of [ChaturajiBoardController] which holds the game and allows
   /// manipulating the board programmatically.
-  final ChessBoardController controller;
+  final ChaturajiBoardController controller;
 
-  /// Size of chessboard
+  /// Size of board
   final double? size;
 
   /// A boolean which checks if the user should be allowed to make moves
@@ -32,7 +32,7 @@ class ChessBoard extends StatefulWidget {
 
   final List<BoardArrow> arrows;
 
-  const ChessBoard({
+  const ChaturajiBoard({
     super.key,
     required this.controller,
     this.size,
@@ -44,13 +44,13 @@ class ChessBoard extends StatefulWidget {
   });
 
   @override
-  State<ChessBoard> createState() => _ChessBoardState();
+  State<ChaturajiBoard> createState() => _ChaturajiBoardState();
 }
 
-class _ChessBoardState extends State<ChessBoard> {
+class _ChaturajiBoardState extends State<ChaturajiBoard> {
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<Chess>(
+    return ValueListenableBuilder<Chaturaji>(
       valueListenable: widget.controller,
       builder: (context, game, _) {
         return SizedBox(
@@ -118,31 +118,10 @@ class _ChessBoardState extends State<ChessBoard> {
                                 dragTargetDetails.data;
                             // A way to check if move occurred.
                             PlayerColor moveColor = game.turn;
-
-                            if (pieceMoveData.pieceType == "P" &&
-                                ((pieceMoveData.squareName[1] == "7" &&
-                                        squareName[1] == "8" &&
-                                        pieceMoveData.pieceColor == red) ||
-                                    (pieceMoveData.squareName[1] == "2" &&
-                                        squareName[1] == "1" &&
-                                        pieceMoveData.pieceColor == yellow))) {
-                              var val = await _promotionDialog(context);
-
-                              if (val != null) {
-                                widget.controller.makeMoveWithPromotion(
-                                  from: pieceMoveData.squareName,
-                                  to: squareName,
-                                  pieceToPromoteTo: val,
-                                );
-                              } else {
-                                return;
-                              }
-                            } else {
-                              widget.controller.makeMove(
-                                from: pieceMoveData.squareName,
-                                to: squareName,
-                              );
-                            }
+                            widget.controller.makeMove(
+                              from: pieceMoveData.squareName,
+                              to: squareName,
+                            );
                             if (game.turn != moveColor) {
                               widget.onMove?.call();
                             }
@@ -189,55 +168,11 @@ class _ChessBoardState extends State<ChessBoard> {
         return Image.asset("images/orange_board.png", fit: BoxFit.cover);
     }
   }
-
-  /// Show dialog when pawn reaches last square
-  Future<String?> _promotionDialog(BuildContext context) async {
-    return showDialog<String>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Choose promotion'),
-          content: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              InkWell(
-                child: WhiteQueen(),
-                onTap: () {
-                  Navigator.of(context).pop("q");
-                },
-              ),
-              InkWell(
-                child: WhiteRook(),
-                onTap: () {
-                  Navigator.of(context).pop("r");
-                },
-              ),
-              InkWell(
-                child: WhiteBishop(),
-                onTap: () {
-                  Navigator.of(context).pop("b");
-                },
-              ),
-              InkWell(
-                child: WhiteKnight(),
-                onTap: () {
-                  Navigator.of(context).pop("n");
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    ).then((value) {
-      return value;
-    });
-  }
 }
 
 final class BoardPiece extends StatelessWidget {
   final String squareName;
-  final Chess game;
+  final Chaturaji game;
 
   const BoardPiece({super.key, required this.squareName, required this.game});
 

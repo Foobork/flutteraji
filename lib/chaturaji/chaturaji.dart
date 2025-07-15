@@ -45,7 +45,7 @@ const PieceType bishop = PieceType.bishop;
 const PieceType rook = PieceType.rook;
 const PieceType king = PieceType.king;
 
-class Chess {
+class Chaturaji {
   // Constants/Class Variables
 
   static const Map<String, PieceType> pieceTypes = {
@@ -242,19 +242,19 @@ class Chess {
   List<GameState> history = [];
   Map header = {};
 
-  /// By default start with the standard chess starting position
-  Chess() {
+  /// By default start with the standard starting position
+  Chaturaji() {
     load(defaultPosition);
   }
 
   /// Start with a position from a FEN
-  Chess.fromFEN(String fen) {
+  Chaturaji.fromFEN(String fen) {
     load(fen);
   }
 
   /// Deep copy of the current Chess instance
-  Chess copy() {
-    return Chess()
+  Chaturaji copy() {
+    return Chaturaji()
       ..board = List<Piece?>.from(board)
       ..kings = ColorMap<int>.clone(kings)
       ..turn = turn
@@ -275,7 +275,7 @@ class Chess {
     header = {};
   }
 
-  /// Go back to the chess starting position
+  /// Go back to the starting position
   void reset() {
     load(defaultPosition);
   }
@@ -628,13 +628,7 @@ class Chess {
 
   void push(Move move) {
     history.add(
-      GameState(
-        move,
-        ColorMap.clone(kings),
-        turn,
-        halfMoves,
-        moveNumber,
-      ),
+      GameState(move, ColorMap.clone(kings), turn, halfMoves, moveNumber),
     );
   }
 
@@ -844,7 +838,7 @@ class Chess {
   ///
   ///  If "asObjects" is set to true in the options Map, then it returns a `List<Move>`
   List moves([Map? options]) {
-    /* The internal representation of a chess move is in 0x88 format, and
+    /* The internal representation of a move is in 0x88 format, and
        * not meant to be human-readable.  The code below converts the 0x88
        * square coordinates to algebraic coordinates.  It also prunes an
        * unnecessary move keys resulting from a verbose call.
@@ -875,9 +869,7 @@ class Chess {
   }
 
   bool get inDraw {
-    return halfMoves >= 100 ||
-        inStalemate ||
-        inThreefoldRepetition;
+    return halfMoves >= 100 || inStalemate || inThreefoldRepetition;
   }
 
   bool get gameOver {
@@ -936,201 +928,6 @@ class Chess {
     }
 
     return moves;
-  }
-
-  /// Return the PGN representation of the game thus far
-  String pgn([Map? options]) {
-    /* using the specification from http://www.chessclub.com/help/PGN-spec
-       * example for html usage: .pgn({ max_width: 72, newline_char: "<br />" })
-       */
-    final newline =
-        (options != null &&
-            options.containsKey('newline_char') &&
-            options['newline_char'] != null)
-        ? options['newline_char']
-        : '\n';
-    final maxWidth =
-        (options != null &&
-            options.containsKey('max_width') &&
-            options['max_width'] != null)
-        ? options['max_width']
-        : 0;
-    final result = [];
-    var headerExists = false;
-
-    /* add the PGN header information */
-    for (var i in header.keys) {
-      /* order of enumerated properties in header object is not
-       * guaranteed, see ECMA-262 spec (section 12.6.4)
-       */
-      result.add('[$i "${header[i]}"]$newline');
-      headerExists = true;
-    }
-
-    if (headerExists && (history.isNotEmpty)) {
-      result.add(newline);
-    }
-
-    final moves = sanMoves();
-
-    if (maxWidth == 0) {
-      return result.join('') + moves.join(' ');
-    }
-
-    /* wrap the PGN output at max_width */
-    var currentWidth = 0;
-    for (var i = 0; i < moves.length; i++) {
-      /* if the current move will push past max_width */
-      if (currentWidth + moves[i]!.length > maxWidth && i != 0) {
-        /* don't end the line with whitespace */
-        if (result[result.length - 1] == ' ') {
-          result.removeLast();
-        }
-
-        result.add(newline);
-        currentWidth = 0;
-      } else if (i != 0) {
-        result.add(' ');
-        currentWidth++;
-      }
-      result.add(moves[i]);
-      currentWidth += moves[i]!.length;
-    }
-
-    return result.join('');
-  }
-
-  /// Load the moves of a game stored in Portable Game Notation.
-  /// [options] is an optional parameter that contains a 'newline_char'
-  /// which is a string representation of a RegExp (and should not be pre-escaped)
-  /// and defaults to '\r?\n').
-  /// Returns [true] if the PGN was parsed successfully, otherwise [false].
-  bool loadPgn(String? pgn, [Map? options]) {
-    String mask(str) {
-      return str.replaceAll(RegExp(r'\\'), '\\');
-    }
-
-    /* convert a move from Standard Algebraic Notation (SAN) to 0x88
-     * coordinates
-     */
-    Move? moveFromSan(move) {
-      final moves = generateMoves();
-      for (var i = 0, len = moves.length; i < len; i++) {
-        /* strip off any trailing move decorations: e.g Nf3+?! */
-        if (move.replaceAll(RegExp(r'[+#?!=]+$'), '') ==
-            moveToSan(moves[i]).replaceAll(RegExp(r'[+#?!=]+$'), '')) {
-          return moves[i];
-        }
-      }
-      return null;
-    }
-
-    Move? getMoveObj(move) {
-      return moveFromSan(trim(move));
-    }
-
-    Map<String, String> parsePgnHeader(header, [Map? options]) {
-      final newlineChar =
-          (options != null && options.containsKey('newline_char'))
-          ? options['newline_char']
-          : '\r?\n';
-      final headerObj = <String, String>{};
-      final headers = header.split(RegExp(newlineChar));
-      var key = '';
-      var value = '';
-
-      for (var i = 0; i < headers.length; i++) {
-        var keyMatch = RegExp(r'^\[([A-Z][A-Za-z]*)\s.*\]$');
-        var temp = keyMatch.firstMatch(headers[i]);
-        if (temp != null) {
-          key = temp[1]!;
-        }
-        //print(key);
-        var valueMatch = RegExp(r'^\[[A-Za-z]+\s"(.*)"\]$');
-        temp = valueMatch.firstMatch(headers[i]);
-        if (temp != null) {
-          value = temp[1]!;
-        }
-        //print(value);
-        if (trim(key).isNotEmpty) {
-          headerObj[key] = value;
-        }
-      }
-
-      return headerObj;
-    }
-
-    final newlineChar = (options != null && options.containsKey('newline_char'))
-        ? options['newline_char']
-        : '\r?\n';
-    //var regex = new RegExp(r'^(\[.*\]).*' + r'1\.'); //+ r"1\."); //+ mask(newline_char));
-
-    final indexOfMoveStart = pgn!.indexOf(RegExp(newlineChar + r'1\.'));
-
-    /* get header part of the PGN file */
-    String? headerString;
-    if (indexOfMoveStart != -1) {
-      headerString = pgn.substring(0, indexOfMoveStart).trim();
-    }
-
-    /* no info part given, begins with moves */
-    if (headerString == null || headerString[0] != '[') {
-      headerString = '';
-    }
-
-    reset();
-
-    /* parse PGN header */
-    final headers = parsePgnHeader(headerString, options);
-    for (var key in headers.keys) {
-      setHeader([key, headers[key]]);
-    }
-
-    /* delete header to get the moves */
-    var ms = pgn
-        .replaceAll(headerString, '')
-        .replaceAll(RegExp(mask(newlineChar)), ' ');
-
-    /* delete comments */
-    ms = ms.replaceAll(RegExp(r'({[^}]+\})+?'), '');
-
-    /* delete move numbers */
-    ms = ms.replaceAll(RegExp(r'\d+\.'), '');
-
-    /* trim and get array of moves */
-    var moves = trim(ms).split(RegExp(r'\s+'));
-
-    /* delete empty entries */
-    moves = moves.join(',').replaceAll(RegExp(r',,+'), ',').split(',');
-
-    for (var halfMove = 0; halfMove < moves.length - 1; halfMove++) {
-      var move = getMoveObj(moves[halfMove]);
-
-      /* move not possible! (don't clear the board to examine to show the
-       * latest valid position)
-       */
-      if (move == null) {
-        return false;
-      } else {
-        makeMove(move);
-      }
-    }
-
-    /* examine last move */
-    var move = moves[moves.length - 1];
-    if (possibleResults.contains(move)) {
-      if (!header.containsKey('Result')) {
-        setHeader(['Result', move]);
-      }
-    } else {
-      final moveObj = getMoveObj(move);
-      if (moveObj == null) {
-        return false;
-      } else {
-        makeMove(moveObj);
-      }
-    }
-    return true;
   }
 
   /// The move function can be called with in the following parameters:
@@ -1315,11 +1112,11 @@ class Move {
   );
 
   String get fromAlgebraic {
-    return Chess.algebraic(from);
+    return Chaturaji.algebraic(from);
   }
 
   String get toAlgebraic {
-    return Chess.algebraic(to);
+    return Chaturaji.algebraic(to);
   }
 }
 

@@ -32,7 +32,7 @@ void importGraph(String filename) {
       var assigned = parseEvalString(match.group(2));
       var computed = parseEvalString(match.group(3));
       graph.addFullVertex(bfen, assigned, computed);
-      var game = Chess();
+      var game = Chaturaji();
       game.load("$bfen 0 1");
       List<Move> moves = game.generateMoves();
       String a = game.bfen;

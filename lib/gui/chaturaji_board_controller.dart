@@ -4,16 +4,18 @@ import 'package:flutter/material.dart';
 
 import '../chaturaji/chaturaji.dart';
 
-class ChessBoardController extends ValueNotifier<Chess> {
-  late Chess game;
+class ChaturajiBoardController extends ValueNotifier<Chaturaji> {
+  late Chaturaji game;
 
-  factory ChessBoardController() => ChessBoardController._(Chess());
+  factory ChaturajiBoardController() => ChaturajiBoardController._(Chaturaji());
 
-  factory ChessBoardController.fromGame(Chess game) => ChessBoardController._(game);
+  factory ChaturajiBoardController.fromGame(Chaturaji game) =>
+      ChaturajiBoardController._(game);
 
-  factory ChessBoardController.fromFEN(String fen) => ChessBoardController._(Chess.fromFEN(fen));
+  factory ChaturajiBoardController.fromFEN(String fen) =>
+      ChaturajiBoardController._(Chaturaji.fromFEN(fen));
 
-  ChessBoardController._(this.game) : super(game);
+  ChaturajiBoardController._(this.game) : super(game);
 
   /// Makes move on the board
   void makeMove({required String from, required String to}) {
@@ -25,7 +27,11 @@ class ChessBoardController extends ValueNotifier<Chess> {
   /// from is a square like d4
   /// to is also a square like e3
   /// pieceToPromoteTo is a String like "Q".
-  void makeMoveWithPromotion({required String from, required String to, required String pieceToPromoteTo}) {
+  void makeMoveWithPromotion({
+    required String from,
+    required String to,
+    required String pieceToPromoteTo,
+  }) {
     game.move({"from": from, "to": to, "promotion": pieceToPromoteTo});
     notifyListeners();
   }
@@ -49,12 +55,6 @@ class ChessBoardController extends ValueNotifier<Chess> {
   /// Clears board
   void clearBoard() {
     game.clear();
-    notifyListeners();
-  }
-
-  /// Loads a PGN
-  void loadPGN(String pgn) {
-    game.loadPgn(pgn);
     notifyListeners();
   }
 

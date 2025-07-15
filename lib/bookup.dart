@@ -29,7 +29,7 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
-    var chessboard = ChessBoard(
+    var board = ChaturajiBoard(
       controller: _controller,
       boardColor: BoardColor.brown,
       boardOrientation: _orientation,
@@ -44,7 +44,7 @@ class HomePageState extends State<HomePage> {
           children: [
             Column(
               children: <Widget>[
-                Expanded(child: chessboard),
+                Expanded(child: board),
                 turn,
                 Row(
                   children: [
@@ -54,7 +54,7 @@ class HomePageState extends State<HomePage> {
                     _button("solve", _solve),
                     _button("export", _export),
                   ],
-                )
+                ),
               ],
             ),
             _movesColumn(),
@@ -66,7 +66,7 @@ class HomePageState extends State<HomePage> {
     return Scaffold(appBar: appBar, body: body);
   }
 
-  final _controller = ChessBoardController();
+  final _controller = ChaturajiBoardController();
   final _textStyle = const TextStyle(fontSize: 20);
 
   List<MoveInfo> _knownMoves = [];
@@ -105,20 +105,17 @@ class HomePageState extends State<HomePage> {
     return _padded(
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _evaluationWidget(),
-          _movesTable(),
-        ],
+        children: [_evaluationWidget(), _movesTable()],
       ),
     );
   }
 
   HomePageState() {
     _update();
-    _controller.addListener(_chessBoardListener);
+    _controller.addListener(_boardListener);
   }
 
-  void _chessBoardListener() {
+  void _boardListener() {
     var game = _controller.game.copy();
     List<Move> moves = game.generateMoves();
     String a = game.bfen;
@@ -139,19 +136,20 @@ class HomePageState extends State<HomePage> {
     _eval = graph.v[_bfen]?.assigned?.toString() ?? "";
   }
 
-  int Function(MoveInfo i, MoveInfo j) _compare(PlayerColor turn) => (MoveInfo i, MoveInfo j) {
+  int Function(MoveInfo i, MoveInfo j) _compare(PlayerColor turn) =>
+      (MoveInfo i, MoveInfo j) {
         var a = i.eval;
         var b = j.eval;
 
         return a == null
             ? b == null
-                ? 0
-                : 1
+                  ? 0
+                  : 1
             : b == null
-                ? 0
-                : turn == red
-                    ? b.compareTo(a)
-                    : a.compareTo(b);
+            ? 0
+            : turn == red
+            ? b.compareTo(a)
+            : a.compareTo(b);
       };
 
   void _knownMovesToSan() {
