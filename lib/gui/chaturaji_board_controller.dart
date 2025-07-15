@@ -23,19 +23,6 @@ class ChaturajiBoardController extends ValueNotifier<Chaturaji> {
     notifyListeners();
   }
 
-  /// Makes move and promotes pawn to piece
-  /// from is a square like d4
-  /// to is also a square like e3
-  /// pieceToPromoteTo is a String like "Q".
-  void makeMoveWithPromotion({
-    required String from,
-    required String to,
-    required String pieceToPromoteTo,
-  }) {
-    game.move({"from": from, "to": to, "promotion": pieceToPromoteTo});
-    notifyListeners();
-  }
-
   /// Makes move on the board
   void makeMoveWithNormalNotation(String move) {
     game.move(move);
