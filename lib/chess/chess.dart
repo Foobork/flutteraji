@@ -599,53 +599,6 @@ class Chess {
     return !inCheck && generateMoves().isEmpty;
   }
 
-  bool get insufficientMaterial {
-    final pieces = {};
-    final bishops = <int>[];
-    var numPieces = 0;
-    var sqColor = 0;
-
-    for (var i = squaresA8; i <= squaresH1; i++) {
-      sqColor = (sqColor + 1) % 2;
-      if ((i & 0x88) != 0) {
-        i += 7;
-        continue;
-      }
-
-      var piece = board[i];
-      if (piece != null) {
-        pieces[piece.type] = (pieces.containsKey(piece.type))
-            ? pieces[piece.type] + 1
-            : 1;
-        if (piece.type == bishop) {
-          bishops.add(sqColor);
-        }
-        numPieces++;
-      }
-    }
-
-    /* k vs. k */
-    if (numPieces == 2) {
-      return true;
-    } /* k vs. kn .... or .... k vs. kb */ else if (numPieces == 3 &&
-        (pieces[bishop] == 1 || pieces[knight] == 1)) {
-      return true;
-    } /* kb vs. kb where any number of bishops are all on the same color */ else if (pieces
-            .containsKey(bishop) &&
-        numPieces == (pieces[bishop] + 2)) {
-      var sum = 0;
-      var len = bishops.length;
-      for (var i = 0; i < len; i++) {
-        sum += bishops[i];
-      }
-      if (sum == 0 || sum == len) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
   bool get inThreefoldRepetition {
     /* A better implementation would use a Zobrist key (instead of FEN).
      * The Zobrist key would be maintained in the make_move/undo_move functions.
@@ -933,7 +886,6 @@ class Chess {
   bool get inDraw {
     return halfMoves >= 100 ||
         inStalemate ||
-        insufficientMaterial ||
         inThreefoldRepetition;
   }
 

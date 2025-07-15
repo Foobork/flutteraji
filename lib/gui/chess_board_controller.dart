@@ -90,10 +90,6 @@ class ChessBoardController extends ValueNotifier<Chess> {
     return game.inThreefoldRepetition;
   }
 
-  bool isInsufficientMaterial() {
-    return game.insufficientMaterial;
-  }
-
   bool isGameOver() {
     return game.gameOver;
   }
