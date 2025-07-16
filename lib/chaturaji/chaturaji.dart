@@ -226,7 +226,7 @@ class Chaturaji {
     load(fen);
   }
 
-  /// Deep copy of the current Chess instance
+  /// Deep copy of the current instance
   Chaturaji copy() {
     return Chaturaji()
       ..board = List<Piece?>.from(board)
@@ -344,18 +344,6 @@ class Chaturaji {
     }
 
     return true;
-  }
-
-  /// Removes a piece from a square and returns it,
-  /// or null if none is present
-  Piece? remove(String square) {
-    final piece = get(square);
-    board[squares[square]] = null;
-    if (piece != null && piece.type == king) {
-      kings[piece.color] = -1;
-    }
-
-    return piece;
   }
 
   Move buildMove(List<Piece?> board, from, to, flags, [PieceType? promotion]) {
