@@ -51,18 +51,6 @@ class ChaturajiBoardController extends ValueNotifier<Chaturaji> {
     notifyListeners();
   }
 
-  bool isInCheck() {
-    return game.inCheck;
-  }
-
-  bool isCheckMate() {
-    return game.inCheckmate;
-  }
-
-  bool isDraw() {
-    return game.inDraw;
-  }
-
   bool isStaleMate() {
     return game.inStalemate;
   }
@@ -77,10 +65,6 @@ class ChaturajiBoardController extends ValueNotifier<Chaturaji> {
 
   String getFen() {
     return game.fen;
-  }
-
-  List<String?> getSan() {
-    return game.sanMoves();
   }
 
   List<Piece?> getBoard() {

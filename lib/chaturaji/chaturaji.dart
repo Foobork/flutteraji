@@ -215,7 +215,6 @@ class Chaturaji {
   int halfMoves = 0;
   int moveNumber = 1;
   List<GameState> history = [];
-  Map header = {};
 
   /// By default start with the standard starting position
   Chaturaji() {
@@ -235,8 +234,7 @@ class Chaturaji {
       ..turn = turn
       ..halfMoves = halfMoves
       ..moveNumber = moveNumber
-      ..history = List<GameState>.from(history)
-      ..header = Map.from(header);
+      ..history = List<GameState>.from(history);
   }
 
   /// Reset all of the instance variables
@@ -247,7 +245,6 @@ class Chaturaji {
     halfMoves = 0;
     moveNumber = 1;
     history = [];
-    header = {};
   }
 
   /// Go back to the starting position
@@ -325,16 +322,6 @@ class Chaturaji {
   /// Returns a FEN String representing the current position
   String generateFen() {
     return [generateBfen, halfMoves, moveNumber].join(' ');
-  }
-
-  /// Updates [header] with the List of args and returns it
-  Map setHeader(dynamic args) {
-    for (var i = 0; i < args.length; i += 2) {
-      if (args[i] is String && args[i + 1] is String) {
-        header[args[i]] = args[i + 1];
-      }
-    }
-    return header;
   }
 
   /// Returns the piece at the square in question or null
@@ -763,52 +750,6 @@ class Chaturaji {
 
   String get bfen {
     return generateBfen();
-  }
-
-  /// return the san string representation of each move in history. Each string corresponds to one move.
-  List<String?> sanMoves() {
-    /* pop all of history onto reversed_history */
-    final reversedHistory = <Move?>[];
-    while (history.isNotEmpty) {
-      reversedHistory.add(undoMove());
-    }
-
-    final moves = <String?>[];
-    var moveString = '';
-    var pgnMoveNumber = 1;
-
-    /* build the list of moves.  a move_string looks like: "3. e3 e6" */
-    while (reversedHistory.isNotEmpty) {
-      final move = reversedHistory.removeLast()!;
-
-      /* if the position started with black to move, start PGN with 1. ... */
-      if (pgnMoveNumber == 1 && move.color == yellow) {
-        moveString = '1. ...';
-        pgnMoveNumber++;
-      } else if (move.color == red) {
-        /* store the previous generated move_string if we have one */
-        if (moveString.isNotEmpty) {
-          moves.add(moveString);
-        }
-        moveString = '$pgnMoveNumber.';
-        pgnMoveNumber++;
-      }
-
-      moveString = '$moveString ${moveToSan(move)}';
-      makeMove(move);
-    }
-
-    /* are there any other leftover moves? */
-    if (moveString.isNotEmpty) {
-      moves.add(moveString);
-    }
-
-    /* is there a result? */
-    if (header['Result'] != null) {
-      moves.add(header['Result']);
-    }
-
-    return moves;
   }
 
   /// The move function can be called with in the following parameters:
