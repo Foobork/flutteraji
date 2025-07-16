@@ -59,8 +59,6 @@ class Chaturaji {
   static const String defaultPosition =
       'bRbP2yKyByNyR/bNbP2yPyPyPyP/bBbP6/bKbP6/6gPgK/6gPgB/rPrPrPrP2gPgN/rRrNrBrK2gPgR r';
 
-  static const List possibleResults = ['1-0', '0-1', '1/2-1/2', '*'];
-
   static const Map<PlayerColor, List<int>> pawnOffsets = {
     red: [-16, -17, -15],
     blue: [1, -15, 17],
@@ -116,30 +114,18 @@ class Chaturaji {
   static const Map<String, String> moveFlags = {
     'NORMAL': 'n',
     'CAPTURE': 'c',
-    'BIG_PAWN': 'b',
-    'EP_CAPTURE': 'e',
     'PROMOTION': 'p',
-    'KSIDE_CASTLE': 'k',
-    'QSIDE_CASTLE': 'q',
   };
 
   static const Map<String, int> bits = {
     'NORMAL': bitsNormal,
     'CAPTURE': bitsCapture,
-    'BIG_PAWN': bitsBigPawn,
-    'EP_CAPTURE': bitsEpCapture,
     'PROMOTION': bitsPromotion,
-    'KSIDE_CASTLE': bitsKsideCastle,
-    'QSIDE_CASTLE': bitsQsideCastle,
   };
 
   static const int bitsNormal = 1;
   static const int bitsCapture = 2;
-  static const int bitsBigPawn = 4;
-  static const int bitsEpCapture = 8;
   static const int bitsPromotion = 16;
-  static const int bitsKsideCastle = 32;
-  static const int bitsQsideCastle = 64;
 
   static const int rank1 = 7;
   static const int rank2 = 6;
@@ -221,17 +207,6 @@ class Chaturaji {
   static const int squaresA8 = 0;
   static const int squaresH1 = 119;
   static const int squaresH8 = 7;
-
-  static final Map<PlayerColor, List> rooks = {
-    red: [
-      {'square': squaresA1, 'flag': bitsQsideCastle},
-      {'square': squaresH1, 'flag': bitsKsideCastle},
-    ],
-    yellow: [
-      {'square': squaresA8, 'flag': bitsQsideCastle},
-      {'square': squaresH8, 'flag': bitsKsideCastle},
-    ],
-  };
 
   // Instance Variables
   List<Piece?> board = []..length = 128;
@@ -421,9 +396,7 @@ class Chaturaji {
             break;
         }
       }
-      PieceType? promotion = flags & bitsPromotion != 0
-          ? rook
-          : null;
+      PieceType? promotion = flags & bitsPromotion != 0 ? rook : null;
       moves.add(buildMove(board, from, to, flags, promotion));
     }
 
@@ -497,29 +470,24 @@ class Chaturaji {
   String moveToSan(Move move) {
     var output = '';
     final flags = move.flags;
-    if ((flags & bitsKsideCastle) != 0) {
-      output = 'O-O';
-    } else if ((flags & bitsQsideCastle) != 0) {
-      output = 'O-O-O';
-    } else {
-      var disambiguator = getDisambiguator(move);
 
-      if (move.piece != pawn) {
-        output += move.piece.toUpperCase() + disambiguator;
+    var disambiguator = getDisambiguator(move);
+
+    if (move.piece != pawn) {
+      output += move.piece.toUpperCase() + disambiguator;
+    }
+
+    if ((flags & bitsCapture) != 0) {
+      if (move.piece == pawn) {
+        output += move.fromAlgebraic[0];
       }
+      output += 'x';
+    }
 
-      if ((flags & (bitsCapture | bitsEpCapture)) != 0) {
-        if (move.piece == pawn) {
-          output += move.fromAlgebraic[0];
-        }
-        output += 'x';
-      }
+    output += move.toAlgebraic;
 
-      output += move.toAlgebraic;
-
-      if ((flags & bitsPromotion) != 0) {
-        output += '=${move.promotion!.toUpperCase()}';
-      }
+    if ((flags & bitsPromotion) != 0) {
+      output += '=${move.promotion!.toUpperCase()}';
     }
 
     return output;
@@ -651,7 +619,7 @@ class Chaturaji {
     /* reset the 50 move counter if a pawn is moved or a piece is captured */
     if (move.piece == pawn) {
       halfMoves = 0;
-    } else if ((move.flags & (bitsCapture | bitsEpCapture)) != 0) {
+    } else if ((move.flags & bitsCapture) != 0) {
       halfMoves = 0;
     } else {
       halfMoves++;
@@ -682,20 +650,6 @@ class Chaturaji {
 
     if ((move.flags & bitsCapture) != 0) {
       board[move.to] = move.captured!;
-    }
-
-    if ((move.flags & (bitsKsideCastle | bitsQsideCastle)) != 0) {
-      int castlingTo, castlingFrom;
-      if ((move.flags & bitsKsideCastle) != 0) {
-        castlingTo = move.to + 1;
-        castlingFrom = move.to - 1;
-      } else {
-        castlingTo = move.to - 2;
-        castlingFrom = move.to + 1;
-      }
-
-      board[castlingTo] = board[castlingFrom];
-      board[castlingFrom] = null;
     }
 
     return move;
