@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'chaturaji/chaturaji.dart';
+import 'chaturaji/player_color.dart';
 import 'graph/graph.dart';
 import 'graph/graph_export.dart';
 import 'gui/chaturaji_board.dart';

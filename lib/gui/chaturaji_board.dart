@@ -4,6 +4,7 @@ import 'package:chess_vectors_flutter/chess_vectors_flutter.dart';
 import 'package:flutter/material.dart';
 
 import '../chaturaji/chaturaji.dart';
+import '../chaturaji/player_color.dart';
 import 'board_arrow.dart';
 import 'chaturaji_board_controller.dart';
 
