@@ -21,7 +21,7 @@ void importGraph(String filename) {
     var cwd = Directory.current;
     print("cwd $cwd");
     print("importGraph $filename");
-    var regex = RegExp(r"^(.* .* .* .*) (.*) (.*)$");
+    var regex = RegExp(r"^(.* .*)$");
     var lines = File(filename).readAsLinesSync();
     int lineNumber = 1;
     for (var line in lines) {
@@ -29,9 +29,7 @@ void importGraph(String filename) {
       var match = regex.firstMatch(line);
       if (match == null) throw "Can't match $line";
       var fen = match.group(1) as String;
-      var assigned = parseEvalString(match.group(2));
-      var computed = parseEvalString(match.group(3));
-      graph.addFullVertex(fen, assigned, computed);
+      graph.addFullVertex(fen, 0, 0);
       var game = Chaturaji();
       game.load("$fen 0 1");
       List<Move> moves = game.generateMoves();
