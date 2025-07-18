@@ -23,11 +23,19 @@ class Chaturaji {
   // Constants/Class Variables
 
   static const Map<String, PieceType> pieceTypes = {
-    'p': pawn,
-    'n': knight,
-    'b': bishop,
-    'r': rook,
-    'k': king,
+    'P': pawn,
+    'N': knight,
+    'B': bishop,
+    'R': rook,
+    'K': king,
+  };
+
+  static const Map<PieceType, String> pieceSymbols = {
+    pawn: 'P',
+    knight: 'N',
+    bishop: 'B',
+    rook: 'R',
+    king: 'K',
   };
 
   static const String defaultPosition =
@@ -244,7 +252,7 @@ class Chaturaji {
       } else {
         var color = colors[c]!;
         final piece = position[++i];
-        var type = pieceTypes[piece.toLowerCase()]!;
+        var type = pieceTypes[piece]!;
         put(Piece(type, color), algebraic(square));
         square++;
       }
@@ -268,10 +276,10 @@ class Chaturaji {
           fen += empty.toString();
           empty = 0;
         }
-        var color = board[i]!.color;
-        PieceType? type = board[i]!.type;
+        var color = colorSymbols[board[i]!.color]!;
+        var type = pieceSymbols[board[i]!.type]!;
 
-        fen += (color == red) ? type.toUpperCase() : type.toLowerCase();
+        fen += color + type;
       }
 
       if (((i + 1) & 0x88) != 0) {
@@ -288,7 +296,7 @@ class Chaturaji {
       }
     }
 
-    final turnStr = (turn == red) ? 'r' : 'y';
+    final turnStr = colorSymbols[turn]!;
 
     return [fen, turnStr].join(' ');
   }

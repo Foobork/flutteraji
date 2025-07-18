@@ -13,6 +13,13 @@ const Map<String, PlayerColor> colors = {
   'g': green,
 };
 
+const Map<PlayerColor, String> colorSymbols = {
+  red: 'r',
+  blue: 'b',
+  yellow: 'y',
+  green: 'g',
+};
+
 const Map<PlayerColor, String> colorNames = {
   red: 'Red',
   blue: 'Blue',
