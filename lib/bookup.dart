@@ -71,7 +71,7 @@ class HomePageState extends State<HomePage> {
   final _textStyle = const TextStyle(fontSize: 20);
 
   List<MoveInfo> _knownMoves = [];
-  String _bfen = "";
+  String _fen = "";
   String _eval = "";
   String _turn = "";
   PlayerColor _orientation = red;
@@ -119,10 +119,10 @@ class HomePageState extends State<HomePage> {
   void _boardListener() {
     var game = _controller.game.copy();
     List<Move> moves = game.generateMoves();
-    String a = game.bfen;
+    String a = game.fen;
     for (var move in moves) {
       game.makeMove(move);
-      String b = game.bfen;
+      String b = game.fen;
       game.undo();
       graph.addLink(a, b);
     }
@@ -131,10 +131,10 @@ class HomePageState extends State<HomePage> {
 
   void _update() {
     _knownMovesToSan();
-    _bfen = _controller.game.bfen;
+    _fen = _controller.game.fen;
     _turn = "${colorNames[_controller.game.turn]!} to move";
-    Clipboard.setData(ClipboardData(text: _bfen));
-    _eval = graph.v[_bfen]?.assigned?.toString() ?? "";
+    Clipboard.setData(ClipboardData(text: _fen));
+    _eval = graph.v[_fen]?.assigned?.toString() ?? "";
   }
 
   int Function(MoveInfo i, MoveInfo j) _compare(PlayerColor turn) =>
@@ -163,7 +163,7 @@ class HomePageState extends State<HomePage> {
     var game = _controller.game;
     var scratch = game.copy();
     scratch.makeMove(move);
-    var vertex = graph.v[scratch.bfen];
+    var vertex = graph.v[scratch.fen];
     if (vertex == null) return;
     if (vertex.links.isEmpty) return;
     _knownMoves.add(MoveInfo(game.moveToSan(move), vertex.computed));
@@ -209,9 +209,9 @@ class HomePageState extends State<HomePage> {
   }
 
   void _updateEval(String newEval) {
-    String bfen = _controller.game.bfen;
-    graph.assign(bfen, double.tryParse(newEval));
-    graph.solveBfen(bfen);
+    String fen = _controller.game.fen;
+    graph.assign(fen, double.tryParse(newEval));
+    graph.solveBfen(fen);
     _export();
   }
 

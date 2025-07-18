@@ -5,12 +5,12 @@ import 'dart:math';
 class Graph {
   final Map<String, Vertex> v = {};
 
-  Vertex addVertex(String bfen) {
-    return v.putIfAbsent(bfen, () => Vertex(bfen));
+  Vertex addVertex(String fen) {
+    return v.putIfAbsent(fen, () => Vertex(fen));
   }
 
-  Vertex addFullVertex(String bfen, double? assigned, double? computed) {
-    Vertex pos = v.putIfAbsent(bfen, () => Vertex(bfen));
+  Vertex addFullVertex(String fen, double? assigned, double? computed) {
+    Vertex pos = v.putIfAbsent(fen, () => Vertex(fen));
     pos.assigned = assigned;
     pos.computed = computed;
     return pos;
@@ -21,8 +21,8 @@ class Graph {
     addVertex(b).backLinks.add(a);
   }
 
-  void assign(String bfen, double? eval) {
-    v[bfen]?.assigned = eval;
+  void assign(String fen, double? eval) {
+    v[fen]?.assigned = eval;
   }
 
   void solve() {
@@ -37,8 +37,8 @@ class Graph {
     _solve(todo);
   }
 
-  void solveBfen(String bfen) {
-    var vertex = v[bfen];
+  void solveBfen(String fen) {
+    var vertex = v[fen];
     if (vertex == null) return;
     vertex.computed ??= vertex.assigned;
     _solve(vertex.backLinks);
@@ -47,9 +47,9 @@ class Graph {
   void _solve(Set<String> todo) {
     while (todo.isNotEmpty) {
       if (todo.length % 10000 == 0) print(todo.length);
-      String bfen = todo.elementAt(0);
-      todo.remove(bfen);
-      Vertex pos = v[bfen] as Vertex;
+      String fen = todo.elementAt(0);
+      todo.remove(fen);
+      Vertex pos = v[fen] as Vertex;
       double? eval;
       for (String link in pos.links) {
         double? linkEval = v[link]?.computed;
@@ -59,7 +59,7 @@ class Graph {
       }
       eval ??= pos.assigned;
       if (pos.computed == eval) continue;
-      print("$bfen ${pos.computed} -> $eval");
+      print("$fen ${pos.computed} -> $eval");
       pos.computed = eval;
       todo.addAll(pos.backLinks);
     }
@@ -74,8 +74,8 @@ class Vertex {
   Set<String> links = {};
   Set<String> backLinks = {};
 
-  Vertex(String bfen) {
-    whiteToMove = bfen.contains("w");
+  Vertex(String fen) {
+    whiteToMove = fen.contains("w");
   }
 }
 

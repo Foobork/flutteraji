@@ -63,10 +63,6 @@ class ChaturajiBoardController extends ValueNotifier<Chaturaji> {
     return game.gameOver;
   }
 
-  String getFen() {
-    return game.fen;
-  }
-
   List<Piece?> getBoard() {
     return game.board;
   }

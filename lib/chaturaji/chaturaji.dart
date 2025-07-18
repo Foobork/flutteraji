@@ -255,8 +255,8 @@ class Chaturaji {
     return true;
   }
 
-  /// Returns a bookup FEN String representing the current position
-  String generateBfen() {
+  /// Returns a FEN String representing the current position
+  String generateFen() {
     var empty = 0;
     var fen = '';
 
@@ -291,11 +291,6 @@ class Chaturaji {
     final turnStr = (turn == red) ? 'r' : 'y';
 
     return [fen, turnStr].join(' ');
-  }
-
-  /// Returns a FEN String representing the current position
-  String generateFen() {
-    return [generateBfen, halfMoves, moveNumber].join(' ');
   }
 
   /// Returns the piece at the square in question or null
@@ -523,9 +518,7 @@ class Chaturaji {
     }
 
     while (true) {
-      /* remove the last two fields in the FEN string, they're not needed
-       * when checking for draw by rep */
-      var fen = generateFen().split(' ').sublist(0, 4).join(' ');
+      var fen = generateFen();
 
       /* has the position occurred three or move times */
       positions[fen] = (positions.containsKey(fen)) ? positions[fen] + 1 : 1;
@@ -708,10 +701,6 @@ class Chaturaji {
 
   String get fen {
     return generateFen();
-  }
-
-  String get bfen {
-    return generateBfen();
   }
 
   /// The move function can be called with in the following parameters:

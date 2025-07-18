@@ -28,17 +28,17 @@ void importGraph(String filename) {
       if (lineNumber % 1000 == 0) print(lineNumber);
       var match = regex.firstMatch(line);
       if (match == null) throw "Can't match $line";
-      var bfen = match.group(1) as String;
+      var fen = match.group(1) as String;
       var assigned = parseEvalString(match.group(2));
       var computed = parseEvalString(match.group(3));
-      graph.addFullVertex(bfen, assigned, computed);
+      graph.addFullVertex(fen, assigned, computed);
       var game = Chaturaji();
-      game.load("$bfen 0 1");
+      game.load("$fen 0 1");
       List<Move> moves = game.generateMoves();
-      String a = game.bfen;
+      String a = game.fen;
       for (var move in moves) {
         game.makeMove(move);
-        String b = game.bfen;
+        String b = game.fen;
         game.undo();
         graph.addLink(a, b);
       }
