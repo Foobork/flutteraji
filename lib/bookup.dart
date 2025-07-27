@@ -30,10 +30,7 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
-    var board = ChaturajiWidget(
-      controller: _controller,
-      boardOrientation: _orientation,
-    );
+    var board = ChaturajiWidget(controller: _controller);
     var turn = Text(_turn, style: _textStyle);
     var appBar = AppBar(title: const Text('Bookup'));
 

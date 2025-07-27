@@ -15,15 +15,12 @@ class ChaturajiWidget extends StatefulWidget {
   /// Size of board
   final double? size;
 
-  final PlayerColor boardOrientation;
-
   final VoidCallback? onMove;
 
   const ChaturajiWidget({
     super.key,
     required this.controller,
     this.size,
-    this.boardOrientation = red,
     this.onMove,
   });
 
@@ -55,13 +52,8 @@ class _ChaturajiWidgetState extends State<ChaturajiWidget> {
                   itemBuilder: (context, index) {
                     var row = index ~/ 8;
                     var column = index % 8;
-                    var boardRank = widget.boardOrientation == yellow
-                        ? '${row + 1}'
-                        : '${(7 - row) + 1}';
-                    var boardFile = widget.boardOrientation == red
-                        ? _files[column]
-                        : _files[7 - column];
-
+                    var boardRank = '${8 - row}';
+                    var boardFile = _files[column];
                     var squareName = '$boardFile$boardRank';
                     var pieceOnSquare = game.get(squareName);
 
