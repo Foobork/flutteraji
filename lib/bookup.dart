@@ -7,8 +7,8 @@ import 'chaturaji/chaturaji.dart';
 import 'chaturaji/player_color.dart';
 import 'graph/graph.dart';
 import 'graph/graph_export.dart';
-import 'gui/chaturaji_board.dart';
-import 'gui/chaturaji_board_controller.dart';
+import 'gui/chaturaji_widget.dart';
+import 'gui/chaturaji_controller.dart';
 
 class Bookup extends StatelessWidget {
   const Bookup({super.key});
@@ -30,7 +30,7 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
-    var board = ChaturajiBoard(
+    var board = ChaturajiWidget(
       controller: _controller,
       boardColor: BoardColor.brown,
       boardOrientation: _orientation,
@@ -67,7 +67,7 @@ class HomePageState extends State<HomePage> {
     return Scaffold(appBar: appBar, body: body);
   }
 
-  final _controller = ChaturajiBoardController();
+  final _controller = ChaturajiController();
   final _textStyle = const TextStyle(fontSize: 20);
 
   List<MoveInfo> _knownMoves = [];

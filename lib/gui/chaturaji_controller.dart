@@ -4,18 +4,18 @@ import 'package:flutter/material.dart';
 
 import '../chaturaji/chaturaji.dart';
 
-class ChaturajiBoardController extends ValueNotifier<Chaturaji> {
+class ChaturajiController extends ValueNotifier<Chaturaji> {
   late Chaturaji game;
 
-  factory ChaturajiBoardController() => ChaturajiBoardController._(Chaturaji());
+  factory ChaturajiController() => ChaturajiController._(Chaturaji());
 
-  factory ChaturajiBoardController.fromGame(Chaturaji game) =>
-      ChaturajiBoardController._(game);
+  factory ChaturajiController.fromGame(Chaturaji game) =>
+      ChaturajiController._(game);
 
-  factory ChaturajiBoardController.fromFEN(String fen) =>
-      ChaturajiBoardController._(Chaturaji.fromFEN(fen));
+  factory ChaturajiController.fromFEN(String fen) =>
+      ChaturajiController._(Chaturaji.fromFEN(fen));
 
-  ChaturajiBoardController._(this.game) : super(game);
+  ChaturajiController._(this.game) : super(game);
 
   /// Makes move on the board
   void makeMove({required String from, required String to}) {

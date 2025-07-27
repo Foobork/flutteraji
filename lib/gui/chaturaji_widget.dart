@@ -6,17 +6,17 @@ import 'package:flutter/material.dart';
 import '../chaturaji/chaturaji.dart';
 import '../chaturaji/player_color.dart';
 import 'board_arrow.dart';
-import 'chaturaji_board_controller.dart';
+import 'chaturaji_controller.dart';
 
 /// Enum which stores board types
 enum BoardColor { brown, darkBrown, orange, green }
 
 const _files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
-class ChaturajiBoard extends StatefulWidget {
-  /// An instance of [ChaturajiBoardController] which holds the game and allows
+class ChaturajiWidget extends StatefulWidget {
+  /// An instance of [ChaturajiController] which holds the game and allows
   /// manipulating the board programmatically.
-  final ChaturajiBoardController controller;
+  final ChaturajiController controller;
 
   /// Size of board
   final double? size;
@@ -33,7 +33,7 @@ class ChaturajiBoard extends StatefulWidget {
 
   final List<BoardArrow> arrows;
 
-  const ChaturajiBoard({
+  const ChaturajiWidget({
     super.key,
     required this.controller,
     this.size,
@@ -45,10 +45,10 @@ class ChaturajiBoard extends StatefulWidget {
   });
 
   @override
-  State<ChaturajiBoard> createState() => _ChaturajiBoardState();
+  State<ChaturajiWidget> createState() => _ChaturajiWidgetState();
 }
 
-class _ChaturajiBoardState extends State<ChaturajiBoard> {
+class _ChaturajiWidgetState extends State<ChaturajiWidget> {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<Chaturaji>(
