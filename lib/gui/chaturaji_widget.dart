@@ -5,9 +5,6 @@ import '../chaturaji/chaturaji.dart';
 import '../chaturaji/player_color.dart';
 import 'chaturaji_controller.dart';
 
-/// Enum which stores board types
-enum BoardColor { brown, darkBrown, orange, green }
-
 const _files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
 class ChaturajiWidget extends StatefulWidget {
@@ -18,9 +15,6 @@ class ChaturajiWidget extends StatefulWidget {
   /// Size of board
   final double? size;
 
-  /// The color type of the board
-  final BoardColor boardColor;
-
   final PlayerColor boardOrientation;
 
   final VoidCallback? onMove;
@@ -29,7 +23,6 @@ class ChaturajiWidget extends StatefulWidget {
     super.key,
     required this.controller,
     this.size,
-    this.boardColor = BoardColor.brown,
     this.boardOrientation = red,
     this.onMove,
   });
@@ -51,7 +44,7 @@ class _ChaturajiWidgetState extends State<ChaturajiWidget> {
             children: [
               AspectRatio(
                 aspectRatio: 1.0,
-                child: _getBoardImage(widget.boardColor),
+                child: Image.asset("images/chess_board.png", fit: BoxFit.cover),
               ),
               AspectRatio(
                 aspectRatio: 1.0,
@@ -131,20 +124,6 @@ class _ChaturajiWidgetState extends State<ChaturajiWidget> {
         );
       },
     );
-  }
-
-  /// Returns the board image
-  Image _getBoardImage(BoardColor color) {
-    switch (color) {
-      case BoardColor.brown:
-        return Image.asset("images/brown_board.png", fit: BoxFit.cover);
-      case BoardColor.darkBrown:
-        return Image.asset("images/dark_brown_board.png", fit: BoxFit.cover);
-      case BoardColor.green:
-        return Image.asset("images/green_board.png", fit: BoxFit.cover);
-      case BoardColor.orange:
-        return Image.asset("images/orange_board.png", fit: BoxFit.cover);
-    }
   }
 }
 

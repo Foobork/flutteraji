@@ -67,18 +67,6 @@ flutter:
 
   assets:
     - images/chess_board.png
-    - images/brown_board.png
-    - images/2.0x/brown_board.png
-    - images/3.0x/brown_board.png
-    - images/orange_board.png
-    - images/2.0x/orange_board.png
-    - images/3.0x/orange_board.png
-    - images/green_board.png
-    - images/2.0x/green_board.png
-    - images/3.0x/green_board.png
-    - images/dark_brown_board.png
-    - images/2.0x/dark_brown_board.png
-    - images/3.0x/dark_brown_board.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

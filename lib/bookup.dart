@@ -32,7 +32,6 @@ class HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     var board = ChaturajiWidget(
       controller: _controller,
-      boardColor: BoardColor.brown,
       boardOrientation: _orientation,
     );
     var turn = Text(_turn, style: _textStyle);
