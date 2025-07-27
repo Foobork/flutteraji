@@ -10,8 +10,8 @@ import 'graph/graph_export.dart';
 import 'gui/chaturaji_widget.dart';
 import 'gui/chaturaji_controller.dart';
 
-class Bookup extends StatelessWidget {
-  const Bookup({super.key});
+class Flutteraji extends StatelessWidget {
+  const Flutteraji({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +45,6 @@ class HomePageState extends State<HomePage> {
                   children: [
                     _button("reset", _reset),
                     _button("back", _back),
-                    _button("flip", _flip),
                     _button("solve", _solve),
                     _button("export", _export),
                   ],
@@ -68,7 +67,6 @@ class HomePageState extends State<HomePage> {
   String _fen = "";
   String _eval = "";
   String _turn = "";
-  PlayerColor _orientation = red;
 
   dynamic _moveButton(String move) {
     return _button(move, () => _controller.makeMoveWithNormalNotation(move));
@@ -169,14 +167,6 @@ class HomePageState extends State<HomePage> {
 
   void _reset() {
     _controller.resetBoard();
-  }
-
-  void _doFlip() {
-    _orientation = _orientation == red ? red : yellow;
-  }
-
-  void _flip() {
-    setState(_doFlip);
   }
 
   void _export() {
