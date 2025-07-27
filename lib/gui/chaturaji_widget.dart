@@ -18,9 +18,6 @@ class ChaturajiWidget extends StatefulWidget {
   /// Size of board
   final double? size;
 
-  /// A boolean which checks if the user should be allowed to make moves
-  final bool enableUserMoves;
-
   /// The color type of the board
   final BoardColor boardColor;
 
@@ -32,7 +29,6 @@ class ChaturajiWidget extends StatefulWidget {
     super.key,
     required this.controller,
     this.size,
-    this.enableUserMoves = true,
     this.boardColor = BoardColor.brown,
     this.boardOrientation = red,
     this.onMove,
@@ -103,7 +99,7 @@ class _ChaturajiWidgetState extends State<ChaturajiWidget> {
                         return draggable;
                       },
                       onWillAcceptWithDetails: (pieceMoveData) {
-                        return widget.enableUserMoves ? true : false;
+                        return true;
                       },
                       onAcceptWithDetails:
                           (
