@@ -15,8 +15,7 @@ class Bookup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var theme = ThemeData(primarySwatch: Colors.deepPurple);
-    return MaterialApp(title: 'Bookup', theme: theme, home: const HomePage());
+    return MaterialApp(home: const HomePage());
   }
 }
 
@@ -32,7 +31,6 @@ class HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     var board = ChaturajiWidget(controller: _controller);
     var turn = Text(_turn, style: _textStyle);
-    var appBar = AppBar(title: const Text('Bookup'));
 
     var body = Center(
       child: _padded(
@@ -60,7 +58,7 @@ class HomePageState extends State<HomePage> {
       ),
     );
 
-    return Scaffold(appBar: appBar, body: body);
+    return Scaffold(body: body);
   }
 
   final _controller = ChaturajiController();
