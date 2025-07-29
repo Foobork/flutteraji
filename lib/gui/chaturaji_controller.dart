@@ -9,12 +9,6 @@ class ChaturajiController extends ValueNotifier<Chaturaji> {
 
   factory ChaturajiController() => ChaturajiController._(Chaturaji());
 
-  factory ChaturajiController.fromGame(Chaturaji game) =>
-      ChaturajiController._(game);
-
-  factory ChaturajiController.fromFEN(String fen) =>
-      ChaturajiController._(Chaturaji.fromFEN(fen));
-
   ChaturajiController._(this.game) : super(game);
 
   /// Makes move on the board
@@ -39,43 +33,7 @@ class ChaturajiController extends ValueNotifier<Chaturaji> {
     notifyListeners();
   }
 
-  /// Clears board
-  void clearBoard() {
-    game.clear();
-    notifyListeners();
-  }
-
-  /// Loads a PGN
-  void loadFen(String fen) {
-    game.load(fen);
-    notifyListeners();
-  }
-
-  bool isStaleMate() {
-    return game.inStalemate;
-  }
-
-  bool isThreefoldRepetition() {
-    return game.inThreefoldRepetition;
-  }
-
-  bool isGameOver() {
-    return game.gameOver;
-  }
-
-  List<Piece?> getBoard() {
-    return game.board;
-  }
-
   List<Move> getPossibleMoves() {
     return game.generateMoves();
-  }
-
-  int getMoveCount() {
-    return game.moveNumber;
-  }
-
-  int getHalfMoveCount() {
-    return game.halfMoves;
   }
 }
