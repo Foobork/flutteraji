@@ -196,6 +196,38 @@ class ChaturajiBoard {
     return moves;
   }
 
+  bool move(ChaturajiMove move) {
+    final from = move.from;
+    final to = move.to;
+
+    // Move the piece
+    board[to] = board[from];
+    board[from] = empty;
+
+    // Check for promotion
+    if (board[to] & pieceMask == pawn) {
+      switch (board[to] & colorMask) {
+        case red:
+          if (to <= 7) board[to] = red | rook;
+          break;
+        case blue:
+          if (to % 8 == 7) board[to] = blue | rook;
+          break;
+        case yellow:
+          if (to >= 112) board[to] = yellow | rook;
+          break;
+        case green:
+          if (to % 8 == 0) board[to] = green | rook;
+          break;
+      }
+    }
+
+    // Change turn
+    turn = (turn + 0x10) & colorMask;
+
+    return true;
+  }
+
   // assume String is length 1
   bool _isDigit(String s) {
     final intChar = s.codeUnitAt(0);
