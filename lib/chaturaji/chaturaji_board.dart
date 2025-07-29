@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:flutteraji/chaturaji/chaturaji_move.dart';
+
 const int colorMask = 0x30;
 const int pieceMask = 0x07;
 
@@ -42,6 +44,20 @@ const String startPosition =
 
 const int squaresA8 = 0;
 const int squaresH1 = 119;
+
+const Map<int, List<int>> pawnOffsets = {
+  red: [-16, -17, -15],
+  blue: [1, -15, 17],
+  yellow: [16, 17, 15],
+  green: [-1, 15, -17],
+};
+
+const Map<int, List<int>> pieceOffsets = {
+  knight: [-18, -33, -31, -14, 18, 33, 31, 14],
+  bishop: [-17, -15, 17, 15],
+  rook: [-16, 1, 16, -1],
+  king: [-17, -16, -15, 1, 17, 16, 15, -1],
+};
 
 class ChaturajiBoard {
   Uint8List board = Uint8List(128);
@@ -118,6 +134,66 @@ class ChaturajiBoard {
   void clear() {
     board.fillRange(0, 128, empty);
     turn = red;
+  }
+
+  List<ChaturajiMove> generateMoves() {
+    final moves = <ChaturajiMove>[];
+    final us = turn;
+
+    for (int i = squaresA8; i <= squaresH1; i++) {
+      // --- did we run off the end of the board
+      if ((i & 0x88) != 0) {
+        i += 7;
+        continue;
+      }
+
+      final int piece = board[i];
+      if (piece == empty || piece & colorMask != us) {
+        continue;
+      }
+
+      final int pieceType = piece & pieceMask;
+
+      if (pieceType == pawn) {
+        // single square, non-capturing
+        final int square = i + pawnOffsets[us]![0];
+        if (board[square] == empty) {
+          moves.add(ChaturajiMove(i, square));
+        }
+
+        // pawn captures
+        for (var j = 1; j < 3; j++) {
+          var square = i + pawnOffsets[us]![j];
+          if ((square & 0x88) != 0) continue;
+          if (board[square] != empty && board[square] & colorMask != us) {
+            moves.add(ChaturajiMove(i, square));
+          }
+        }
+      } else {
+        for (final offset in pieceOffsets[pieceType]!) {
+          var square = i;
+
+          while (true) {
+            square += offset;
+            if ((square & 0x88) != 0) break;
+
+            if (board[square] == empty) {
+              moves.add(ChaturajiMove(i, square));
+            } else {
+              if (board[square] & colorMask != us) {
+                moves.add(ChaturajiMove(i, square));
+              }
+              break;
+            }
+
+            // break, if knight or king
+            if (pieceType == knight || pieceType == king) break;
+          }
+        }
+      }
+    }
+
+    return moves;
   }
 
   // assume String is length 1
