@@ -2,8 +2,10 @@
 
 import 'dart:io';
 
+import 'package:flutteraji/chaturaji/chaturaji_game.dart';
+import 'package:flutteraji/chaturaji/chaturaji_move.dart';
+
 import 'graph.dart';
-import '../chaturaji/chaturaji.dart';
 
 var brackets = RegExp(r"[\[\]]");
 
@@ -30,14 +32,14 @@ void importGraph(String filename) {
       if (match == null) throw "Can't match $line";
       var fen = match.group(1) as String;
       graph.addFullVertex(fen, 0, 0);
-      var game = Chaturaji();
-      game.load("$fen 0 1");
-      List<Move> moves = game.generateMoves();
+      var game = ChaturajiGame();
+      game.board.load("$fen 0 1");
+      List<ChaturajiMove> moves = game.generateMoves();
       String a = game.fen;
       for (var move in moves) {
         game.makeMove(move);
         String b = game.fen;
-        game.undo();
+        game.undoMove();
         graph.addLink(a, b);
       }
       lineNumber++;
