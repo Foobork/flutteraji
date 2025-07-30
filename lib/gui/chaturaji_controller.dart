@@ -1,25 +1,25 @@
 // ignore_for_file: avoid_print
 
 import 'package:flutter/material.dart';
+import 'package:flutteraji/chaturaji/chaturaji_game.dart';
+import 'package:flutteraji/chaturaji/chaturaji_move.dart';
 
-import '../chaturaji/chaturaji.dart';
+class ChaturajiController extends ValueNotifier<ChaturajiGame> {
+  late ChaturajiGame game;
 
-class ChaturajiController extends ValueNotifier<Chaturaji> {
-  late Chaturaji game;
-
-  factory ChaturajiController() => ChaturajiController._(Chaturaji());
+  factory ChaturajiController() => ChaturajiController._(ChaturajiGame());
 
   ChaturajiController._(this.game) : super(game);
 
   /// Makes move on the board
   void makeMove({required String from, required String to}) {
-    game.move({"from": from, "to": to});
+    game.makeMove({"from": from, "to": to});
     notifyListeners();
   }
 
   /// Makes move on the board
   void makeMoveWithNormalNotation(String move) {
-    game.move(move);
+    game.makeMove(move);
     notifyListeners();
   }
 
@@ -29,11 +29,11 @@ class ChaturajiController extends ValueNotifier<Chaturaji> {
   }
 
   void resetBoard() {
-    game.reset();
+    game.board.reset();
     notifyListeners();
   }
 
-  List<Move> getPossibleMoves() {
-    return game.generateMoves();
+  List<ChaturajiMove> getPossibleMoves() {
+    return game.board.generateMoves();
   }
 }

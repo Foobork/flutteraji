@@ -2,9 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutteraji/chaturaji/chaturaji_board.dart';
+import 'package:flutteraji/chaturaji/chaturaji_move.dart';
 
-import 'chaturaji/chaturaji.dart';
-import 'chaturaji/player_color.dart';
+//import 'chaturaji/player_color.dart';
 import 'graph/graph.dart';
 import 'graph/graph_export.dart';
 import 'gui/chaturaji_widget.dart';
@@ -25,6 +26,13 @@ class HomePage extends StatefulWidget {
   @override
   HomePageState createState() => HomePageState();
 }
+
+const Map<int, String> colorNames = {
+  red: 'Red',
+  blue: 'Blue',
+  yellow: 'Yellow',
+  green: 'Green',
+};
 
 class HomePageState extends State<HomePage> {
   @override
@@ -110,12 +118,12 @@ class HomePageState extends State<HomePage> {
 
   void _boardListener() {
     var game = _controller.game.copy();
-    List<Move> moves = game.generateMoves();
-    String a = game.fen;
+    List<ChaturajiMove> moves = game.generateMoves();
+    String a = game.board.generateFen();
     for (var move in moves) {
       game.makeMove(move);
-      String b = game.fen;
-      game.undo();
+      String b = game.board.generateFen();
+      game.undoMove();
       graph.addLink(a, b);
     }
     setState(_update);
@@ -123,39 +131,23 @@ class HomePageState extends State<HomePage> {
 
   void _update() {
     _knownMovesToSan();
-    _fen = _controller.game.fen;
-    _turn = "${colorNames[_controller.game.turn]!} to move";
+    _fen = _controller.game.board.generateFen();
+    _turn = "${colorNames[_controller.game.board.turn]!} to move";
     Clipboard.setData(ClipboardData(text: _fen));
     _eval = graph.v[_fen]?.assigned?.toString() ?? "";
   }
 
-  int Function(MoveInfo i, MoveInfo j) _compare(PlayerColor turn) =>
-      (MoveInfo i, MoveInfo j) {
-        var a = i.eval;
-        var b = j.eval;
-
-        return a == null
-            ? b == null
-                  ? 0
-                  : 1
-            : b == null
-            ? 0
-            : turn == red
-            ? b.compareTo(a)
-            : a.compareTo(b);
-      };
-
   void _knownMovesToSan() {
     _knownMoves = [];
     _controller.getPossibleMoves().forEach(_addMoveIfKnown);
-    _knownMoves.sort(_compare(_controller.game.turn));
+    //_knownMoves.sort(_compare(_controller.game.board.turn));
   }
 
-  void _addMoveIfKnown(Move move) {
+  void _addMoveIfKnown(ChaturajiMove move) {
     var game = _controller.game;
     var scratch = game.copy();
     scratch.makeMove(move);
-    var vertex = graph.v[scratch.fen];
+    var vertex = graph.v[scratch.board.generateFen()];
     if (vertex == null) return;
     if (vertex.links.isEmpty) return;
     _knownMoves.add(MoveInfo(game.moveToSan(move), vertex.computed));

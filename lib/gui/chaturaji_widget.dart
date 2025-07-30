@@ -1,8 +1,8 @@
 import 'package:chess_vectors_flutter/chess_vectors_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutteraji/chaturaji/chaturaji_board.dart';
+import 'package:flutteraji/chaturaji/chaturaji_game.dart';
 
-import '../chaturaji/chaturaji.dart';
-import '../chaturaji/player_color.dart';
 import 'chaturaji_controller.dart';
 
 const _files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
@@ -31,7 +31,7 @@ class ChaturajiWidget extends StatefulWidget {
 class _ChaturajiWidgetState extends State<ChaturajiWidget> {
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<Chaturaji>(
+    return ValueListenableBuilder<ChaturajiGame>(
       valueListenable: widget.controller,
       builder: (context, game, _) {
         return SizedBox(
@@ -55,25 +55,21 @@ class _ChaturajiWidgetState extends State<ChaturajiWidget> {
                     var boardRank = '${8 - row}';
                     var boardFile = _files[column];
                     var squareName = '$boardFile$boardRank';
-                    var pieceOnSquare = game.get(squareName);
+                    int squareIndex = row * 16 + column;
+                    var pieceOnSquare = game.board.board[squareIndex];
 
                     var piece = BoardPiece(
-                      key: ValueKey(
-                        '${squareName}_${pieceOnSquare?.type}_${pieceOnSquare?.color}',
-                      ),
-                      squareName: squareName,
-                      game: game,
+                      key: ValueKey('${squareName}_$pieceOnSquare'),
+                      piece: pieceOnSquare,
                     );
 
-                    var draggable = game.get(squareName) != null
+                    var draggable = pieceOnSquare != empty
                         ? Draggable<PieceMoveData>(
                             feedback: piece,
                             childWhenDragging: const SizedBox(),
                             data: PieceMoveData(
                               squareName: squareName,
-                              pieceType:
-                                  pieceOnSquare?.type.toUpperCase() ?? 'P',
-                              pieceColor: pieceOnSquare?.color ?? red,
+                              piece: pieceOnSquare,
                             ),
                             child: piece,
                           )
@@ -93,14 +89,11 @@ class _ChaturajiWidgetState extends State<ChaturajiWidget> {
                             PieceMoveData pieceMoveData =
                                 dragTargetDetails.data;
                             // A way to check if move occurred.
-                            PlayerColor moveColor = game.turn;
                             widget.controller.makeMove(
                               from: pieceMoveData.squareName,
                               to: squareName,
                             );
-                            if (game.turn != moveColor) {
-                              widget.onMove?.call();
-                            }
+                            widget.onMove?.call();
                           },
                     );
 
@@ -120,57 +113,44 @@ class _ChaturajiWidgetState extends State<ChaturajiWidget> {
 }
 
 final class BoardPiece extends StatelessWidget {
-  final String squareName;
-  final Chaturaji game;
+  final int piece;
 
-  const BoardPiece({super.key, required this.squareName, required this.game});
+  const BoardPiece({super.key, required this.piece});
 
   @override
   Widget build(BuildContext context) {
-    var square = game.get(squareName);
-
-    if (game.get(squareName) == null) {
-      return Container();
-    }
-
-    return switch (square) {
-      Piece(type: pawn, color: red) => WhitePawn(fillColor: Colors.red),
-      Piece(type: rook, color: red) => WhiteRook(fillColor: Colors.red),
-      Piece(type: knight, color: red) => WhiteKnight(fillColor: Colors.red),
-      Piece(type: bishop, color: red) => WhiteBishop(fillColor: Colors.red),
-      Piece(type: king, color: red) => WhiteKing(fillColor: Colors.red),
-      Piece(type: pawn, color: yellow) => WhitePawn(fillColor: Colors.yellow),
-      Piece(type: rook, color: yellow) => WhiteRook(fillColor: Colors.yellow),
-      Piece(type: knight, color: yellow) => WhiteKnight(
-        fillColor: Colors.yellow,
-      ),
-      Piece(type: bishop, color: yellow) => WhiteBishop(
-        fillColor: Colors.yellow,
-      ),
-      Piece(type: king, color: yellow) => WhiteKing(fillColor: Colors.yellow),
-      Piece(type: pawn, color: blue) => WhitePawn(fillColor: Colors.blue),
-      Piece(type: rook, color: blue) => WhiteRook(fillColor: Colors.blue),
-      Piece(type: knight, color: blue) => WhiteKnight(fillColor: Colors.blue),
-      Piece(type: bishop, color: blue) => WhiteBishop(fillColor: Colors.blue),
-      Piece(type: king, color: blue) => WhiteKing(fillColor: Colors.blue),
-      Piece(type: pawn, color: green) => WhitePawn(fillColor: Colors.green),
-      Piece(type: rook, color: green) => WhiteRook(fillColor: Colors.green),
-      Piece(type: knight, color: green) => WhiteKnight(fillColor: Colors.green),
-      Piece(type: bishop, color: green) => WhiteBishop(fillColor: Colors.green),
-      Piece(type: king, color: green) => WhiteKing(fillColor: Colors.green),
-      _ => throw UnimplementedError(),
+    return switch (piece) {
+      const (red | pawn) => WhitePawn(fillColor: Colors.red),
+      const (red | rook) => WhiteRook(fillColor: Colors.red),
+      const (red | knight) => WhiteKnight(fillColor: Colors.red),
+      const (red | bishop) => WhiteBishop(fillColor: Colors.red),
+      const (red | king) => WhiteKing(fillColor: Colors.red),
+      const (yellow | pawn) => WhitePawn(fillColor: Colors.yellow),
+      const (yellow | rook) => WhiteRook(fillColor: Colors.yellow),
+      const (yellow | knight) => WhiteKnight(fillColor: Colors.yellow),
+      const (yellow | bishop) => WhiteBishop(fillColor: Colors.yellow),
+      const (yellow | king) => WhiteKing(fillColor: Colors.yellow),
+      const (blue | pawn) => WhitePawn(fillColor: Colors.blue),
+      const (blue | rook) => WhiteRook(fillColor: Colors.blue),
+      const (blue | knight) => WhiteKnight(fillColor: Colors.blue),
+      const (blue | bishop) => WhiteBishop(fillColor: Colors.blue),
+      const (blue | king) => WhiteKing(fillColor: Colors.blue),
+      const (green | pawn) => WhitePawn(fillColor: Colors.green),
+      const (green | rook) => WhiteRook(fillColor: Colors.green),
+      const (green | knight) => WhiteKnight(fillColor: Colors.green),
+      const (green | bishop) => WhiteBishop(fillColor: Colors.green),
+      const (green | king) => WhiteKing(fillColor: Colors.green),
+      _ => Container(),
     };
   }
 }
 
 class PieceMoveData {
   final String squareName;
-  final String pieceType;
-  final PlayerColor pieceColor;
+  final int piece;
 
   PieceMoveData({
     required this.squareName,
-    required this.pieceType,
-    required this.pieceColor,
+    required this.piece,
   });
 }
