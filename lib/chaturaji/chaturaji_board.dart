@@ -66,6 +66,17 @@ class ChaturajiBoard {
   /// empty constructor
   ChaturajiBoard();
 
+  /// copy another board
+  void copy(ChaturajiBoard other) {
+    board.setAll(0, other.board);
+    turn = other.turn;
+  }
+
+  /// reset to start position
+  void reset() {
+    load(startPosition);
+  }
+
   /// Load a position from a FEN String
   bool load(String fen) {
     List tokens = fen.split(RegExp(r'\s+'));
