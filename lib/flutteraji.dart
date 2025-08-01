@@ -120,7 +120,7 @@ class HomePageState extends State<HomePage> {
     List<ChaturajiMove> moves = game.generateMoves();
     String a = game.board.generateFen();
     for (var move in moves) {
-      game.makeMove(move);
+      game.makeChaturajiMove(move);
       String b = game.board.generateFen();
       game.undoMove();
       graph.addLink(a, b);
@@ -145,7 +145,7 @@ class HomePageState extends State<HomePage> {
   void _addMoveIfKnown(ChaturajiMove move) {
     var game = _controller.game;
     var scratch = game.copy();
-    scratch.makeMove(move);
+    scratch.makeChaturajiMove(move);
     var vertex = graph.v[scratch.board.generateFen()];
     if (vertex == null) return;
     if (vertex.links.isEmpty) return;

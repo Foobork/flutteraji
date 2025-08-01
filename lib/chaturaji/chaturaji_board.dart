@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:typed_data';
 
 import 'package:flutteraji/chaturaji/chaturaji_move.dart';
@@ -211,9 +213,13 @@ class ChaturajiBoard {
     final from = move.from;
     final to = move.to;
 
+    print("Moving from $from to $to");
+
     // Move the piece
     board[to] = board[from];
     board[from] = empty;
+
+    print(generateFen());
 
     // Check for promotion
     if (board[to] & pieceMask == pawn) {

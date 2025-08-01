@@ -37,7 +37,7 @@ void importGraph(String filename) {
       List<ChaturajiMove> moves = game.generateMoves();
       String a = game.fen;
       for (var move in moves) {
-        game.makeMove(move);
+        game.makeChaturajiMove(move);
         String b = game.fen;
         game.undoMove();
         graph.addLink(a, b);

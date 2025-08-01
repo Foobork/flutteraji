@@ -13,7 +13,14 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
 
   /// Makes move on the board
   void makeMove({required String from, required String to}) {
+    print("Making move from $from to $to");
     game.makeMove({"from": from, "to": to});
+    notifyListeners();
+  }
+
+  void makeChaturajiMove(ChaturajiMove move) {
+    print("Making move: $move");
+    game.makeChaturajiMove(move);
     notifyListeners();
   }
 
