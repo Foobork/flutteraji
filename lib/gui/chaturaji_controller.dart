@@ -20,6 +20,11 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
 
   void makeChaturajiMove(ChaturajiMove move) {
     print("Making move: $move");
+    List<ChaturajiMove> moves = game.board.generateMoves();
+    if (!moves.contains(move)) {
+      print("Invalid move: $move");
+      return;
+    }
     game.makeChaturajiMove(move);
     notifyListeners();
   }
