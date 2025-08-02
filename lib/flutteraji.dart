@@ -116,13 +116,13 @@ class HomePageState extends State<HomePage> {
   }
 
   void _boardListener() {
-    var game = _controller.game.copy();
-    List<ChaturajiMove> moves = game.generateMoves();
-    String a = game.board.generateFen();
+    var board = ChaturajiBoard.copy(_controller.game.board);
+    List<ChaturajiMove> moves = board.generateMoves();
+    String a = board.generateFen();
     for (var move in moves) {
-      game.makeChaturajiMove(move);
-      String b = game.board.generateFen();
-      game.undoMove();
+      ChaturajiBoard scratch = ChaturajiBoard.copy(board);
+      scratch.move(move);
+      String b = scratch.generateFen();
       graph.addLink(a, b);
     }
     setState(_update);
@@ -143,13 +143,13 @@ class HomePageState extends State<HomePage> {
   }
 
   void _addMoveIfKnown(ChaturajiMove move) {
-    var game = _controller.game;
-    var scratch = game.copy();
-    scratch.makeChaturajiMove(move);
-    var vertex = graph.v[scratch.board.generateFen()];
+    var board = _controller.game.board;
+    var scratch = ChaturajiBoard.copy(board);
+    scratch.move(move);
+    var vertex = graph.v[scratch.generateFen()];
     if (vertex == null) return;
     if (vertex.links.isEmpty) return;
-    _knownMoves.add(MoveInfo(game.moveToSan(move), vertex.computed));
+    _knownMoves.add(MoveInfo(board.moveToSan(move), vertex.computed));
   }
 
   void _back() {

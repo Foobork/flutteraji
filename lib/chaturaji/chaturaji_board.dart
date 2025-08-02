@@ -69,7 +69,7 @@ class ChaturajiBoard {
   ChaturajiBoard();
 
   /// copy another board
-  void copy(ChaturajiBoard other) {
+  ChaturajiBoard.copy(ChaturajiBoard other) {
     board.setAll(0, other.board);
     turn = other.turn;
   }
@@ -243,6 +243,12 @@ class ChaturajiBoard {
     turn = (turn + 0x10) & colorMask;
 
     return true;
+  }
+
+  String moveToSan(ChaturajiMove move) {
+    // Convert a move to Standard Algebraic Notation (SAN)
+    // This could involve translating the move's from and to squares into a string format
+    return "${move.from}-${move.to}";
   }
 
   // assume String is length 1

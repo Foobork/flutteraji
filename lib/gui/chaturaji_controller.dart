@@ -11,22 +11,12 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
 
   ChaturajiController._(this.game) : super(game);
 
-  /// Makes move on the board
-  void makeMove({required String from, required String to}) {
-    print("Making move from $from to $to");
-    game.makeMove({"from": from, "to": to});
-    notifyListeners();
-  }
-
   void makeChaturajiMove(ChaturajiMove move) {
-    print("Making move: $move");
     List<ChaturajiMove> moves = game.board.generateMoves();
-    if (!moves.contains(move)) {
-      print("Invalid move: $move");
-      return;
+    if (moves.contains(move)) {
+      game.makeChaturajiMove(move);
+      notifyListeners();
     }
-    game.makeChaturajiMove(move);
-    notifyListeners();
   }
 
   /// Makes move on the board
