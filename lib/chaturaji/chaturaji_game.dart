@@ -9,7 +9,7 @@ class ChaturajiGame {
   List<ChaturajiBoard> history = [];
 
   void makeMove(String move) {
-    print("ChaturajiGame: makeMove: $move - Not implemented");
+    makeChaturajiMove(ChaturajiMove.fromSan(move));
   }
 
   void makeChaturajiMove(ChaturajiMove move) {

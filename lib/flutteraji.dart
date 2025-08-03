@@ -149,7 +149,7 @@ class HomePageState extends State<HomePage> {
     var vertex = graph.v[scratch.generateFen()];
     if (vertex == null) return;
     if (vertex.links.isEmpty) return;
-    _knownMoves.add(MoveInfo(board.moveToSan(move), vertex.computed));
+    _knownMoves.add(MoveInfo(move.toSan(), vertex.computed));
   }
 
   void _back() {

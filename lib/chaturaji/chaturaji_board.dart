@@ -245,12 +245,6 @@ class ChaturajiBoard {
     return true;
   }
 
-  String moveToSan(ChaturajiMove move) {
-    // Convert a move to Standard Algebraic Notation (SAN)
-    // This could involve translating the move's from and to squares into a string format
-    return "${move.from}-${move.to}";
-  }
-
   // assume String is length 1
   bool _isDigit(String s) {
     final intChar = s.codeUnitAt(0);
