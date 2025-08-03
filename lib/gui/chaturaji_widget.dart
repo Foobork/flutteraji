@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:chess_vectors_flutter/chess_vectors_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutteraji/chaturaji/board.dart';

@@ -36,29 +36,11 @@ const Map<int, String> colorNames = {
 class HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
-    var board = ChaturajiWidget(controller: _controller);
-    var turn = Text(_turn, style: _textStyle);
-
     var body = Center(
       child: _padded(
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Column(
-              children: <Widget>[
-                Expanded(child: board),
-                turn,
-                Row(
-                  children: [
-                    _button("reset", _reset),
-                    _button("back", _back),
-                    _button("export", _export),
-                  ],
-                ),
-              ],
-            ),
-            _movesColumn(),
-          ],
+          children: [_boardColumn(), _movesColumn()],
         ),
       ),
     );
@@ -77,13 +59,52 @@ class HomePageState extends State<HomePage> {
     return _button(move, () => _controller.makeSanMove(move));
   }
 
+  dynamic _boardColumn() {
+    var board = ChaturajiWidget(controller: _controller);
+    var turn = _text(_turn);
+
+    return Column(
+      children: <Widget>[
+        _pointsRow(blue, yellow),
+        Expanded(child: board),
+        _pointsRow(red, green),
+        turn,
+        Row(
+          children: [
+            _button("reset", _reset),
+            _button("back", _back),
+            _button("export", _export),
+          ],
+        ),
+      ],
+    );
+  }
+
+  dynamic _pointsRow(int left, int right) {
+    return SizedBox(
+      width: 300,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _text("${colorNames[left]}: ${_controller.game.board.points[left]}"),
+          _text("${colorNames[right]}: ${_controller.game.board.points[right]}"),
+        ],
+      ),
+    );
+  }
+
+  dynamic _movesColumn() {
+    return _padded(
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [_movesTable()],
+      ),
+    );
+  }
+
   dynamic _movesTable() {
     var rows = _knownMoves.map((MoveInfo info) {
-      return TableRow(
-        children: [
-          _moveButton(info.move),
-        ],
-      );
+      return TableRow(children: [_moveButton(info.move)]);
     }).toList();
 
     return _padded(
@@ -94,15 +115,6 @@ class HomePageState extends State<HomePage> {
         },
         children: rows,
         defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-      ),
-    );
-  }
-
-  dynamic _movesColumn() {
-    return _padded(
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [_movesTable()],
       ),
     );
   }
@@ -118,7 +130,7 @@ class HomePageState extends State<HomePage> {
     String a = board.generateFen();
     for (var move in moves) {
       Board scratch = Board.copy(board);
-      scratch.move(move);
+      scratch.makeMove(move);
       String b = scratch.generateFen();
       graph.addLink(a, b);
     }
@@ -135,13 +147,12 @@ class HomePageState extends State<HomePage> {
   void _knownMovesToSan() {
     _knownMoves = [];
     _controller.generateMoves().forEach(_addMoveIfKnown);
-    //_knownMoves.sort(_compare(_controller.game.board.turn));
   }
 
   void _addMoveIfKnown(Move move) {
     var board = _controller.game.board;
     var scratch = Board.copy(board);
-    scratch.move(move);
+    scratch.makeMove(move);
     var vertex = graph.v[scratch.generateFen()];
     if (vertex == null) return;
     if (vertex.links.isEmpty) return;
@@ -153,7 +164,7 @@ class HomePageState extends State<HomePage> {
   }
 
   void _reset() {
-    _controller.resetBoard();
+    _controller.reset();
   }
 
   void _export() {
@@ -161,8 +172,12 @@ class HomePageState extends State<HomePage> {
   }
 
   TextButton _button(String text, action) {
-    var child = Text(text, style: _textStyle);
+    var child = _text(text);
     return TextButton(onPressed: action, child: child);
+  }
+
+  Text _text(String text) {
+    return Text(text, style: _textStyle);
   }
 
   Container _padded(dynamic child) {

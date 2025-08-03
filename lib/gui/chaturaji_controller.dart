@@ -30,7 +30,7 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
     notifyListeners();
   }
 
-  void resetBoard() {
+  void reset() {
     game.reset();
     notifyListeners();
   }

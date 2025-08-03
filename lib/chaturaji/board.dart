@@ -219,17 +219,13 @@ class Board {
     return moves;
   }
 
-  bool move(Move move) {
+  bool makeMove(Move move) {
     final from = move.from;
     final to = move.to;
-
-    print("Moving from $from to $to");
 
     // Move the piece
     board[to] = board[from];
     board[from] = empty;
-
-    print(generateFen());
 
     // Check for promotion
     if (board[to] & pieceMask == pawn) {

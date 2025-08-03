@@ -13,7 +13,7 @@ class ChaturajiGame {
 
   void makeMove(Move move) {
     history.add(Board.copy(board));
-    board.move(move);
+    board.makeMove(move);
   }
 
   void undoMove() {
