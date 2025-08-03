@@ -42,7 +42,7 @@ Map<int, String> pieceSymbols = {
 Map<int, String> colorSymbols = {red: 'r', blue: 'b', yellow: 'y', green: 'g'};
 
 const String startPosition =
-    'bRbP2yKyByNyR/bNbP2yPyPyPyP/bBbP6/bKbP6/6gPgK/6gPgB/rPrPrPrP2gPgN/rRrNrBrK2gPgR r';
+    'bRbP2yKyByNyR/bNbP2yPyPyPyP/bBbP6/bKbP6/6gPgK/6gPgB/rPrPrPrP2gPgN/rRrNrBrK2gPgR 0/0/0/0 r';
 
 const int squaresA8 = 0;
 const int squaresH1 = 119;
@@ -63,6 +63,7 @@ const Map<int, List<int>> pieceOffsets = {
 
 class Board {
   Uint8List board = Uint8List(128);
+  Map<int, int> points = {red: 0, blue: 0, yellow: 0, green: 0};
   int turn = red;
 
   /// empty constructor
@@ -102,7 +103,13 @@ class Board {
       }
     }
 
-    turn = colors[tokens[1]]!;
+    final pointStr = tokens[1].split('/');
+    points[red] = int.parse(pointStr[0]);
+    points[blue] = int.parse(pointStr[1]);
+    points[yellow] = int.parse(pointStr[2]);
+    points[green] = int.parse(pointStr[3]);
+
+    turn = colors[tokens[2]]!;
 
     return true;
   }
@@ -139,9 +146,12 @@ class Board {
       }
     }
 
+    final pointsStr =
+        "${points[red]!}/${points[blue]!}/${points[yellow]!}/${points[green]!}";
+
     final turnStr = colorSymbols[turn]!;
 
-    return [fen, turnStr].join(' ');
+    return [fen, pointsStr, turnStr].join(' ');
   }
 
   void clear() {
