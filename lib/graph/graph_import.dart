@@ -7,17 +7,6 @@ import 'package:flutteraji/chaturaji/move.dart';
 
 import 'graph.dart';
 
-var brackets = RegExp(r"[\[\]]");
-
-double? parseEvalString(String? s) {
-  if (s == null) return null;
-  if (s == "-") return null;
-  s = s.replaceAll(brackets, "");
-  if (s == "0:1") return -1000;
-  if (s.startsWith("#-")) return -990;
-  return double.parse(s);
-}
-
 void importGraph(String filename) {
   try {
     var cwd = Directory.current;
@@ -31,9 +20,9 @@ void importGraph(String filename) {
       var match = regex.firstMatch(line);
       if (match == null) throw "Can't match $line";
       var fen = match.group(1) as String;
-      graph.addFullVertex(fen, 0, 0);
+      graph.addVertex(fen);
       var game = ChaturajiGame();
-      game.board.load("$fen 0 1");
+      game.board.load(fen);
       List<Move> moves = game.generateMoves();
       String a = game.generateFen();
       for (var move in moves) {
