@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutteraji/chaturaji/chaturaji_game.dart';
-import 'package:flutteraji/chaturaji/chaturaji_move.dart';
+import 'package:flutteraji/chaturaji/move.dart';
 
 class ChaturajiController extends ValueNotifier<ChaturajiGame> {
   late ChaturajiGame game;
@@ -11,8 +11,8 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
 
   ChaturajiController._(this.game) : super(game);
 
-  void makeChaturajiMove(ChaturajiMove move) {
-    List<ChaturajiMove> moves = game.board.generateMoves();
+  void makeChaturajiMove(Move move) {
+    List<Move> moves = game.board.generateMoves();
     if (moves.contains(move)) {
       game.makeChaturajiMove(move);
       notifyListeners();
@@ -35,7 +35,7 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
     notifyListeners();
   }
 
-  List<ChaturajiMove> getPossibleMoves() {
+  List<Move> getPossibleMoves() {
     return game.board.generateMoves();
   }
 }

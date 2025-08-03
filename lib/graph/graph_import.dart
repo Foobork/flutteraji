@@ -3,7 +3,7 @@
 import 'dart:io';
 
 import 'package:flutteraji/chaturaji/chaturaji_game.dart';
-import 'package:flutteraji/chaturaji/chaturaji_move.dart';
+import 'package:flutteraji/chaturaji/move.dart';
 
 import 'graph.dart';
 
@@ -34,7 +34,7 @@ void importGraph(String filename) {
       graph.addFullVertex(fen, 0, 0);
       var game = ChaturajiGame();
       game.board.load("$fen 0 1");
-      List<ChaturajiMove> moves = game.generateMoves();
+      List<Move> moves = game.generateMoves();
       String a = game.fen;
       for (var move in moves) {
         game.makeChaturajiMove(move);

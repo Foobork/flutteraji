@@ -1,32 +1,32 @@
 import 'package:equatable/equatable.dart';
 
-class ChaturajiMove extends Equatable {
+class Move extends Equatable {
   final int from;
   final int to;
 
-  const ChaturajiMove(this.from, this.to);
+  const Move(this.from, this.to);
 
-  ChaturajiMove.fromSan(String san)
-    : from = algebraicToSquare[san.substring(0, 2)]!,
-      to = algebraicToSquare[san.substring(3, 5)]!;
+  Move.fromSan(String san)
+    : from = sanToSquare[san.substring(0, 2)]!,
+      to = sanToSquare[san.substring(3, 5)]!;
 
   @override
   // List all properties that should be considered for equality.
   List<Object?> get props => [from, to];
 
-  ChaturajiMove sanToMove(String san) {
+  Move sanToMove(String san) {
     final parts = san.split('-');
-    final int from = algebraicToSquare[parts[0]]!;
-    final int to = algebraicToSquare[parts[1]]!;
-    return ChaturajiMove(from, to);
+    final int from = sanToSquare[parts[0]]!;
+    final int to = sanToSquare[parts[1]]!;
+    return Move(from, to);
   }
 
   String toSan() {
-    return "${squareToAlgebraic[from]}-${squareToAlgebraic[to]}";
+    return "${squareToSan[from]}-${squareToSan[to]}";
   }
 }
 
-const Map<String, int> algebraicToSquare = {
+const Map<String, int> sanToSquare = {
   'a8': 0,
   'b8': 1,
   'c8': 2,
@@ -93,7 +93,7 @@ const Map<String, int> algebraicToSquare = {
   'h1': 119,
 };
 
-const Map<int, String> squareToAlgebraic = {
+const Map<int, String> squareToSan = {
   0: 'a8',
   1: 'b8',
   2: 'c8',

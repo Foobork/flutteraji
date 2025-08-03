@@ -1,18 +1,17 @@
 // ignore_for_file: avoid_print
 
 import 'package:flutteraji/chaturaji/chaturaji_board.dart';
-import 'package:flutteraji/chaturaji/chaturaji_move.dart';
+import 'package:flutteraji/chaturaji/move.dart';
 
 class ChaturajiGame {
-
   ChaturajiBoard board = ChaturajiBoard()..reset();
   List<ChaturajiBoard> history = [];
 
   void makeMove(String move) {
-    makeChaturajiMove(ChaturajiMove.fromSan(move));
+    makeChaturajiMove(Move.fromSan(move));
   }
 
-  void makeChaturajiMove(ChaturajiMove move) {
+  void makeChaturajiMove(Move move) {
     history.add(ChaturajiBoard.copy(board));
     board.move(move);
   }
@@ -23,7 +22,7 @@ class ChaturajiGame {
     }
   }
 
-  List<ChaturajiMove> generateMoves() {
+  List<Move> generateMoves() {
     // Implement the logic to generate all possible moves
     // This could involve checking the current board state and available pieces
     return board.generateMoves();

@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutteraji/chaturaji/chaturaji_board.dart';
-import 'package:flutteraji/chaturaji/chaturaji_move.dart';
+import 'package:flutteraji/chaturaji/move.dart';
 
 import 'graph/graph.dart';
 import 'graph/graph_export.dart';
@@ -117,7 +117,7 @@ class HomePageState extends State<HomePage> {
 
   void _boardListener() {
     var board = ChaturajiBoard.copy(_controller.game.board);
-    List<ChaturajiMove> moves = board.generateMoves();
+    List<Move> moves = board.generateMoves();
     String a = board.generateFen();
     for (var move in moves) {
       ChaturajiBoard scratch = ChaturajiBoard.copy(board);
@@ -142,7 +142,7 @@ class HomePageState extends State<HomePage> {
     //_knownMoves.sort(_compare(_controller.game.board.turn));
   }
 
-  void _addMoveIfKnown(ChaturajiMove move) {
+  void _addMoveIfKnown(Move move) {
     var board = _controller.game.board;
     var scratch = ChaturajiBoard.copy(board);
     scratch.move(move);

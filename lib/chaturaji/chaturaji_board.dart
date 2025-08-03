@@ -2,7 +2,7 @@
 
 import 'dart:typed_data';
 
-import 'package:flutteraji/chaturaji/chaturaji_move.dart';
+import 'package:flutteraji/chaturaji/move.dart';
 
 const int colorMask = 0x30;
 const int pieceMask = 0x07;
@@ -149,18 +149,18 @@ class ChaturajiBoard {
     turn = red;
   }
 
-  List<ChaturajiMove> generateMoves() {
-    final moves = <ChaturajiMove>[];
+  List<Move> generateMoves() {
+    final moves = <Move>[];
     final us = turn;
 
-    for (int i = squaresA8; i <= squaresH1; i++) {
+    for (int from = squaresA8; from <= squaresH1; from++) {
       // --- did we run off the end of the board
-      if ((i & 0x88) != 0) {
-        i += 7;
+      if ((from & 0x88) != 0) {
+        from += 7;
         continue;
       }
 
-      final int piece = board[i];
+      final int piece = board[from];
       if (piece == empty || piece & colorMask != us) {
         continue;
       }
@@ -169,32 +169,32 @@ class ChaturajiBoard {
 
       if (pieceType == pawn) {
         // single square, non-capturing
-        final int square = i + pawnOffsets[us]![0];
-        if (board[square] == empty) {
-          moves.add(ChaturajiMove(i, square));
+        final int to = from + pawnOffsets[us]![0];
+        if (board[to] == empty) {
+          moves.add(Move(from, to));
         }
 
         // pawn captures
         for (var j = 1; j < 3; j++) {
-          var square = i + pawnOffsets[us]![j];
-          if ((square & 0x88) != 0) continue;
-          if (board[square] != empty && board[square] & colorMask != us) {
-            moves.add(ChaturajiMove(i, square));
+          int to = from + pawnOffsets[us]![j];
+          if ((to & 0x88) != 0) continue;
+          if (board[to] != empty && board[to] & colorMask != us) {
+            moves.add(Move(from, to));
           }
         }
       } else {
         for (final offset in pieceOffsets[pieceType]!) {
-          var square = i;
+          int to = from;
 
           while (true) {
-            square += offset;
-            if ((square & 0x88) != 0) break;
+            to += offset;
+            if ((to & 0x88) != 0) break;
 
-            if (board[square] == empty) {
-              moves.add(ChaturajiMove(i, square));
+            if (board[to] == empty) {
+              moves.add(Move(from, to));
             } else {
-              if (board[square] & colorMask != us) {
-                moves.add(ChaturajiMove(i, square));
+              if (board[to] & colorMask != us) {
+                moves.add(Move(from, to));
               }
               break;
             }
@@ -209,7 +209,7 @@ class ChaturajiBoard {
     return moves;
   }
 
-  bool move(ChaturajiMove move) {
+  bool move(Move move) {
     final from = move.from;
     final to = move.to;
 
