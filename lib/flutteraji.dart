@@ -138,7 +138,7 @@ class HomePageState extends State<HomePage> {
 
   void _knownMovesToSan() {
     _knownMoves = [];
-    _controller.getPossibleMoves().forEach(_addMoveIfKnown);
+    _controller.generateMoves().forEach(_addMoveIfKnown);
     //_knownMoves.sort(_compare(_controller.game.board.turn));
   }
 

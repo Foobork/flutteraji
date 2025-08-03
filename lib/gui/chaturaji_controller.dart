@@ -35,7 +35,7 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
     notifyListeners();
   }
 
-  List<Move> getPossibleMoves() {
+  List<Move> generateMoves() {
     return game.generateMoves();
   }
 }
