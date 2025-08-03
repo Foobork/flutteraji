@@ -52,7 +52,6 @@ class HomePageState extends State<HomePage> {
                   children: [
                     _button("reset", _reset),
                     _button("back", _back),
-                    _button("solve", _solve),
                     _button("export", _export),
                   ],
                 ),
@@ -72,7 +71,6 @@ class HomePageState extends State<HomePage> {
 
   List<MoveInfo> _knownMoves = [];
   String _fen = "";
-  String _eval = "";
   String _turn = "";
 
   dynamic _moveButton(String move) {
@@ -84,7 +82,6 @@ class HomePageState extends State<HomePage> {
       return TableRow(
         children: [
           _moveButton(info.move),
-          Text(info.eval?.toString() ?? "", style: _textStyle),
         ],
       );
     }).toList();
@@ -105,7 +102,7 @@ class HomePageState extends State<HomePage> {
     return _padded(
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [_evaluationWidget(), _movesTable()],
+        children: [_movesTable()],
       ),
     );
   }
@@ -133,7 +130,6 @@ class HomePageState extends State<HomePage> {
     _fen = _controller.game.board.generateFen();
     _turn = "${colorNames[_controller.game.board.turn]!} to move";
     Clipboard.setData(ClipboardData(text: _fen));
-    _eval = graph.v[_fen]?.assigned?.toString() ?? "";
   }
 
   void _knownMovesToSan() {
@@ -149,7 +145,7 @@ class HomePageState extends State<HomePage> {
     var vertex = graph.v[scratch.generateFen()];
     if (vertex == null) return;
     if (vertex.links.isEmpty) return;
-    _knownMoves.add(MoveInfo(move.toSan(), vertex.computed));
+    _knownMoves.add(MoveInfo(move.toSan()));
   }
 
   void _back() {
@@ -164,11 +160,6 @@ class HomePageState extends State<HomePage> {
     exportGraph("data/Chaturaji.txt");
   }
 
-  void _solve() {
-    graph.solve();
-    _export();
-  }
-
   TextButton _button(String text, action) {
     var child = Text(text, style: _textStyle);
     return TextButton(onPressed: action, child: child);
@@ -178,36 +169,9 @@ class HomePageState extends State<HomePage> {
     var padding = const EdgeInsets.symmetric(horizontal: 8, vertical: 8);
     return Container(padding: padding, child: child);
   }
-
-  dynamic _evaluationWidget() {
-    return _textField("Evaluation", _eval, _updateEval);
-  }
-
-  void _updateEval(String newEval) {
-    String fen = _controller.game.generateFen();
-    graph.assign(fen, double.tryParse(newEval));
-    graph.solveBfen(fen);
-    _export();
-  }
-
-  SizedBox _textField(String label, initialValue, onSubmitted) {
-    return SizedBox(
-      width: 200,
-      child: TextField(
-        controller: TextEditingController(text: initialValue),
-        decoration: InputDecoration(
-          label: Text(label),
-          border: const OutlineInputBorder(),
-        ),
-        onSubmitted: onSubmitted,
-      ),
-    );
-  }
 }
 
 class MoveInfo {
   String move;
-  double? eval;
-
-  MoveInfo(this.move, this.eval);
+  MoveInfo(this.move);
 }
