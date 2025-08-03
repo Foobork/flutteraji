@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutteraji/chaturaji/chaturaji_board.dart';
+import 'package:flutteraji/chaturaji/board.dart';
 import 'package:flutteraji/chaturaji/move.dart';
 
 import 'graph/graph.dart';
@@ -76,7 +76,7 @@ class HomePageState extends State<HomePage> {
   String _turn = "";
 
   dynamic _moveButton(String move) {
-    return _button(move, () => _controller.makeMoveWithNormalNotation(move));
+    return _button(move, () => _controller.makeSanMove(move));
   }
 
   dynamic _movesTable() {
@@ -116,11 +116,11 @@ class HomePageState extends State<HomePage> {
   }
 
   void _boardListener() {
-    var board = ChaturajiBoard.copy(_controller.game.board);
+    var board = Board.copy(_controller.game.board);
     List<Move> moves = board.generateMoves();
     String a = board.generateFen();
     for (var move in moves) {
-      ChaturajiBoard scratch = ChaturajiBoard.copy(board);
+      Board scratch = Board.copy(board);
       scratch.move(move);
       String b = scratch.generateFen();
       graph.addLink(a, b);
@@ -144,7 +144,7 @@ class HomePageState extends State<HomePage> {
 
   void _addMoveIfKnown(Move move) {
     var board = _controller.game.board;
-    var scratch = ChaturajiBoard.copy(board);
+    var scratch = Board.copy(board);
     scratch.move(move);
     var vertex = graph.v[scratch.generateFen()];
     if (vertex == null) return;
@@ -184,7 +184,7 @@ class HomePageState extends State<HomePage> {
   }
 
   void _updateEval(String newEval) {
-    String fen = _controller.game.fen;
+    String fen = _controller.game.generateFen();
     graph.assign(fen, double.tryParse(newEval));
     graph.solveBfen(fen);
     _export();

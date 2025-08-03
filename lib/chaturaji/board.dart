@@ -61,15 +61,15 @@ const Map<int, List<int>> pieceOffsets = {
   king: [-17, -16, -15, 1, 17, 16, 15, -1],
 };
 
-class ChaturajiBoard {
+class Board {
   Uint8List board = Uint8List(128);
   int turn = red;
 
   /// empty constructor
-  ChaturajiBoard();
+  Board();
 
   /// copy another board
-  ChaturajiBoard.copy(ChaturajiBoard other) {
+  Board.copy(Board other) {
     board.setAll(0, other.board);
     turn = other.turn;
   }

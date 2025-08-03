@@ -1,7 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'package:flutter/material.dart';
-import 'package:flutteraji/chaturaji/chaturaji_game.dart';
+import 'package:flutteraji/chaturaji/game.dart';
 import 'package:flutteraji/chaturaji/move.dart';
 
 class ChaturajiController extends ValueNotifier<ChaturajiGame> {
@@ -11,17 +11,17 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
 
   ChaturajiController._(this.game) : super(game);
 
-  void makeChaturajiMove(Move move) {
-    List<Move> moves = game.board.generateMoves();
+  void makeMove(Move move) {
+    List<Move> moves = game.generateMoves();
     if (moves.contains(move)) {
-      game.makeChaturajiMove(move);
+      game.makeMove(move);
       notifyListeners();
     }
   }
 
   /// Makes move on the board
-  void makeMoveWithNormalNotation(String move) {
-    game.makeMove(move);
+  void makeSanMove(String move) {
+    game.makeSanMove(move);
     notifyListeners();
   }
 
@@ -31,11 +31,11 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
   }
 
   void resetBoard() {
-    game.board.reset();
+    game.reset();
     notifyListeners();
   }
 
   List<Move> getPossibleMoves() {
-    return game.board.generateMoves();
+    return game.generateMoves();
   }
 }

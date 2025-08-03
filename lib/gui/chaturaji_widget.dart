@@ -1,7 +1,7 @@
 import 'package:chess_vectors_flutter/chess_vectors_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:flutteraji/chaturaji/chaturaji_board.dart';
-import 'package:flutteraji/chaturaji/chaturaji_game.dart';
+import 'package:flutteraji/chaturaji/board.dart';
+import 'package:flutteraji/chaturaji/game.dart';
 import 'package:flutteraji/chaturaji/move.dart';
 
 import 'chaturaji_controller.dart';
@@ -90,7 +90,7 @@ class _ChaturajiWidgetState extends State<ChaturajiWidget> {
                             PieceMoveData pieceMoveData =
                                 dragTargetDetails.data;
                             // A way to check if move occurred.
-                            widget.controller.makeChaturajiMove(
+                            widget.controller.makeMove(
                               Move(pieceMoveData.squareIndex, squareIndex),
                             );
                             widget.onMove?.call();

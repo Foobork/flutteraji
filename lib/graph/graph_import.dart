@@ -2,7 +2,7 @@
 
 import 'dart:io';
 
-import 'package:flutteraji/chaturaji/chaturaji_game.dart';
+import 'package:flutteraji/chaturaji/game.dart';
 import 'package:flutteraji/chaturaji/move.dart';
 
 import 'graph.dart';
@@ -35,10 +35,10 @@ void importGraph(String filename) {
       var game = ChaturajiGame();
       game.board.load("$fen 0 1");
       List<Move> moves = game.generateMoves();
-      String a = game.fen;
+      String a = game.generateFen();
       for (var move in moves) {
-        game.makeChaturajiMove(move);
-        String b = game.fen;
+        game.makeMove(move);
+        String b = game.generateFen();
         game.undoMove();
         graph.addLink(a, b);
       }
