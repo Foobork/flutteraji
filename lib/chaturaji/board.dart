@@ -287,11 +287,25 @@ class Board {
 
     // Change turn
     if (liveColors.length == 1) {
+      deadKingPoints(liveColors.first);
       turn = gameOver;
     } else {
       do {
         turn = (turn + 0x10) & colorMask;
       } while (!liveColors.contains(turn));
+    }
+  }
+
+  // Points for dead kings
+  void deadKingPoints(int color) {
+    for (int i = squaresA8; i <= squaresH1; i++) {
+      if ((i & 0x88) != 0) {
+        i += 7; // skip to next row
+        continue;
+      }
+      if (board[i] & (dead | pieceMask) == dead | king) {
+        points[color] = points[color]! + 3;
+      }
     }
   }
 
