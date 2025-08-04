@@ -99,19 +99,26 @@ class Board {
     clear();
 
     for (var i = 0; i < position.length; i++) {
-      final c = position[i];
+      String c = position[i];
 
       if (c == '/') {
         square += 8;
       } else if (_isDigit(c)) {
         square += int.parse(c);
       } else {
+        final deadMarker = c == '*';
+        if (deadMarker) {
+          c = position[++i];
+        }
         final color = colors[c]!;
         final piece = pieceTypes[position[++i]]!;
         if (piece == king) {
           liveColors.add(color);
         }
         board[square] = color | piece;
+        if (deadMarker) {
+          board[square] |= dead;
+        }
         square++;
       }
     }
@@ -140,9 +147,10 @@ class Board {
           fen += emptyCount.toString();
           emptyCount = 0;
         }
+        var deadMarker = board[i] & dead == dead ? '*' : '';
         var color = colorSymbols[board[i] & colorMask]!;
         var type = pieceSymbols[board[i] & pieceMask]!;
-        fen += color + type;
+        fen += deadMarker + color + type;
       }
 
       if (((i + 1) & 0x88) != 0) {
