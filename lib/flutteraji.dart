@@ -71,6 +71,7 @@ class HomePageState extends State<HomePage> {
         turn,
         Row(
           children: [
+            _button("resign", _resign),
             _button("reset", _reset),
             _button("back", _back),
             _button("export", _export),
@@ -171,6 +172,10 @@ class HomePageState extends State<HomePage> {
 
   void _reset() {
     _controller.reset();
+  }
+
+  void _resign() {
+    _controller.makeMove(resignMove);
   }
 
   void _export() {

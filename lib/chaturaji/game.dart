@@ -8,7 +8,7 @@ class ChaturajiGame {
   List<Board> history = [];
 
   void makeSanMove(String move) {
-    makeMove(Move.fromSan(move));
+    makeMove(sanToMove(move));
   }
 
   void makeMove(Move move) {

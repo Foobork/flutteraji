@@ -6,25 +6,29 @@ class Move extends Equatable {
 
   const Move(this.from, this.to);
 
-  Move.fromSan(String san)
-    : from = sanToSquare[san.substring(0, 2)]!,
-      to = sanToSquare[san.substring(3, 5)]!;
-
   @override
   // List all properties that should be considered for equality.
   List<Object?> get props => [from, to];
 
-  Move sanToMove(String san) {
-    final parts = san.split('-');
-    final int from = sanToSquare[parts[0]]!;
-    final int to = sanToSquare[parts[1]]!;
-    return Move(from, to);
-  }
-
   String toSan() {
+    if (from == -1 && to == -1) {
+      return "resign"; // Special case for resign move
+    }
     return "${squareToSan[from]}-${squareToSan[to]}";
   }
 }
+
+Move sanToMove(String san) {
+  if (san == "resign") {
+    return resignMove; // Special case for resign move
+  }
+  final parts = san.split('-');
+  final int from = sanToSquare[parts[0]]!;
+  final int to = sanToSquare[parts[1]]!;
+  return Move(from, to);
+}
+
+const resignMove = Move(-1, -1);
 
 const Map<String, int> sanToSquare = {
   'a8': 0,

@@ -185,6 +185,10 @@ class Board {
   List<Move> generateMoves() {
     final moves = <Move>[];
 
+    if (turn == gameOver) {
+      return moves; // No moves possible if the game is over
+    }
+
     for (int from = squaresA8; from <= squaresH1; from++) {
       // --- did we run off the end of the board
       if ((from & 0x88) != 0) {
@@ -238,40 +242,46 @@ class Board {
       }
     }
 
+    moves.add(resignMove);
+
     return moves;
   }
 
   void makeMove(Move move) {
-    final from = move.from;
-    final to = move.to;
+    if (move == resignMove) {
+      markDead(turn);
+    } else {
+      final from = move.from;
+      final to = move.to;
 
-    // Points for capture
-    points[turn] = points[turn]! + (capturePoints[board[to]] ?? 0);
+      // Points for capture
+      points[turn] = points[turn]! + (capturePoints[board[to]] ?? 0);
 
-    // King capture
-    if (board[to] & (dead | pieceMask) == king) {
-      markDead(board[to] & colorMask);
-    }
+      // King capture
+      if (board[to] & (dead | pieceMask) == king) {
+        markDead(board[to] & colorMask);
+      }
 
-    // Move the piece
-    board[to] = board[from];
-    board[from] = empty;
+      // Move the piece
+      board[to] = board[from];
+      board[from] = empty;
 
-    // Check for promotion
-    if (board[to] & pieceMask == pawn) {
-      switch (board[to] & colorMask) {
-        case red:
-          if (to <= 7) board[to] = red | rook;
-          break;
-        case blue:
-          if (to % 8 == 7) board[to] = blue | rook;
-          break;
-        case yellow:
-          if (to >= 112) board[to] = yellow | rook;
-          break;
-        case green:
-          if (to % 8 == 0) board[to] = green | rook;
-          break;
+      // Check for promotion
+      if (board[to] & pieceMask == pawn) {
+        switch (board[to] & colorMask) {
+          case red:
+            if (to <= 7) board[to] = red | rook;
+            break;
+          case blue:
+            if (to % 8 == 7) board[to] = blue | rook;
+            break;
+          case yellow:
+            if (to >= 112) board[to] = yellow | rook;
+            break;
+          case green:
+            if (to % 8 == 0) board[to] = green | rook;
+            break;
+        }
       }
     }
 
