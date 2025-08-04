@@ -21,7 +21,16 @@ const int green = 0x30;
 
 const int dead = 0x40;
 
+const int gameOver = 0x80;
+
 Map<String, int> colors = {'r': red, 'b': blue, 'y': yellow, 'g': green};
+Map<int, String> colorSymbols = {
+  red: 'r',
+  blue: 'b',
+  yellow: 'y',
+  green: 'g',
+  gameOver: '*',
+};
 
 Map<String, int> pieceTypes = {
   'P': pawn,
@@ -38,8 +47,6 @@ Map<int, String> pieceSymbols = {
   rook: 'R',
   king: 'K',
 };
-
-Map<int, String> colorSymbols = {red: 'r', blue: 'b', yellow: 'y', green: 'g'};
 
 const String startPosition =
     'bRbP2yKyByNyR/bNbP2yPyPyPyP/bBbP6/bKbP6/6gPgK/6gPgB/rPrPrPrP2gPgN/rRrNrBrK2gPgR 0/0/0/0 r';
@@ -64,6 +71,7 @@ const Map<int, List<int>> pieceOffsets = {
 class Board {
   Uint8List board = Uint8List(128);
   Map<int, int> points = {red: 0, blue: 0, yellow: 0, green: 0};
+  Set<int> liveColors = {red, blue, yellow, green};
   int turn = red;
 
   /// empty constructor
@@ -73,6 +81,7 @@ class Board {
   Board.copy(Board other) {
     board.setAll(0, other.board);
     points = Map<int, int>.from(other.points);
+    liveColors = Set<int>.from(other.liveColors);
     turn = other.turn;
   }
 
@@ -99,6 +108,9 @@ class Board {
       } else {
         final color = colors[c]!;
         final piece = pieceTypes[position[++i]]!;
+        if (piece == king) {
+          liveColors.add(color);
+        }
         board[square] = color | piece;
         square++;
       }
@@ -148,7 +160,7 @@ class Board {
     }
 
     final pointsStr =
-        "${points[red]!}/${points[blue]!}/${points[yellow]!}/${points[green]!}";
+        "${points[red]}/${points[blue]}/${points[yellow]}/${points[green]}";
 
     final turnStr = colorSymbols[turn]!;
 
@@ -157,6 +169,8 @@ class Board {
 
   void clear() {
     board.fillRange(0, 128, empty);
+    points = {red: 0, blue: 0, yellow: 0, green: 0};
+    liveColors = {};
     turn = red;
   }
 
@@ -219,7 +233,7 @@ class Board {
     return moves;
   }
 
-  bool makeMove(Move move) {
+  void makeMove(Move move) {
     final from = move.from;
     final to = move.to;
 
@@ -254,22 +268,27 @@ class Board {
     }
 
     // Change turn
-    turn = (turn + 0x10) & colorMask;
-
-    return true;
+    if (liveColors.length == 1) {
+      turn = gameOver;
+    } else {
+      do {
+        turn = (turn + 0x10) & colorMask;
+      } while (!liveColors.contains(turn));
+    }
   }
 
-  // mark dead
+  // mark a color dead
   void markDead(int deadColor) {
     for (int i = squaresA8; i <= squaresH1; i++) {
       if ((i & 0x88) != 0) {
         i += 7; // skip to next row
         continue;
       }
-      if (board[i] & colorMask == deadColor) {
+      if (board[i] != empty && board[i] & colorMask == deadColor) {
         board[i] |= dead;
       }
     }
+    liveColors.remove(deadColor);
   }
 
   // assume String is length 1

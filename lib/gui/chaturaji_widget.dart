@@ -121,42 +121,19 @@ final class BoardPiece extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return switch (piece) {
-      const (red | pawn) => WhitePawn(fillColor: Colors.red),
-      const (red | rook) => WhiteRook(fillColor: Colors.red),
-      const (red | knight) => WhiteKnight(fillColor: Colors.red),
-      const (red | bishop) => WhiteBishop(fillColor: Colors.red),
-      const (red | king) => WhiteKing(fillColor: Colors.red),
-      const (yellow | pawn) => WhitePawn(fillColor: Colors.yellow),
-      const (yellow | rook) => WhiteRook(fillColor: Colors.yellow),
-      const (yellow | knight) => WhiteKnight(fillColor: Colors.yellow),
-      const (yellow | bishop) => WhiteBishop(fillColor: Colors.yellow),
-      const (yellow | king) => WhiteKing(fillColor: Colors.yellow),
-      const (blue | pawn) => WhitePawn(fillColor: Colors.blue),
-      const (blue | rook) => WhiteRook(fillColor: Colors.blue),
-      const (blue | knight) => WhiteKnight(fillColor: Colors.blue),
-      const (blue | bishop) => WhiteBishop(fillColor: Colors.blue),
-      const (blue | king) => WhiteKing(fillColor: Colors.blue),
-      const (green | pawn) => WhitePawn(fillColor: Colors.green),
-      const (green | rook) => WhiteRook(fillColor: Colors.green),
-      const (green | knight) => WhiteKnight(fillColor: Colors.green),
-      const (green | bishop) => WhiteBishop(fillColor: Colors.green),
-      const (green | king) => WhiteKing(fillColor: Colors.green),
-      _ when (piece & (dead | pieceMask) == dead | pawn) => WhitePawn(
-        fillColor: Colors.grey,
-      ),
-      _ when (piece & (dead | pieceMask) == dead | rook) => WhiteRook(
-        fillColor: Colors.grey,
-      ),
-      _ when (piece & (dead | pieceMask) == dead | knight) => WhiteKnight(
-        fillColor: Colors.grey,
-      ),
-      _ when (piece & (dead | pieceMask) == dead | bishop) => WhiteBishop(
-        fillColor: Colors.grey,
-      ),
-      _ when (piece & (dead | pieceMask) == dead | king) => WhiteKing(
-        fillColor: Colors.grey,
-      ),
+    final fillColor = switch (piece & (dead | colorMask)) {
+      red => Colors.red,
+      blue => Colors.blue,
+      yellow => Colors.yellow,
+      green => Colors.green,
+      _ => Colors.grey,
+    };
+    return switch (piece & pieceMask) {
+      pawn => WhitePawn(fillColor: fillColor),
+      rook => WhiteRook(fillColor: fillColor),
+      knight => WhiteKnight(fillColor: fillColor),
+      bishop => WhiteBishop(fillColor: fillColor),
+      king => WhiteKing(fillColor: fillColor),
       _ => Container(),
     };
   }

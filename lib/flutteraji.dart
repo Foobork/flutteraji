@@ -87,7 +87,9 @@ class HomePageState extends State<HomePage> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _text("${colorNames[left]}: ${_controller.game.board.points[left]}"),
-          _text("${colorNames[right]}: ${_controller.game.board.points[right]}"),
+          _text(
+            "${colorNames[right]}: ${_controller.game.board.points[right]}",
+          ),
         ],
       ),
     );
@@ -139,8 +141,12 @@ class HomePageState extends State<HomePage> {
 
   void _update() {
     _knownMovesToSan();
-    _fen = _controller.game.board.generateFen();
-    _turn = "${colorNames[_controller.game.board.turn]!} to move";
+    final board = _controller.game.board;
+    _fen = board.generateFen();
+    _turn = switch (board.turn) {
+      gameOver => "Game over",
+      _ => "${colorNames[board.turn]!} to move",
+    };
     Clipboard.setData(ClipboardData(text: _fen));
   }
 
