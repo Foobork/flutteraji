@@ -72,6 +72,7 @@ class Board {
   /// copy another board
   Board.copy(Board other) {
     board.setAll(0, other.board);
+    points = Map<int, int>.from(other.points);
     turn = other.turn;
   }
 
@@ -161,7 +162,6 @@ class Board {
 
   List<Move> generateMoves() {
     final moves = <Move>[];
-    final us = turn;
 
     for (int from = squaresA8; from <= squaresH1; from++) {
       // --- did we run off the end of the board
@@ -171,7 +171,7 @@ class Board {
       }
 
       final int piece = board[from];
-      if (piece == empty || piece & colorMask != us) {
+      if (piece == empty || piece & colorMask != turn) {
         continue;
       }
 
@@ -179,16 +179,16 @@ class Board {
 
       if (pieceType == pawn) {
         // single square, non-capturing
-        final int to = from + pawnOffsets[us]![0];
+        final int to = from + pawnOffsets[turn]![0];
         if (board[to] == empty) {
           moves.add(Move(from, to));
         }
 
         // pawn captures
         for (var j = 1; j < 3; j++) {
-          int to = from + pawnOffsets[us]![j];
+          int to = from + pawnOffsets[turn]![j];
           if ((to & 0x88) != 0) continue;
-          if (board[to] != empty && board[to] & colorMask != us) {
+          if (board[to] != empty && board[to] & colorMask != turn) {
             moves.add(Move(from, to));
           }
         }
@@ -203,7 +203,7 @@ class Board {
             if (board[to] == empty) {
               moves.add(Move(from, to));
             } else {
-              if (board[to] & colorMask != us) {
+              if (board[to] & colorMask != turn) {
                 moves.add(Move(from, to));
               }
               break;
@@ -222,6 +222,8 @@ class Board {
   bool makeMove(Move move) {
     final from = move.from;
     final to = move.to;
+
+    points[turn] = points[turn]! + (capturePoints[board[to]] ?? 0);
 
     // Move the piece
     board[to] = board[from];
@@ -257,3 +259,30 @@ class Board {
     return intChar >= 0x30 && intChar <= 0x39; // ASCII values for '0' to '9'
   }
 }
+
+Map<int, int> capturePoints = {
+  red | pawn: 1,
+  red | knight: 3,
+  red | bishop: 5,
+  red | rook: 5,
+  red | king: 3,
+  blue | pawn: 1,
+  blue | knight: 3, 
+  blue | bishop: 5,
+  blue | rook: 5,
+  blue | king: 3,
+  yellow | pawn: 1,
+  yellow | knight: 3,
+  yellow | bishop: 5,
+  yellow | rook: 5,
+  yellow | king: 3,
+  green | pawn: 1,
+  green | knight: 3,
+  green | bishop: 5,
+  green | rook: 5,
+  green | king: 3,
+  dead | red | king: 3,
+  dead | blue | king: 3,
+  dead | yellow | king: 3,
+  dead | green | king: 3,
+};
