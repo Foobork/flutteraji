@@ -223,7 +223,13 @@ class Board {
     final from = move.from;
     final to = move.to;
 
+    // Points for capture
     points[turn] = points[turn]! + (capturePoints[board[to]] ?? 0);
+
+    // King capture
+    if (board[to] & (dead | pieceMask) == king) {
+      markDead(board[to] & colorMask);
+    }
 
     // Move the piece
     board[to] = board[from];
@@ -253,6 +259,19 @@ class Board {
     return true;
   }
 
+  // mark dead
+  void markDead(int deadColor) {
+    for (int i = squaresA8; i <= squaresH1; i++) {
+      if ((i & 0x88) != 0) {
+        i += 7; // skip to next row
+        continue;
+      }
+      if (board[i] & colorMask == deadColor) {
+        board[i] |= dead;
+      }
+    }
+  }
+
   // assume String is length 1
   bool _isDigit(String s) {
     final intChar = s.codeUnitAt(0);
@@ -267,7 +286,7 @@ Map<int, int> capturePoints = {
   red | rook: 5,
   red | king: 3,
   blue | pawn: 1,
-  blue | knight: 3, 
+  blue | knight: 3,
   blue | bishop: 5,
   blue | rook: 5,
   blue | king: 3,

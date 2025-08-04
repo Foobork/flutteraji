@@ -142,6 +142,21 @@ final class BoardPiece extends StatelessWidget {
       const (green | knight) => WhiteKnight(fillColor: Colors.green),
       const (green | bishop) => WhiteBishop(fillColor: Colors.green),
       const (green | king) => WhiteKing(fillColor: Colors.green),
+      _ when (piece & (dead | pieceMask) == dead | pawn) => WhitePawn(
+        fillColor: Colors.grey,
+      ),
+      _ when (piece & (dead | pieceMask) == dead | rook) => WhiteRook(
+        fillColor: Colors.grey,
+      ),
+      _ when (piece & (dead | pieceMask) == dead | knight) => WhiteKnight(
+        fillColor: Colors.grey,
+      ),
+      _ when (piece & (dead | pieceMask) == dead | bishop) => WhiteBishop(
+        fillColor: Colors.grey,
+      ),
+      _ when (piece & (dead | pieceMask) == dead | king) => WhiteKing(
+        fillColor: Colors.grey,
+      ),
       _ => Container(),
     };
   }
