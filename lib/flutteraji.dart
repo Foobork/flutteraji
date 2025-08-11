@@ -130,7 +130,9 @@ class HomePageState extends State<HomePage> {
       Board scratch = Board.copy(board);
       scratch.makeMove(move);
       String b = scratch.generateFen();
-      graph.addLink(a, b);
+      graph.addVertex(a);
+      graph.addVertex(b);
+      graph.addEdge(a, move);
     }
     setState(_update);
   }
@@ -157,7 +159,7 @@ class HomePageState extends State<HomePage> {
     scratch.makeMove(move);
     var vertex = graph.v[scratch.generateFen()];
     if (vertex == null) return;
-    if (vertex.links.isEmpty) return;
+    if (vertex.edges.isEmpty) return;
     _knownMoves.add(MoveInfo(move.toSan()));
   }
 

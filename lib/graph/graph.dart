@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 
+import 'package:flutteraji/chaturaji/move.dart';
 import 'package:flutteraji/graph/vertex.dart';
 
 class Graph {
@@ -9,9 +10,8 @@ class Graph {
     return v.putIfAbsent(fen, () => Vertex());
   }
 
-  void addLink(String a, String b) {
-    addVertex(a).links.add(b);
-    addVertex(b).backLinks.add(a);
+  void addEdge(String fen, Move move) {
+    addVertex(fen).edges.putIfAbsent(move, () => 0);
   }
 }
 

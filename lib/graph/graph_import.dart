@@ -29,7 +29,9 @@ void importGraph(String filename) {
         game.makeMove(move);
         String b = game.generateFen();
         game.undoMove();
-        graph.addLink(a, b);
+        graph.addVertex(a);
+        graph.addEdge(a, move);
+        graph.addVertex(b);
       }
       lineNumber++;
     }
