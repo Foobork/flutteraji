@@ -4,20 +4,20 @@ import 'dart:typed_data';
 
 import 'package:flutteraji/chaturaji/move.dart';
 
-const int colorMask = 0x30;
-const int pieceMask = 0x07;
+const int colorMask = 0x03;
+const int pieceMask = 0x1c;
 
 const int empty = 0x00;
-const int pawn = 0x01;
-const int knight = 0x02;
-const int bishop = 0x03;
-const int rook = 0x04;
-const int king = 0x05;
+const int pawn = 0x04;
+const int knight = 0x08;
+const int bishop = 0x0c;
+const int rook = 0x10;
+const int king = 0x14;
 
 const int red = 0x00;
-const int blue = 0x10;
-const int yellow = 0x20;
-const int green = 0x30;
+const int blue = 0x01;
+const int yellow = 0x02;
+const int green = 0x03;
 
 const int dead = 0x40;
 
@@ -291,7 +291,7 @@ class Board {
       turn = gameOver;
     } else {
       do {
-        turn = (turn + 0x10) & colorMask;
+        turn = (turn + 1) & colorMask;
       } while (!liveColors.contains(turn));
     }
   }
