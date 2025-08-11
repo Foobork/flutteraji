@@ -26,12 +26,7 @@ class HomePage extends StatefulWidget {
   HomePageState createState() => HomePageState();
 }
 
-const Map<int, String> colorNames = {
-  red: 'Red',
-  blue: 'Blue',
-  yellow: 'Yellow',
-  green: 'Green',
-};
+const List<String> colorNames = ['Red', 'Blue', 'Yellow', 'Green'];
 
 class HomePageState extends State<HomePage> {
   @override
@@ -146,7 +141,7 @@ class HomePageState extends State<HomePage> {
     _fen = board.generateFen();
     _turn = switch (board.turn) {
       gameOver => "Game over",
-      _ => "${colorNames[board.turn]!} to move",
+      _ => "${colorNames[board.turn]} to move",
     };
     Clipboard.setData(ClipboardData(text: _fen));
   }
