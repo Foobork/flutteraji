@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutteraji/chaturaji/game.dart';
 import 'package:flutteraji/chaturaji/move.dart';
+import 'package:flutteraji/graph/graph.dart';
 
 class ChaturajiController extends ValueNotifier<ChaturajiGame> {
   late ChaturajiGame game;
@@ -14,6 +15,8 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
   void makeMove(Move move) {
     List<Move> moves = game.generateMoves();
     if (moves.contains(move)) {
+      String fen = game.generateFen();
+      graph.addEdge(fen, move);
       game.makeMove(move);
       notifyListeners();
     }

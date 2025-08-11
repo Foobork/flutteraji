@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutteraji/chaturaji/board.dart';
 import 'package:flutteraji/chaturaji/move.dart';
+import 'package:flutteraji/graph/vertex.dart';
 
 import 'graph/graph.dart';
 import 'graph/graph_export.dart';
@@ -123,44 +124,23 @@ class HomePageState extends State<HomePage> {
   }
 
   void _boardListener() {
-    var board = Board.copy(_controller.game.board);
-    List<Move> moves = board.generateMoves();
-    String a = board.generateFen();
-    for (var move in moves) {
-      Board scratch = Board.copy(board);
-      scratch.makeMove(move);
-      String b = scratch.generateFen();
-      graph.addVertex(a);
-      graph.addVertex(b);
-      graph.addEdge(a, move);
-    }
     setState(_update);
   }
 
   void _update() {
-    _knownMovesToSan();
-    final board = _controller.game.board;
+    var board = _controller.game.board;
     _fen = board.generateFen();
+    Vertex? v = graph.v[_fen];
+    if (v != null) {
+      _knownMoves = v.edges.keys.map((move) => MoveInfo(move.toSan())).toList();
+    } else {
+      _knownMoves = [];
+    }
     _turn = switch (board.turn) {
       gameOver => "Game over",
       _ => "${colorNames[board.turn]} to move",
     };
     Clipboard.setData(ClipboardData(text: _fen));
-  }
-
-  void _knownMovesToSan() {
-    _knownMoves = [];
-    _controller.generateMoves().forEach(_addMoveIfKnown);
-  }
-
-  void _addMoveIfKnown(Move move) {
-    var board = _controller.game.board;
-    var scratch = Board.copy(board);
-    scratch.makeMove(move);
-    var vertex = graph.v[scratch.generateFen()];
-    if (vertex == null) return;
-    if (vertex.edges.isEmpty) return;
-    _knownMoves.add(MoveInfo(move.toSan()));
   }
 
   void _back() {
