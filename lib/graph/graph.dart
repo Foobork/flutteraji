@@ -1,5 +1,7 @@
 // ignore_for_file: avoid_print
 
+import 'package:flutteraji/graph/vertex.dart';
+
 class Graph {
   final Map<String, Vertex> v = {};
 
@@ -11,13 +13,6 @@ class Graph {
     addVertex(a).links.add(b);
     addVertex(b).backLinks.add(a);
   }
-}
-
-class Vertex {
-  Set<String> links = {};
-  Set<String> backLinks = {};
-
-  Vertex();
 }
 
 // global graph
