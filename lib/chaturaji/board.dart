@@ -70,7 +70,7 @@ const Map<int, List<int>> pieceOffsets = {
 
 class Board {
   Uint8List board = Uint8List(128);
-  Map<int, int> points = {red: 0, blue: 0, yellow: 0, green: 0};
+  List<int> points = [0, 0, 0, 0];
   Set<int> liveColors = {red, blue, yellow, green};
   int turn = red;
 
@@ -80,7 +80,7 @@ class Board {
   /// copy another board
   Board.copy(Board other) {
     board.setAll(0, other.board);
-    points = Map<int, int>.from(other.points);
+    points = List<int>.from(other.points);
     liveColors = Set<int>.from(other.liveColors);
     turn = other.turn;
   }
@@ -177,7 +177,7 @@ class Board {
 
   void clear() {
     board.fillRange(0, 128, empty);
-    points = {red: 0, blue: 0, yellow: 0, green: 0};
+    points = [0, 0, 0, 0];
     liveColors = {};
     turn = red;
   }
@@ -255,7 +255,7 @@ class Board {
       final to = move.to;
 
       // Points for capture
-      points[turn] = points[turn]! + (capturePoints[board[to]] ?? 0);
+      points[turn] += (capturePoints[board[to]] ?? 0);
 
       // King capture
       if (board[to] & (dead | pieceMask) == king) {
@@ -304,7 +304,7 @@ class Board {
         continue;
       }
       if (board[i] & (dead | pieceMask) == dead | king) {
-        points[color] = points[color]! + 3;
+        points[color] += 3;
       }
     }
   }
