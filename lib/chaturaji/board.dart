@@ -54,12 +54,12 @@ const String startPosition =
 const int squaresA8 = 0;
 const int squaresH1 = 119;
 
-const Map<int, List<int>> pawnOffsets = {
-  red: [-16, -17, -15],
-  blue: [1, -15, 17],
-  yellow: [16, 17, 15],
-  green: [-1, 15, -17],
-};
+const List<List<int>> pawnOffsets = [
+  [-16, -17, -15],
+  [1, -15, 17],
+  [16, 17, 15],
+  [-1, 15, -17],
+];
 
 const Map<int, List<int>> pieceOffsets = {
   knight: [-18, -33, -31, -14, 18, 33, 31, 14],
@@ -205,14 +205,14 @@ class Board {
 
       if (pieceType == pawn) {
         // single square, non-capturing
-        final int to = from + pawnOffsets[turn]![0];
+        final int to = from + pawnOffsets[turn][0];
         if (board[to] == empty) {
           moves.add(Move(from, to));
         }
 
         // pawn captures
         for (var j = 1; j < 3; j++) {
-          int to = from + pawnOffsets[turn]![j];
+          int to = from + pawnOffsets[turn][j];
           if ((to & 0x88) != 0) continue;
           if (board[to] != empty && board[to] & colorMask != turn) {
             moves.add(Move(from, to));
