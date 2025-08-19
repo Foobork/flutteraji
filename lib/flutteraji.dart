@@ -104,15 +104,18 @@ class HomePageState extends State<HomePage> {
     var board = _controller.game.board;
     var fen = board.generateFen();
     Vertex? v = graph.v[fen];
-    
+
     if (v == null) {
       return _text("No vertex data available");
     }
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("Vertex Scores:", style: _textStyle.copyWith(fontWeight: FontWeight.bold)),
+        Text(
+          "Vertex Scores:",
+          style: _textStyle.copyWith(fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 4),
         _text("N: ${v.N}"),
         ...List.generate(4, (i) => _text("Q[${colorNames[i]}]: ${v.Q[i]}")),
