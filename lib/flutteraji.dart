@@ -5,8 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutteraji/chaturaji/board.dart';
 import 'package:flutteraji/chaturaji/move.dart';
 import 'package:flutteraji/graph/vertex.dart';
-
-import 'graph/graph.dart';
+import 'package:flutteraji/graph/graph.dart';
 import 'graph/graph_export.dart';
 import 'gui/chaturaji_widget.dart';
 import 'gui/chaturaji_controller.dart';
@@ -96,8 +95,29 @@ class HomePageState extends State<HomePage> {
     return _padded(
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [_movesTable()],
+        children: [_scoresSection(), _movesTable()],
       ),
+    );
+  }
+
+  dynamic _scoresSection() {
+    var board = _controller.game.board;
+    var fen = board.generateFen();
+    Vertex? v = graph.v[fen];
+    
+    if (v == null) {
+      return _text("No vertex data available");
+    }
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("Vertex Scores:", style: _textStyle.copyWith(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4),
+        _text("N: ${v.N}"),
+        ...List.generate(4, (i) => _text("Q[${colorNames[i]}]: ${v.Q[i]}")),
+        const SizedBox(height: 16),
+      ],
     );
   }
 
