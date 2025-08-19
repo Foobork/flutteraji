@@ -24,6 +24,9 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
 
   /// Makes move on the board
   void makeSanMove(String move) {
+    Move moveObj = sanToMove(move);
+    String fen = game.generateFen();
+    graph.addEdge(fen, moveObj);
     game.makeSanMove(move);
     notifyListeners();
   }

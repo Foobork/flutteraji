@@ -68,16 +68,15 @@ class ChaturajiGame {
       "Backpropagating scores through ${fenHistory.length + 1} positions...",
     );
 
-    // Add the starting position FEN
-    List<String> allFens = [board.generateFen()];
+    // Add the final position FEN
+    List<String> allFens = [];
     allFens.addAll(fenHistory);
+    allFens.add(board.generateFen());
 
     // Backpropagate through all positions in the game
     for (int i = 0; i < allFens.length; i++) {
       String fen = allFens[i];
-      Vertex vertex = graph.addVertex(
-        fen,
-      ); // This will create the vertex if it doesn't exist
+      Vertex vertex = graph.addVertex(fen);
 
       // Increment N for this vertex
       vertex.N++;
@@ -85,6 +84,14 @@ class ChaturajiGame {
       // Add final points to Q values for each player
       for (int color = 0; color < 4; color++) {
         vertex.Q[color] += finalPoints[color];
+      }
+
+      // If this isn't the last position, increment the N count for the edge that was taken
+      if (i < moveHistory.length) {
+        Move move = moveHistory[i];
+        if (vertex.edges.containsKey(move)) {
+          vertex.edges[move] = (vertex.edges[move] ?? 0) + 1;
+        }
       }
 
       print("Updated vertex $i: N=${vertex.N}, Q=${vertex.Q}");
