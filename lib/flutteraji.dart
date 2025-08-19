@@ -70,6 +70,7 @@ class HomePageState extends State<HomePage> {
             _button("reset", _reset),
             _button("back", _back),
             _button("export", _export),
+            _button("backprop", _backprop),
           ],
         ),
       ],
@@ -119,6 +120,15 @@ class HomePageState extends State<HomePage> {
         const SizedBox(height: 4),
         _text("N: ${v.N}"),
         ...List.generate(4, (i) => _text("Q[${colorNames[i]}]: ${v.Q[i]}")),
+        const SizedBox(height: 8),
+        Text(
+          "Edge Counts:",
+          style: _textStyle.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 4),
+        ...v.edges.entries.map(
+          (entry) => _text("${entry.key.toSan()}: ${entry.value}"),
+        ),
         const SizedBox(height: 16),
       ],
     );
@@ -180,6 +190,10 @@ class HomePageState extends State<HomePage> {
 
   void _export() {
     exportGraph("data/Chaturaji.txt");
+  }
+
+  void _backprop() {
+    _controller.game.manualBackpropagate();
   }
 
   TextButton _button(String text, action) {
