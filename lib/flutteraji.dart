@@ -123,7 +123,13 @@ class HomePageState extends State<HomePage> {
   dynamic _movesTable() {
     var rows = _knownMoves.map((MoveInfo info) {
       return TableRow(
-        children: [_moveButton(info.move), _text("${info.count}")],
+        children: [
+          _moveButton(info.move),
+          _text("${info.count}"),
+          _text(
+            "N: ${info.childN} | Q: ${info.childQ[0]}, ${info.childQ[1]}, ${info.childQ[2]}, ${info.childQ[3]}",
+          ),
+        ],
       );
     }).toList();
 
@@ -132,6 +138,7 @@ class HomePageState extends State<HomePage> {
         columnWidths: const <int, TableColumnWidth>{
           0: IntrinsicColumnWidth(),
           1: FixedColumnWidth(60),
+          2: IntrinsicColumnWidth(),
         },
         children: rows,
         defaultVerticalAlignment: TableCellVerticalAlignment.middle,
@@ -153,9 +160,18 @@ class HomePageState extends State<HomePage> {
     _fen = board.generateFen();
     Vertex? v = graph.v[_fen];
     if (v != null) {
-      _knownMoves = v.edges.entries
-          .map((entry) => MoveInfo(entry.key.toSan(), entry.value))
-          .toList();
+      _knownMoves = v.edges.entries.map((entry) {
+        final move = entry.key;
+        final count = entry.value;
+        // compute child vertex by applying move on a copy
+        final b = Board.copy(board);
+        b.makeMove(move);
+        final childFen = b.generateFen();
+        final childV = graph.v[childFen];
+        final childN = childV?.N ?? 0;
+        final childQ = childV?.Q ?? [0, 0, 0, 0];
+        return MoveInfo(move.toSan(), count, childN, childQ);
+      }).toList();
     } else {
       _knownMoves = [];
     }
@@ -204,5 +220,7 @@ class HomePageState extends State<HomePage> {
 class MoveInfo {
   String move;
   int count;
-  MoveInfo(this.move, this.count);
+  int childN;
+  List<int> childQ;
+  MoveInfo(this.move, this.count, this.childN, this.childQ);
 }
