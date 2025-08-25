@@ -113,13 +113,8 @@ class HomePageState extends State<HomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Vertex Scores:",
-          style: _textStyle.copyWith(fontWeight: FontWeight.bold),
-        ),
         const SizedBox(height: 4),
-        _text("N: ${v.N}"),
-        ...List.generate(4, (i) => _text("Q[${colorNames[i]}]: ${v.Q[i]}")),
+        _text("N: ${v.N} | Q: ${v.Q[0]}, ${v.Q[1]}, ${v.Q[2]}, ${v.Q[3]}"),
         const SizedBox(height: 16),
       ],
     );
