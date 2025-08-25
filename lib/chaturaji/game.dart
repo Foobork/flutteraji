@@ -58,8 +58,12 @@ class ChaturajiGame {
   }
 
   void backpropagateScores() {
-    // Get final points for each player
+    // Get final raw points for each player
     List<int> finalPoints = List.from(board.points);
+
+    // Convert raw points to rank-based points with tie averaging
+    // Ranks: 1st=6, 2nd=4, 3rd=2, 4th=0; ties share the average of tied places
+    List<int> rankPoints = _calculateRankPoints(finalPoints);
 
     print(
       "Game Over! Final points: Red=${finalPoints[0]}, Blue=${finalPoints[1]}, Yellow=${finalPoints[2]}, Green=${finalPoints[3]}",
@@ -81,9 +85,9 @@ class ChaturajiGame {
       // Increment N for this vertex
       vertex.N++;
 
-      // Add final points to Q values for each player
+      // Add final rank points to Q values for each player
       for (int color = 0; color < 4; color++) {
-        vertex.Q[color] += finalPoints[color];
+        vertex.Q[color] += rankPoints[color];
       }
 
       // If this isn't the last position, increment the N count for the edge that was taken
@@ -98,6 +102,39 @@ class ChaturajiGame {
     }
 
     print("Backpropagation complete!");
+  }
+
+  // Compute rank-based points with tie averaging
+  List<int> _calculateRankPoints(List<int> finalPoints) {
+    const List<int> placePoints = [6, 4, 2, 0];
+
+    // Create list of (index, score)
+    final indexed = List.generate(4, (i) => MapEntry(i, finalPoints[i]));
+    // Sort descending by score
+    indexed.sort((a, b) => b.value.compareTo(a.value));
+
+    List<int> result = List.filled(4, 0);
+
+    int i = 0;
+    while (i < 4) {
+      // Find tie group with same score
+      int j = i;
+      while (j < 4 && indexed[j].value == indexed[i].value) {
+        j++;
+      }
+      // Places covered are i..j-1 (0-based). Average corresponding placePoints.
+      int sum = 0;
+      for (int p = i; p < j; p++) {
+        sum += placePoints[p];
+      }
+      int avg = sum ~/ (j - i);
+      for (int p = i; p < j; p++) {
+        result[indexed[p].key] = avg;
+      }
+      i = j;
+    }
+
+    return result;
   }
 
   // Manual trigger for backpropagation (useful for testing)
