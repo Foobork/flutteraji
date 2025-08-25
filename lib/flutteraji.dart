@@ -120,15 +120,6 @@ class HomePageState extends State<HomePage> {
         const SizedBox(height: 4),
         _text("N: ${v.N}"),
         ...List.generate(4, (i) => _text("Q[${colorNames[i]}]: ${v.Q[i]}")),
-        const SizedBox(height: 8),
-        Text(
-          "Edge Counts:",
-          style: _textStyle.copyWith(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 4),
-        ...v.edges.entries.map(
-          (entry) => _text("${entry.key.toSan()}: ${entry.value}"),
-        ),
         const SizedBox(height: 16),
       ],
     );
@@ -136,14 +127,16 @@ class HomePageState extends State<HomePage> {
 
   dynamic _movesTable() {
     var rows = _knownMoves.map((MoveInfo info) {
-      return TableRow(children: [_moveButton(info.move)]);
+      return TableRow(
+        children: [_moveButton(info.move), _text("${info.count}")],
+      );
     }).toList();
 
     return _padded(
       Table(
         columnWidths: const <int, TableColumnWidth>{
           0: IntrinsicColumnWidth(),
-          1: FixedColumnWidth(150),
+          1: FixedColumnWidth(60),
         },
         children: rows,
         defaultVerticalAlignment: TableCellVerticalAlignment.middle,
@@ -165,7 +158,9 @@ class HomePageState extends State<HomePage> {
     _fen = board.generateFen();
     Vertex? v = graph.v[_fen];
     if (v != null) {
-      _knownMoves = v.edges.keys.map((move) => MoveInfo(move.toSan())).toList();
+      _knownMoves = v.edges.entries
+          .map((entry) => MoveInfo(entry.key.toSan(), entry.value))
+          .toList();
     } else {
       _knownMoves = [];
     }
@@ -213,5 +208,6 @@ class HomePageState extends State<HomePage> {
 
 class MoveInfo {
   String move;
-  MoveInfo(this.move);
+  int count;
+  MoveInfo(this.move, this.count);
 }
