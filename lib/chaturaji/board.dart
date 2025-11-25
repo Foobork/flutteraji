@@ -52,6 +52,8 @@ const String startPosition =
     'bRbP2yKyByNyR/bNbP2yPyPyPyP/bBbP6/bKbP6/6gPgK/6gPgB/rPrPrPrP2gPgN/rRrNrBrK2gPgR 0/0/0/0 r';
 
 const int squaresA8 = 0;
+const int squaresH8 = 7;
+const int squaresA1 = 112;
 const int squaresH1 = 119;
 
 const List<List<int>> pawnOffsets = [
@@ -283,6 +285,26 @@ class Board {
             break;
         }
       }
+
+      // Check for double/triple checks
+      int kingsInCheck = 0;
+      for (final color in liveColors) {
+        if (color == turn) continue;
+
+        final kingSquare = getKingSquare(color);
+        if (kingSquare != -1) {
+          final attackers = liveColors.difference({color});
+          if (isSquareAttacked(kingSquare, attackers)) {
+            kingsInCheck++;
+          }
+        }
+      }
+
+      if (kingsInCheck == 2) {
+        points[turn] += 1;
+      } else if (kingsInCheck == 3) {
+        points[turn] += 5;
+      }
     }
 
     // Change turn
@@ -327,6 +349,97 @@ class Board {
   bool _isDigit(String s) {
     final intChar = s.codeUnitAt(0);
     return intChar >= 0x30 && intChar <= 0x39; // ASCII values for '0' to '9'
+  }
+
+  int getKingSquare(int color) {
+    for (int i = squaresA8; i <= squaresH1; i++) {
+      if ((i & 0x88) != 0) {
+        i += 7;
+        continue;
+      }
+      if (board[i] == (color | king)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  bool isSquareAttacked(int square, Set<int> byColors) {
+    // Check for knights
+    for (final offset in pieceOffsets[knight]!) {
+      final pos = square + offset;
+      if ((pos & 0x88) == 0) {
+        final piece = board[pos];
+        if (piece != empty &&
+            (piece & dead) == 0 &&
+            (piece & pieceMask) == knight &&
+            byColors.contains(piece & colorMask)) {
+          return true;
+        }
+      }
+    }
+
+    // Check for kings
+    for (final offset in pieceOffsets[king]!) {
+      final pos = square + offset;
+      if ((pos & 0x88) == 0) {
+        final piece = board[pos];
+        if (piece != empty &&
+            (piece & dead) == 0 &&
+            (piece & pieceMask) == king &&
+            byColors.contains(piece & colorMask)) {
+          return true;
+        }
+      }
+    }
+
+    // Sliding pieces (Rook, Bishop)
+    final sliders = {rook: pieceOffsets[rook]!, bishop: pieceOffsets[bishop]!};
+
+    for (final entry in sliders.entries) {
+      final type = entry.key;
+      final offsets = entry.value;
+      for (final offset in offsets) {
+        var pos = square;
+        while (true) {
+          pos += offset;
+          if ((pos & 0x88) != 0) break;
+          final piece = board[pos];
+          if (piece != empty) {
+            if ((piece & dead) == 0 &&
+                (piece & pieceMask) == type &&
+                byColors.contains(piece & colorMask)) {
+              return true;
+            }
+            break; // Blocked by any piece
+          }
+        }
+      }
+    }
+
+    // Check for pawns
+    for (final color in byColors) {
+      // Pawns capture diagonally.
+      // If a pawn at 'from' captures 'to', then 'to' = 'from' + offset.
+      // So 'from' = 'to' - offset.
+      // We are at 'square' (target). We want to see if there is a pawn at 'square - offset'.
+      // The capture offsets are indices 1 and 2 in pawnOffsets.
+      for (var i = 1; i <= 2; i++) {
+        final offset = pawnOffsets[color][i];
+        final pos = square - offset;
+        if ((pos & 0x88) == 0) {
+          final piece = board[pos];
+          if (piece != empty &&
+              (piece & dead) == 0 &&
+              (piece & pieceMask) == pawn &&
+              (piece & colorMask) == color) {
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
   }
 }
 
