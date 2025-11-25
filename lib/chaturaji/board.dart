@@ -250,6 +250,15 @@ class Board {
   }
 
   void makeMove(Move move) {
+    // Identify which kings are currently in check BEFORE the move
+    final Set<int> kingsInCheckBefore = {};
+    for (final color in liveColors) {
+      if (color == turn) continue;
+      if (isKingInCheck(color)) {
+        kingsInCheckBefore.add(color);
+      }
+    }
+
     if (move == resignMove) {
       markDead(turn);
     } else {
@@ -287,22 +296,21 @@ class Board {
       }
 
       // Check for double/triple checks
-      int kingsInCheck = 0;
+      int newChecks = 0;
       for (final color in liveColors) {
         if (color == turn) continue;
 
-        final kingSquare = getKingSquare(color);
-        if (kingSquare != -1) {
-          final attackers = liveColors.difference({color});
-          if (isSquareAttacked(kingSquare, attackers)) {
-            kingsInCheck++;
-          }
+        final bool wasInCheck = kingsInCheckBefore.contains(color);
+        final bool isInCheck = isKingInCheck(color);
+
+        if (isInCheck && !wasInCheck) {
+          newChecks++;
         }
       }
 
-      if (kingsInCheck == 2) {
+      if (newChecks == 2) {
         points[turn] += 1;
-      } else if (kingsInCheck == 3) {
+      } else if (newChecks == 3) {
         points[turn] += 5;
       }
     }
@@ -362,6 +370,13 @@ class Board {
       }
     }
     return -1;
+  }
+
+  bool isKingInCheck(int color) {
+    final kingSquare = getKingSquare(color);
+    if (kingSquare == -1) return false;
+    final attackers = liveColors.difference({color});
+    return isSquareAttacked(kingSquare, attackers);
   }
 
   bool isSquareAttacked(int square, Set<int> byColors) {
