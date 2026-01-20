@@ -128,7 +128,15 @@ final class BoardPiece extends StatelessWidget {
       green => Colors.green,
       _ => Colors.grey,
     };
-    return switch (piece & pieceMask) {
+
+    final int turns = switch (piece & colorMask) {
+      blue => 1,
+      yellow => 2,
+      green => 3,
+      _ => 0,
+    };
+
+    final Widget pieceWidget = switch (piece & pieceMask) {
       pawn => WhitePawn(fillColor: fillColor),
       rook => WhiteRook(fillColor: fillColor),
       knight => WhiteKnight(fillColor: fillColor),
@@ -136,6 +144,8 @@ final class BoardPiece extends StatelessWidget {
       king => WhiteKing(fillColor: fillColor),
       _ => Container(),
     };
+
+    return RotatedBox(quarterTurns: turns, child: pieceWidget);
   }
 }
 
