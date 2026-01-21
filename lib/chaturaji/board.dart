@@ -92,6 +92,23 @@ class Board {
     load(startPosition);
   }
 
+  int getMaterial(int color) {
+    int total = 0;
+    for (int i = squaresA8; i <= squaresH1; i++) {
+      if ((i & 0x88) != 0) {
+        i += 7;
+        continue;
+      }
+      final piece = board[i];
+      if (piece != empty &&
+          (piece & colorMask) == color &&
+          (piece & dead) == 0) {
+        total += capturePoints[piece & (colorMask | pieceMask)] ?? 0;
+      }
+    }
+    return total;
+  }
+
   /// Load a position from a FEN String
   bool load(String fen) {
     List tokens = fen.split(RegExp(r'\s+'));

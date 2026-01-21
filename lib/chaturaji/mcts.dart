@@ -11,8 +11,7 @@ class MCTS {
   void search(Board rootBoard, int iterations) {
     for (int i = 0; i < iterations; i++) {
       Board board = Board.copy(rootBoard);
-      List<String> path = [];
-      path.add(board.generateFen());
+      List<SearchStep> path = [];
 
       // 1. Selection
       while (true) {
@@ -22,34 +21,37 @@ class MCTS {
 
         // Check if node is terminal or not fully expanded
         if (board.turn == gameOver || vertex.edges.length < legalMoves.length) {
+          path.add(SearchStep(fen, null));
           break;
         }
 
         // UCT Selection
         Move bestMove = _selectMove(board, vertex, legalMoves);
+        path.add(SearchStep(fen, bestMove));
         board.makeMove(bestMove);
-        path.add(board.generateFen());
       }
 
       // 2. Expansion
       if (board.turn != gameOver) {
-        String fen = board.generateFen();
-        Vertex vertex = graph.addVertex(fen);
+        String fen = path.last.fen;
+        Vertex vertex = graph.v[fen]!;
         List<Move> legalMoves = board.generateMoves();
 
-        // Find moves not yet in the graph
         List<Move> unexpandedMoves = legalMoves
             .where((m) => !vertex.edges.containsKey(m))
             .toList();
         if (unexpandedMoves.isNotEmpty) {
           Move move = unexpandedMoves[_random.nextInt(unexpandedMoves.length)];
           vertex.edges[move] = 0; // Initialize edge
+          // Update path with the move taken from the LAST fen
+          path.last.move = move;
           board.makeMove(move);
-          path.add(board.generateFen());
+          // Add the NEW fen to path
+          path.add(SearchStep(board.generateFen(), null));
         }
       }
 
-      // 3. Simulation
+      // 3. Simulation (Heuristic-based)
       List<int> rankPoints = _simulate(board);
 
       // 4. Backpropagation
@@ -62,7 +64,19 @@ class MCTS {
     Move? bestMove;
     int turn = board.turn;
 
+    // Pre-calculate to avoid redundant math
+    double logN = log(max(1, vertex.N));
+
     for (Move move in legalMoves) {
+      // In a real optimized engine, we'd store ChildFEN or ChildVertex in edges
+      // For now, let's at least avoid board copying if we don't have the vertex anyway
+      // But the current graph structure uses FEN as key, so we need the next FEN.
+
+      // OPTIMIZATION: Check if we already know where this move leads
+      // This would require storing Move -> nextFen in the Vertex.
+      // Since Vertex.edges is Map<Move, int>, we only store the count.
+      // Let's stick to the current structure but be aware of the cost.
+
       Board nextBoard = Board.copy(board);
       nextBoard.makeMove(move);
       String nextFen = nextBoard.generateFen();
@@ -70,11 +84,10 @@ class MCTS {
 
       double uctValue;
       if (child == null || child.N == 0) {
-        uctValue = double.infinity;
+        uctValue = 10000.0 + _random.nextDouble(); // High value for unvisited
       } else {
-        // Maxn UCT: maximize the current player's Q
         double exploitation = child.Q[turn] / child.N.toDouble();
-        double exploration = sqrt(2 * log(vertex.N) / child.N);
+        double exploration = 2.0 * sqrt(logN / child.N);
         uctValue = exploitation + exploration;
       }
 
@@ -89,34 +102,62 @@ class MCTS {
 
   List<int> _simulate(Board board) {
     Board simBoard = Board.copy(board);
-    while (simBoard.turn != gameOver) {
+    int depth = 0;
+    const int maxDepth = 40; // Limit depth for faster, more frequent rollouts
+
+    while (simBoard.turn != gameOver && depth < maxDepth) {
       List<Move> moves = simBoard.generateMoves();
       if (moves.isEmpty) break;
-      simBoard.makeMove(moves[_random.nextInt(moves.length)]);
+
+      // Light heuristic: prefer captures in rollouts
+      Move selectedMove = _selectRolloutMove(simBoard, moves);
+      simBoard.makeMove(selectedMove);
+      depth++;
     }
-    return _calculateRankPoints(simBoard.points);
+
+    if (simBoard.turn == gameOver) {
+      return _calculateRankPoints(simBoard.points);
+    } else {
+      // Heuristic evaluation: combinations of points and current material
+      List<int> evalPoints = List.generate(4, (i) {
+        return simBoard.points[i] + simBoard.getMaterial(i);
+      });
+      return _calculateRankPoints(evalPoints);
+    }
   }
 
-  void _backpropagate(List<String> path, List<int> rankPoints) {
+  Move _selectRolloutMove(Board board, List<Move> moves) {
+    // Simple capture preference
+    List<Move> captures = [];
+    for (var m in moves) {
+      if (m != resignMove && board.board[m.to] != empty) {
+        captures.add(m);
+      }
+    }
+
+    if (captures.isNotEmpty && _random.nextDouble() < 0.8) {
+      return captures[_random.nextInt(captures.length)];
+    }
+    return moves[_random.nextInt(moves.length)];
+  }
+
+  void _backpropagate(List<SearchStep> path, List<int> rankPoints) {
     for (int i = 0; i < path.length; i++) {
-      String fen = path[i];
+      String fen = path[i].fen;
       Vertex vertex = graph.addVertex(fen);
       vertex.N++;
       for (int color = 0; color < 4; color++) {
         vertex.Q[color] += rankPoints[color];
       }
 
-      // Update edge info if possible (count transitions)
-      if (i < path.length - 1) {
-        // Technically we need to know WHICH move was taken to reach path[i+1]
-        // In a more robust implementation, path would store (FEN, Move) pairs.
-        // For now, we'll just increment N and Q on the vertices.
-        // The existing GUI uses vertex.edges mostly for visualization.
+      // Update edge statistics
+      Move? moveTaken = path[i].move;
+      if (moveTaken != null) {
+        vertex.edges[moveTaken] = (vertex.edges[moveTaken] ?? 0) + 1;
       }
     }
   }
 
-  // Copied from game.dart for consistency
   List<int> _calculateRankPoints(List<int> finalPoints) {
     const List<int> placePoints = [6, 4, 2, 0];
     final indexed = List.generate(4, (i) => MapEntry(i, finalPoints[i]));
@@ -140,4 +181,10 @@ class MCTS {
     }
     return result;
   }
+}
+
+class SearchStep {
+  String fen;
+  Move? move;
+  SearchStep(this.fen, this.move);
 }

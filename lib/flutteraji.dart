@@ -173,6 +173,15 @@ class HomePageState extends State<HomePage> {
         final childQ = childV?.Q ?? [0, 0, 0, 0];
         return MoveInfo(move.toSan(), count, childN, childQ);
       }).toList();
+
+      // Sort by win rate for current color: childQ[board.turn] / childN
+      if (board.turn != gameOver) {
+        _knownMoves.sort((a, b) {
+          double scoreA = a.childN == 0 ? 0 : a.childQ[board.turn] / a.childN;
+          double scoreB = b.childN == 0 ? 0 : b.childQ[board.turn] / b.childN;
+          return scoreB.compareTo(scoreA); // Descending: best move on top
+        });
+      }
     } else {
       _knownMoves = [];
     }
