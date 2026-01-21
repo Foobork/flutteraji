@@ -71,6 +71,7 @@ class HomePageState extends State<HomePage> {
             _button("back", _back),
             _button("export", _export),
             _button("backprop", _backprop),
+            _button("mcts", _mcts),
           ],
         ),
       ],
@@ -200,6 +201,10 @@ class HomePageState extends State<HomePage> {
 
   void _backprop() {
     _controller.game.manualBackpropagate();
+  }
+
+  void _mcts() {
+    _controller.runMCTS(100); // Start with 100 iterations per click
   }
 
   TextButton _button(String text, action) {

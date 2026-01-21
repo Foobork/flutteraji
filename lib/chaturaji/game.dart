@@ -2,6 +2,7 @@
 
 import 'package:flutteraji/chaturaji/board.dart';
 import 'package:flutteraji/chaturaji/move.dart';
+import 'package:flutteraji/chaturaji/mcts.dart';
 import 'package:flutteraji/graph/vertex.dart';
 import 'package:flutteraji/graph/graph.dart';
 
@@ -144,5 +145,15 @@ class ChaturajiGame {
     } else {
       print("Game is not over yet. Cannot backpropagate.");
     }
+  }
+
+  void runMCTS(int iterations) {
+    if (board.turn == gameOver) {
+      print("Game is already over.");
+      return;
+    }
+    print("Running MCTS for $iterations iterations...");
+    MCTS().search(board, iterations);
+    print("MCTS search complete.");
   }
 }
