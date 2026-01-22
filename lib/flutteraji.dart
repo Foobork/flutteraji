@@ -15,7 +15,10 @@ class Flutteraji extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: const HomePage());
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: const HomePage(),
+    );
   }
 }
 
@@ -145,7 +148,7 @@ class HomePageState extends State<HomePage> {
       Table(
         columnWidths: const <int, TableColumnWidth>{
           0: IntrinsicColumnWidth(),
-          1: FixedColumnWidth(60),
+          1: FixedColumnWidth(100),
           2: IntrinsicColumnWidth(),
         },
         children: rows,
@@ -228,8 +231,8 @@ class HomePageState extends State<HomePage> {
     return TextButton(onPressed: action, child: child);
   }
 
-  Text _text(String text) {
-    return Text(text, style: _textStyle);
+  Text _text(String text, {TextStyle? style}) {
+    return Text(text, style: style ?? _textStyle);
   }
 
   Container _padded(dynamic child) {
