@@ -213,7 +213,7 @@ class HomePageState extends State<HomePage> {
   }
 
   void _mcts() {
-    _controller.runMCTS(100); // Start with 100 iterations per click
+    _controller.runMCTS(10000); // Increased iterations per click
   }
 
   TextButton _button(String text, action) {

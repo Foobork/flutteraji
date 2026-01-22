@@ -10,8 +10,8 @@ class Graph {
     return v.putIfAbsent(fen, () => Vertex());
   }
 
-  void addEdge(String fen, Move move) {
-    addVertex(fen).edges.putIfAbsent(move, () => 0);
+  void addEdge(String fen, Move move, [int count = 0]) {
+    addVertex(fen).edges.putIfAbsent(move, () => count);
   }
 }
 
