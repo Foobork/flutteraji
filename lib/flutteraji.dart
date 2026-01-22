@@ -35,7 +35,10 @@ class HomePageState extends State<HomePage> {
       child: _padded(
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [_boardColumn(), _movesColumn()],
+          children: [
+            _boardColumn(),
+            Expanded(child: _movesColumn()),
+          ],
         ),
       ),
     );
@@ -64,7 +67,9 @@ class HomePageState extends State<HomePage> {
         Expanded(child: board),
         _pointsRow(red, green),
         turn,
-        Row(
+        Wrap(
+          spacing: 8,
+          runSpacing: 4,
           children: [
             _button("resign", _resign),
             _button("reset", _reset),
@@ -95,9 +100,11 @@ class HomePageState extends State<HomePage> {
 
   dynamic _movesColumn() {
     return _padded(
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [_scoresSection(), _movesTable()],
+      SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [_scoresSection(), _movesTable()],
+        ),
       ),
     );
   }
