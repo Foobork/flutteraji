@@ -121,11 +121,19 @@ class HomePageState extends State<HomePage> {
       return _text("No vertex data available");
     }
 
+    String qnRow = [0, 1, 2, 3]
+        .map((i) {
+          double qn = v.N == 0 ? 0 : v.Q[i] / v.N;
+          return "${colorNames[i][0]}: ${qn.toStringAsFixed(2)}";
+        })
+        .join(" | ");
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 4),
         _text("N: ${v.N} | Q: ${v.Q[0]}, ${v.Q[1]}, ${v.Q[2]}, ${v.Q[3]}"),
+        _text("E: $qnRow"),
         const SizedBox(height: 16),
       ],
     );
@@ -133,12 +141,24 @@ class HomePageState extends State<HomePage> {
 
   dynamic _movesTable() {
     var rows = _knownMoves.map((MoveInfo info) {
+      int turn = _controller.game.board.turn;
+      double qn = info.childN == 0 ? 0 : info.childQ[turn] / info.childN;
       return TableRow(
         children: [
           _moveButton(info.move),
           _text("${info.count}"),
-          _text(
-            "N: ${info.childN} | Q: ${info.childQ[0]}, ${info.childQ[1]}, ${info.childQ[2]}, ${info.childQ[3]}",
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _text(
+                "N: ${info.childN} | Q: ${info.childQ[0]}, ${info.childQ[1]}, ${info.childQ[2]}, ${info.childQ[3]}",
+                style: _textStyle.copyWith(fontSize: 14),
+              ),
+              _text(
+                "E: ${qn.toStringAsFixed(2)}",
+                style: _textStyle.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
           ),
         ],
       );
