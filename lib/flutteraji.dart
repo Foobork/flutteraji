@@ -147,18 +147,9 @@ class HomePageState extends State<HomePage> {
         children: [
           _moveButton(info.move),
           _text("${info.count}"),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _text(
-                "N: ${info.childN} | Q: ${info.childQ[0]}, ${info.childQ[1]}, ${info.childQ[2]}, ${info.childQ[3]}",
-                style: _textStyle.copyWith(fontSize: 14),
-              ),
-              _text(
-                "E: ${qn.toStringAsFixed(2)}",
-                style: _textStyle.copyWith(fontWeight: FontWeight.bold),
-              ),
-            ],
+          _text(
+            "E: ${qn.toStringAsFixed(2)} | N: ${info.childN} | Q: ${info.childQ[0]}, ${info.childQ[1]}, ${info.childQ[2]}, ${info.childQ[3]}",
+            style: _textStyle.copyWith(fontSize: 14),
           ),
         ],
       );

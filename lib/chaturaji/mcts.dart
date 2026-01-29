@@ -87,7 +87,7 @@ class MCTS {
         uctValue = 10000.0 + _random.nextDouble(); // High value for unvisited
       } else {
         double exploitation = child.Q[turn] / child.N.toDouble();
-        double exploration = 2.0 * sqrt(logN / child.N);
+        double exploration = 12.0 * sqrt(logN / child.N);
         uctValue = exploitation + exploration;
       }
 
