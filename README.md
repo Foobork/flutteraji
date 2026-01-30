@@ -7,6 +7,8 @@ Flutteraji is a Flutter-based application designed for the analysis and explorat
 - **Chaturaji Engine**: A complete implementation of Chaturaji rules, including piece movements (King, Elephant/Bishop, Horse/Knight, Ship/Rook, and Pawn), scoring systems, and check/double-check/triple-check detection.
 - **Graph-Based Analysis**: Tracks game states using a directed graph, allowing for exploration of different move sequences and their outcomes.
 - **Interactive UI**: A graphical interface to play moves, visualize the board, and view real-time statistics like node visits (N) and value estimates (Q) for different positions.
+- **Board Rotation**: Rotate the board view to see the game from different player perspectives.
+- **MCTS Analysis**: Run Monte Carlo Tree Search (MCTS) to analyze positions and find the best moves.
 - **FEN Support**: Supports loading and generating Forsyth-Edwards Notation (FEN) specifically adapted for the 4-player Chaturaji layout.
 - **State Management**: Easily undo moves, reset the game, and export/import the analysis graph.
 
