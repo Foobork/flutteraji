@@ -37,77 +37,114 @@ class _ChaturajiWidgetState extends State<ChaturajiWidget> {
     return ValueListenableBuilder<ChaturajiGame>(
       valueListenable: widget.controller,
       builder: (context, game, _) {
-        return SizedBox(
-          width: widget.size,
-          height: widget.size,
-          child: Stack(
-            children: [
-              AspectRatio(
-                aspectRatio: 1.0,
-                child: Image.asset("images/chess_board.png", fit: BoxFit.cover),
-              ),
-              AspectRatio(
-                aspectRatio: 1.0,
-                child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 8,
+        return ValueListenableBuilder<int>(
+          valueListenable: widget.controller.rotation,
+          builder: (context, rotation, _) {
+            return SizedBox(
+              width: widget.size,
+              height: widget.size,
+              child: Stack(
+                children: [
+                  AspectRatio(
+                    aspectRatio: 1.0,
+                    child: RotatedBox(
+                      quarterTurns: rotation,
+                      child: Image.asset(
+                        "images/chess_board.png",
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
-                  itemBuilder: (context, index) {
-                    var row = index ~/ 8;
-                    var column = index % 8;
-                    var boardRank = '${8 - row}';
-                    var boardFile = _files[column];
-                    var squareName = '$boardFile$boardRank';
-                    int squareIndex = row * 16 + column;
-                    var pieceOnSquare = game.board.board[squareIndex];
+                  AspectRatio(
+                    aspectRatio: 1.0,
+                    child: GridView.builder(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 8,
+                          ),
+                      itemBuilder: (context, index) {
+                        var row = index ~/ 8;
+                        var column = index % 8;
 
-                    var piece = BoardPiece(
-                      key: ValueKey('${squareName}_$pieceOnSquare'),
-                      piece: pieceOnSquare,
-                    );
+                        int targetR = row;
+                        int targetC = column;
 
-                    var draggable = pieceOnSquare != empty
-                        ? Draggable<PieceMoveData>(
-                            feedback: piece,
-                            childWhenDragging: const SizedBox(),
-                            data: PieceMoveData(
-                              squareIndex: squareIndex,
-                              piece: pieceOnSquare,
-                            ),
-                            child: piece,
-                          )
-                        : Container();
+                        switch (rotation) {
+                          case 1: // 90 CW
+                            targetR = 7 - column;
+                            targetC = row;
+                            break;
+                          case 2: // 180
+                            targetR = 7 - row;
+                            targetC = 7 - column;
+                            break;
+                          case 3: // 270
+                            targetR = column;
+                            targetC = 7 - row;
+                            break;
+                        }
 
-                    var dragTarget = DragTarget<PieceMoveData>(
-                      builder: (context, list, _) {
-                        return draggable;
-                      },
-                      onWillAcceptWithDetails: (pieceMoveData) {
-                        return true;
-                      },
-                      onAcceptWithDetails:
-                          (
-                            DragTargetDetails<PieceMoveData> dragTargetDetails,
-                          ) async {
-                            PieceMoveData pieceMoveData =
-                                dragTargetDetails.data;
-                            // A way to check if move occurred.
-                            widget.controller.makeMove(
-                              Move(pieceMoveData.squareIndex, squareIndex),
-                            );
-                            widget.onMove?.call();
+                        var boardRank = '${8 - targetR}';
+                        var boardFile = _files[targetC];
+                        var squareName = '$boardFile$boardRank';
+                        int squareIndex = targetR * 16 + targetC;
+                        var pieceOnSquare = game.board.board[squareIndex];
+
+                        var piece = BoardPiece(
+                          key: ValueKey('${squareName}_$pieceOnSquare'),
+                          piece: pieceOnSquare,
+                        );
+
+                        var rotatedPiece = RotatedBox(
+                          quarterTurns: rotation,
+                          child: piece,
+                        );
+
+                        var draggable = pieceOnSquare != empty
+                            ? Draggable<PieceMoveData>(
+                                feedback: rotatedPiece,
+                                childWhenDragging: const SizedBox(),
+                                data: PieceMoveData(
+                                  squareIndex: squareIndex,
+                                  piece: pieceOnSquare,
+                                ),
+                                child: rotatedPiece,
+                              )
+                            : Container();
+
+                        var dragTarget = DragTarget<PieceMoveData>(
+                          builder: (context, list, _) {
+                            return draggable;
                           },
-                    );
+                          onWillAcceptWithDetails: (pieceMoveData) {
+                            return true;
+                          },
+                          onAcceptWithDetails:
+                              (
+                                DragTargetDetails<PieceMoveData>
+                                dragTargetDetails,
+                              ) async {
+                                PieceMoveData pieceMoveData =
+                                    dragTargetDetails.data;
+                                // A way to check if move occurred.
+                                widget.controller.makeMove(
+                                  Move(pieceMoveData.squareIndex, squareIndex),
+                                );
+                                widget.onMove?.call();
+                              },
+                        );
 
-                    return dragTarget;
-                  },
-                  itemCount: 64,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                ),
+                        return dragTarget;
+                      },
+                      itemCount: 64,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

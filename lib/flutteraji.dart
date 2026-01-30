@@ -77,6 +77,7 @@ class HomePageState extends State<HomePage> {
             _button("resign", _resign),
             _button("reset", _reset),
             _button("back", _back),
+            _button("rotate", _rotate),
             _button("export", _export),
             _button("backprop", _backprop),
             _button("mcts", _mcts),
@@ -235,6 +236,10 @@ class HomePageState extends State<HomePage> {
 
   void _mcts() {
     _controller.runMCTS(10000); // Increased iterations per click
+  }
+
+  void _rotate() {
+    _controller.rotate();
   }
 
   TextButton _button(String text, action) {

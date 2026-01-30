@@ -45,6 +45,13 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
     return game.generateMoves();
   }
 
+  ValueNotifier<int> rotation = ValueNotifier<int>(0);
+
+  void rotate() {
+    rotation.value = (rotation.value + 1) % 4;
+    notifyListeners();
+  }
+
   void runMCTS(int iterations) {
     game.runMCTS(iterations);
     notifyListeners();
