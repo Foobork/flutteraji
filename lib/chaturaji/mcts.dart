@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 import 'dart:math';
 import 'package:flutteraji/chaturaji/board.dart';
+import 'package:flutteraji/chaturaji/eval.dart';
 import 'package:flutteraji/chaturaji/move.dart';
 import 'package:flutteraji/graph/graph.dart';
 import 'package:flutteraji/graph/vertex.dart';
@@ -118,10 +119,9 @@ class MCTS {
     if (simBoard.turn == gameOver) {
       return _calculateRankPoints(simBoard.points);
     } else {
-      // Heuristic evaluation: combinations of points and current material
-      List<int> evalPoints = List.generate(4, (i) {
-        return simBoard.points[i] + simBoard.getMaterial(i);
-      });
+      // Hand-crafted positional evaluation at leaf node
+      final evalScores = evaluate(simBoard);
+      List<int> evalPoints = List.generate(4, (i) => evalScores[i].round());
       return _calculateRankPoints(evalPoints);
     }
   }
