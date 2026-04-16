@@ -5,6 +5,9 @@
 #include "eval.h"
 #include "mcts.h"
 #include "selfplay.h"
+#define CHATURAJI_BUILD_DLL  // needed when api.cpp is compiled inline into the exe
+#include "api.h"
+#include "api.cpp"  // compile API directly into exe for testing
 
 // ============================================================
 // Perft — exhaustive move enumeration for correctness testing
@@ -242,6 +245,44 @@ int main(int argc, char* argv[]) {
                        child->visitCount, child->q(0));
             }
         }
+    }
+
+    // C API smoke test (optional arg "api")
+    if (argc > 1 && std::string(argv[1]) == "api") {
+        printf("\n=== C API Smoke Test ===\n");
+        void* eng = engine_create();
+
+        printf("FEN: %s\n", engine_get_fen(eng));
+        printf("Turn: %d (0=red)\n", engine_get_turn(eng));
+        printf("Game over: %d\n", engine_is_game_over(eng));
+
+        // Direct eval
+        engine_evaluate(eng);
+        printf("Eval (no search): r=%.2f b=%.2f y=%.2f g=%.2f\n",
+               engine_get_eval(eng, 0), engine_get_eval(eng, 1),
+               engine_get_eval(eng, 2), engine_get_eval(eng, 3));
+
+        // Search
+        engine_search(eng, 500);
+        printf("Best move: %s\n", engine_get_best_move(eng));
+        printf("Q (r=%.2f b=%.2f y=%.2f g=%.2f)\n",
+               engine_get_eval(eng, 0), engine_get_eval(eng, 1),
+               engine_get_eval(eng, 2), engine_get_eval(eng, 3));
+
+        // Apply move — copy the string first since apply_move invalidates the internal buffer
+        char mvBuf[8];
+        strncpy(mvBuf, engine_get_best_move(eng), sizeof(mvBuf));
+        int ok = engine_apply_move(eng, mvBuf);
+        printf("Applied '%s': %s\n", mvBuf, ok ? "OK" : "FAIL");
+        printf("FEN after: %s\n", engine_get_fen(eng));
+        printf("Turn: %d (1=blue)\n", engine_get_turn(eng));
+
+        // Test illegal move rejected
+        int rejected = engine_apply_move(eng, "a1a1");
+        printf("Illegal move rejected: %s\n", rejected == 0 ? "YES" : "NO");
+
+        engine_destroy(eng);
+        printf("[PASS] C API smoke test complete.\n");
     }
 
     return 0;
