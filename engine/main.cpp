@@ -2,6 +2,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <chrono>
+#include <string>
+#include "eval.h"
+#include "mcts.h"
 
 // ============================================================
 // Perft — exhaustive move enumeration for correctness testing
@@ -146,6 +149,73 @@ int main(int argc, char* argv[]) {
         printf("Perft(%d) = %12llu  (%8.1f ms, %7.0f knps)\n",
                depth, (unsigned long long)nodes, ms,
                ms > 0 ? nodes / ms : 0);
+    }
+
+    // Perft validation mode (optional arg "validate")
+    if (argc > 1 && std::string(argv[1]) == "validate") {
+        const uint64_t expected[] = {9ULL,81ULL,729ULL,6553ULL,75761ULL,874122ULL};
+        bool ok = true;
+        for (int d = 1; d <= 6; ++d) {
+            Board b; b.reset();
+            uint64_t nodes = perft(b, d);
+            if (nodes != expected[d-1]) {
+                printf("Perft validation failed at depth %d: got %llu, expected %llu\n",
+                       d, (unsigned long long)nodes, (unsigned long long)expected[d-1]);
+                ok = false;
+            }
+        }
+        if (ok) printf("Perft validation passed for depths 1-6.\n");
+    }
+
+    // Evaluation demo (optional arg "eval")
+    if (argc > 1 && std::string(argv[1]) == "eval") {
+        auto scores = evaluate(board);
+        printf("\n=== Evaluation (post-reset) ===\n");
+        const char* names[4] = {"Red", "Blue", "Yellow", "Green"};
+        for (int i = 0; i < 4; ++i) {
+            printf("%s: %8.3f\n", names[i], scores[i]);
+        }
+    }
+
+    // MCTS smoke test (optional arg "mcts")
+    if (argc > 1 && std::string(argv[1]) == "mcts") {
+        const char* names[4] = {"Red", "Blue", "Yellow", "Green"};
+        Board mctsBoard;
+        mctsBoard.reset();
+        MCTS mcts;
+        Node root;
+
+        const int iters = 1000;
+        auto start = std::chrono::high_resolution_clock::now();
+        mcts.search(root, mctsBoard, iters);
+        auto end = std::chrono::high_resolution_clock::now();
+        double ms = std::chrono::duration<double, std::milli>(end - start).count();
+
+        Move best = mcts.bestMove(root);
+        printf("\n=== MCTS (%d iterations, %.1f ms) ===\n", iters, ms);
+        printf("Root visits: %d\n", root.visitCount);
+        printf("Best move: ");
+        if (best == RESIGN_MOVE) {
+            printf("resign\n");
+        } else {
+            int fc = best.from & 7, fr = 8 - (best.from >> 4);
+            int tc = best.to & 7,   tr = 8 - (best.to >> 4);
+            printf("%c%d%c%d\n", 'a'+fc, fr, 'a'+tc, tr);
+        }
+        printf("\nChild stats (move: visits, Q[red]):\n");
+        for (const auto& child : root.children) {
+            if (child->visitCount == 0) continue;
+            if (child->move == RESIGN_MOVE) {
+                printf("  resign: N=%-5d  Q[red]=%.2f\n",
+                       child->visitCount, child->q(0));
+            } else {
+                int fc2 = child->move.from & 7, fr2 = 8 - (child->move.from >> 4);
+                int tc2 = child->move.to & 7,   tr2 = 8 - (child->move.to >> 4);
+                printf("  %c%d%c%d: N=%-5d  Q[red]=%.2f\n",
+                       'a'+fc2, fr2, 'a'+tc2, tr2,
+                       child->visitCount, child->q(0));
+            }
+        }
     }
 
     return 0;
