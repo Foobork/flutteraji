@@ -126,6 +126,27 @@ static void testMakeUnmakeDepth(int depth) {
 // Main
 // ============================================================
 int main(int argc, char* argv[]) {
+    // --help / -h
+    if (argc > 1 && (std::string(argv[1]) == "--help" || std::string(argv[1]) == "-h")) {
+        printf(
+            "Usage: chaturaji.exe [mode]\n\n"
+            "Modes:\n"
+            "  (none)     Run FEN/make-unmake tests + perft benchmark (depths 1-6)\n"
+            "  validate   Assert perft node counts against reference values\n"
+            "  eval       Print hand-crafted evaluation for start position\n"
+            "  mcts       Run 1000 MCTS iterations and show best move\n"
+            "  --help     Show this help\n\n"
+            "Perft reference (start position):\n"
+            "  depth 1:        9\n"
+            "  depth 2:       81\n"
+            "  depth 3:      729\n"
+            "  depth 4:    6,553\n"
+            "  depth 5:   75,761\n"
+            "  depth 6:  874,122\n"
+        );
+        return 0;
+    }
+
     printf("=== Chaturaji Engine Tests ===\n\n");
 
     // Basic tests
