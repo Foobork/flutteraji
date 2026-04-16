@@ -1,6 +1,5 @@
 #include "board.h"
 #include <cstdio>
-#include <cstdlib>
 #include <chrono>
 #include <string>
 #include "eval.h"
