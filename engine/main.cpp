@@ -5,6 +5,7 @@
 #include <string>
 #include "eval.h"
 #include "mcts.h"
+#include "selfplay.h"
 
 // ============================================================
 // Perft — exhaustive move enumeration for correctness testing
@@ -129,12 +130,13 @@ int main(int argc, char* argv[]) {
     // --help / -h
     if (argc > 1 && (std::string(argv[1]) == "--help" || std::string(argv[1]) == "-h")) {
         printf(
-            "Usage: chaturaji.exe [mode]\n\n"
+            "Usage: chaturaji.exe [mode] [options]\n\n"
             "Modes:\n"
             "  (none)     Run FEN/make-unmake tests + perft benchmark (depths 1-6)\n"
             "  validate   Assert perft node counts against reference values\n"
             "  eval       Print hand-crafted evaluation for start position\n"
             "  mcts       Run 1000 MCTS iterations and show best move\n"
+            "  selfplay   Generate self-play training data (use selfplay --help for options)\n"
             "  --help     Show this help\n\n"
             "Perft reference (start position):\n"
             "  depth 1:        9\n"
@@ -147,6 +149,10 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
+    // selfplay mode — dispatch immediately, pass remaining args
+    if (argc > 1 && std::string(argv[1]) == "selfplay") {
+        return selfPlayMain(argc - 1, argv + 1);
+    }
     printf("=== Chaturaji Engine Tests ===\n\n");
 
     // Basic tests

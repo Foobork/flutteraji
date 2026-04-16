@@ -77,6 +77,7 @@ public:
         for (int i = 0; i < iterations; i++) {
             Board board;
             memcpy(&board, &rootBoard, sizeof(Board));
+            board.undoCount = 0;  // simulations start fresh — don't inherit game history
             simulate(root, board);
         }
     }
