@@ -52,8 +52,15 @@ class MCTS {
         }
       }
 
-      // 3. Simulation (Heuristic-based)
-      List<int> rankPoints = _simulate(board);
+      // 3. Evaluation (direct — no rollout, AlphaZero-style)
+      List<int> rankPoints;
+      if (board.turn == gameOver) {
+        rankPoints = _calculateRankPoints(board.points);
+      } else {
+        final evalScores = evaluate(board);
+        rankPoints = _calculateRankPoints(
+            List.generate(4, (i) => evalScores[i].round()));
+      }
 
       // 4. Backpropagation
       _backpropagate(path, rankPoints);
@@ -69,15 +76,6 @@ class MCTS {
     double logN = log(max(1, vertex.N));
 
     for (Move move in legalMoves) {
-      // In a real optimized engine, we'd store ChildFEN or ChildVertex in edges
-      // For now, let's at least avoid board copying if we don't have the vertex anyway
-      // But the current graph structure uses FEN as key, so we need the next FEN.
-
-      // OPTIMIZATION: Check if we already know where this move leads
-      // This would require storing Move -> nextFen in the Vertex.
-      // Since Vertex.edges is Map<Move, int>, we only store the count.
-      // Let's stick to the current structure but be aware of the cost.
-
       Board nextBoard = Board.copy(board);
       nextBoard.makeMove(move);
       String nextFen = nextBoard.generateFen();
@@ -99,46 +97,6 @@ class MCTS {
     }
 
     return bestMove ?? legalMoves[_random.nextInt(legalMoves.length)];
-  }
-
-  List<int> _simulate(Board board) {
-    Board simBoard = Board.copy(board);
-    int depth = 0;
-    const int maxDepth = 40; // Limit depth for faster, more frequent rollouts
-
-    while (simBoard.turn != gameOver && depth < maxDepth) {
-      List<Move> moves = simBoard.generateMoves();
-      if (moves.isEmpty) break;
-
-      // Light heuristic: prefer captures in rollouts
-      Move selectedMove = _selectRolloutMove(simBoard, moves);
-      simBoard.makeMove(selectedMove);
-      depth++;
-    }
-
-    if (simBoard.turn == gameOver) {
-      return _calculateRankPoints(simBoard.points);
-    } else {
-      // Hand-crafted positional evaluation at leaf node
-      final evalScores = evaluate(simBoard);
-      List<int> evalPoints = List.generate(4, (i) => evalScores[i].round());
-      return _calculateRankPoints(evalPoints);
-    }
-  }
-
-  Move _selectRolloutMove(Board board, List<Move> moves) {
-    // Simple capture preference
-    List<Move> captures = [];
-    for (var m in moves) {
-      if (m != resignMove && board.board[m.to] != empty) {
-        captures.add(m);
-      }
-    }
-
-    if (captures.isNotEmpty && _random.nextDouble() < 0.8) {
-      return captures[_random.nextInt(captures.length)];
-    }
-    return moves[_random.nextInt(moves.length)];
   }
 
   void _backpropagate(List<SearchStep> path, List<int> rankPoints) {
