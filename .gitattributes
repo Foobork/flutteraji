@@ -1,0 +1,15 @@
+# Handle line endings automatically for files detected as text
+# and leave binary files alone.
+* text=auto
+
+# Explicitly declare text files you want to always be LF
+*.dart text eol=lf
+*.cpp  text eol=lf
+*.h    text eol=lf
+*.py   text eol=lf
+*.md   text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.txt  text eol=lf
+*.bat  text eol=crlf
+*.ps1  text eol=crlf
