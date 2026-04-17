@@ -38,6 +38,10 @@ CHATURAJI_API int engine_set_position(void* engine, const char* fen);
 /// The returned pointer is valid until the next API call on this engine.
 CHATURAJI_API const char* engine_get_fen(void* engine);
 
+/// Load an NNUE model from a .nnue binary file.
+/// Returns 1 on success, 0 on failure.
+CHATURAJI_API int engine_load_nnue(void* engine, const char* path);
+
 /// Returns 1 if the game is over (no legal moves / only one player left).
 CHATURAJI_API int engine_is_game_over(void* engine);
 
@@ -50,6 +54,11 @@ CHATURAJI_API void engine_search(void* engine, int iterations);
 /// Returns the best move in coordinate notation (e.g. "b1c3") or "resign".
 /// The returned pointer is valid until the next engine_search() call.
 CHATURAJI_API const char* engine_get_best_move(void* engine);
+
+/// Returns the N (visit count) and Q (mean rank-points) for a specific move.
+/// Returns 1 if the move was found in the search tree, 0 otherwise.
+/// q_out must be a float[4].
+CHATURAJI_API int engine_get_move_stats(void* engine, const char* moveStr, int* n_out, float* q_out);
 
 /// Returns the Q-value (mean rank-points) for `player` (0=red,1=blue,2=yellow,3=green)
 /// from the last search. Returns 0.0 if no search has been run.

@@ -9,6 +9,7 @@
 #include <random>
 #include "board.h"
 #include "eval.h"
+#include "nnue.h"
 
 // ============================================================
 // MCTS Node
@@ -69,7 +70,10 @@ public:
     static constexpr double UCT_C = 12.0;      // exploration constant (matches Dart)
     static constexpr double UNVISITED_BONUS = 1e4;
 
-    explicit MCTS(unsigned seed = 42) : rng_(seed) {}
+    explicit MCTS(unsigned seed = 42, NNUEModel* model = nullptr) 
+        : rng_(seed), nnueModel_(model) {}
+
+    void setNNUE(NNUEModel* model) { nnueModel_ = model; }
 
     // Run `iterations` MCTS simulations from rootBoard.
     // Caller owns the root node.
@@ -94,6 +98,7 @@ public:
 
 private:
     std::mt19937 rng_;
+    NNUEModel*   nnueModel_;
 
     void simulate(Node& root, Board& board) {
         // ---- 1. Selection: walk down fully-expanded nodes using UCT ----
@@ -124,21 +129,32 @@ private:
         }
 
         // ---- 3. Evaluation (AlphaZero-style leaf eval, no rollout) ----
-        std::array<int, 4> rankPoints;
+        double evalPoints[4] = {0.0, 0.0, 0.0, 0.0};
         if (board.turn == GAME_OVER) {
-            rankPoints = calculateRankPoints(board.points);
+            auto rp = calculateRankPoints(board.points);
+            for (int c = 0; c < 4; c++) evalPoints[c] = (double)rp[c];
+        } else if (nnueModel_ && nnueModel_->loaded) {
+            float probs[NNUE_OUT_SIZE];
+            nnueModel_->evaluate(board, probs);
+            // NNUE predicts distribution [self, left, across, right] relative to board.turn.
+            // Map back to [Red, Blue, Yellow, Green] and scale to rank-points (sum=12).
+            for (int c = 0; c < 4; c++) {
+                int rel = NNUE_RELATION[board.turn][c];
+                evalPoints[c] = (double)(probs[rel] * 12.0f);
+            }
         } else {
             auto evalScores = evaluate(board);
             int rounded[4];
             for (int c = 0; c < 4; c++) rounded[c] = static_cast<int>(std::round(evalScores[c]));
-            rankPoints = calculateRankPoints(rounded);
+            auto rp = calculateRankPoints(rounded);
+            for (int c = 0; c < 4; c++) evalPoints[c] = (double)rp[c];
         }
 
         // ---- 4. Backpropagation ----
         Node* n = node;
         while (n != nullptr) {
             n->visitCount++;
-            for (int c = 0; c < 4; c++) n->qSum[c] += rankPoints[c];
+            for (int c = 0; c < 4; c++) n->qSum[c] += evalPoints[c];
             n = n->parent;
         }
     }

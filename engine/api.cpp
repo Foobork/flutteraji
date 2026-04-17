@@ -11,17 +11,26 @@
 // ============================================================
 // Internal engine state
 // ============================================================
+struct MoveResult {
+    char moveStr[8];
+    int n;
+    float q[4];
+};
+
 struct Engine {
     Board board;
     MCTS  mcts;
+    NNUEModel nnue;
 
     // Cached results from last search/eval
     float  evalScores[4]  = {0.f, 0.f, 0.f, 0.f};
     char   bestMoveStr[8] = "resign";
     char   fenBuf[256]    = {};
+    std::vector<MoveResult> lastChildStats;
 
     Engine() : mcts(42) {
         board.reset();
+        mcts.setNNUE(&nnue);
     }
 };
 
@@ -87,6 +96,11 @@ int engine_is_game_over(void* engine) {
     return asEngine(engine)->board.turn == GAME_OVER ? 1 : 0;
 }
 
+int engine_load_nnue(void* engine, const char* path) {
+    auto* e = asEngine(engine);
+    return e->nnue.load(std::string(path)) ? 1 : 0;
+}
+
 // ============================================================
 // Search
 // ============================================================
@@ -108,13 +122,27 @@ void engine_search(void* engine, int iterations) {
         snprintf(e->bestMoveStr, sizeof(e->bestMoveStr), "%s%s", from, to);
     }
 
-    // Cache Q-value from root's most visited child
-    const Node* best_child = nullptr;
+    // Cache child statistics
+    e->lastChildStats.clear();
     for (const auto& child : root.children) {
-        if (!best_child || child->visitCount > best_child->visitCount)
-            best_child = child.get();
+        MoveResult res;
+        if (child->move == RESIGN_MOVE) {
+            strncpy(res.moveStr, "resign", sizeof(res.moveStr));
+        } else {
+            char f[3], t[3];
+            squareToAlg(child->move.from, f);
+            squareToAlg(child->move.to, t);
+            snprintf(res.moveStr, sizeof(res.moveStr), "%s%s", f, t);
+        }
+        res.n = child->visitCount;
+        for (int c = 0; c < 4; c++) {
+            res.q[c] = (child->visitCount > 0) ? (float)(child->qSum[c] / child->visitCount) : 0.0f;
+        }
+        e->lastChildStats.push_back(res);
     }
-    if (best_child && root.visitCount > 0) {
+
+    // Cache Q-value from root statistics (average outcome)
+    if (root.visitCount > 0) {
         for (int c = 0; c < 4; c++) {
             e->evalScores[c] = static_cast<float>(root.qSum[c] / root.visitCount);
         }
@@ -123,6 +151,18 @@ void engine_search(void* engine, int iterations) {
 
 const char* engine_get_best_move(void* engine) {
     return asEngine(engine)->bestMoveStr;
+}
+
+int engine_get_move_stats(void* engine, const char* moveStr, int* n_out, float* q_out) {
+    auto* e = asEngine(engine);
+    for (const auto& res : e->lastChildStats) {
+        if (strcmp(res.moveStr, moveStr) == 0) {
+            *n_out = res.n;
+            memcpy(q_out, res.q, 4 * sizeof(float));
+            return 1;
+        }
+    }
+    return 0;
 }
 
 float engine_get_eval(void* engine, int player) {
@@ -135,9 +175,20 @@ float engine_get_eval(void* engine, int player) {
 // ============================================================
 void engine_evaluate(void* engine) {
     auto* e = asEngine(engine);
-    auto scores = evaluate(e->board);
-    for (int c = 0; c < 4; c++) {
-        e->evalScores[c] = static_cast<float>(scores[c]);
+    if (e->nnue.loaded) {
+        float probs[NNUE_OUT_SIZE];
+        e->nnue.evaluate(e->board, probs);
+        // NNUE predicts [self, left, across, right] relative to board.turn.
+        // Map back to [Red, Blue, Yellow, Green] and scale to rank-points (0..12).
+        for (int c = 0; c < 4; c++) {
+            int rel = NNUE_RELATION[e->board.turn][c];
+            e->evalScores[c] = probs[rel] * 12.0f;
+        }
+    } else {
+        auto scores = evaluate(e->board);
+        for (int c = 0; c < 4; c++) {
+            e->evalScores[c] = static_cast<float>(scores[c]);
+        }
     }
 }
 

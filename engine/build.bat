@@ -1,6 +1,6 @@
 @echo off
-REM Build script for Chaturaji engine (MSVC x86)
-call "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" x86 >nul 2>&1
+REM Build script for Chaturaji engine (MSVC x64)
+call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" x64 >nul 2>&1
 
 echo Building CLI binary...
 cl /EHsc /O2 /std:c++17 /nologo ^

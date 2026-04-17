@@ -16,6 +16,13 @@ class Move extends Equatable {
     }
     return "${squareToSan[from]}-${squareToSan[to]}";
   }
+
+  String toCoordinate() {
+    if (from == -1 && to == -1) {
+      return "resign";
+    }
+    return "${squareToSan[from]}${squareToSan[to]}";
+  }
 }
 
 Move sanToMove(String san) {

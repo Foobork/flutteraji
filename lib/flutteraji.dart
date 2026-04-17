@@ -107,9 +107,31 @@ class HomePageState extends State<HomePage> {
       SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [_scoresSection(), _movesTable()],
+          children: [_scoresSection(), _nnueSection(), _movesTable()],
         ),
       ),
+    );
+  }
+
+  dynamic _nnueSection() {
+    if (!_controller.useNNUE || _controller.engine == null) {
+      return const SizedBox.shrink();
+    }
+
+    _controller.engine!.evaluate();
+    String nnueRow = [0, 1, 2, 3]
+        .map((i) {
+          double score = _controller.engine!.getEval(i);
+          return "${colorNames[i][0]}: ${score.toStringAsFixed(2)}";
+        })
+        .join(" | ");
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _text("NNUE: $nnueRow", style: _textStyle.copyWith(fontSize: 16, color: Colors.blueGrey)),
+        const SizedBox(height: 16),
+      ],
     );
   }
 
