@@ -223,7 +223,7 @@ static inline float nnue_clipped_relu(float x) {
     return x < 0.0f ? 0.0f : (x > 1.0f ? 1.0f : x);
 }
 
-void NNUEModel::evaluate(const Board& board, float output[NNUE_OUT_SIZE]) const {
+inline void NNUEModel::evaluate(const Board& board, float output[NNUE_OUT_SIZE]) const {
     std::vector<int> indices;
     float dense[NNUE_DENSE_SIZE];
     nnue_collect_features(board, indices, dense);
