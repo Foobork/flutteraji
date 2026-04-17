@@ -1,4 +1,6 @@
+#ifndef CHATURAJI_BUILD_DLL
 #define CHATURAJI_BUILD_DLL
+#endif
 #include "api.h"
 #include "board.h"
 #include "eval.h"

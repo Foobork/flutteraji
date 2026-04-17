@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Optimization flags for MSVC
 if(MSVC)
     add_compile_options(/W3 /O2 /nologo /EHsc /arch:AVX2)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 endif()
 
 # CLI Executable
