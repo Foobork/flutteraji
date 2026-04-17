@@ -6,9 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Optimization flags for MSVC
 if(MSVC)
-    add_compile_options(/W3 /O2 /nologo /EHsc)
-    # Optional: AVX2 for NNUE performance boost
-    # add_compile_options(/arch:AVX2)
+    add_compile_options(/W3 /O2 /nologo /EHsc /arch:AVX2)
 endif()
 
 # CLI Executable

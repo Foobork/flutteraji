@@ -168,7 +168,9 @@ static int nnueProbeMain(int argc, char* argv[]) {
     float root_probs[NNUE_OUT_SIZE];
     nnue.evaluate(board, root_probs);
     printf("Position eval (before any move):\n");
-    printf("  %-8s (self):   %.1f%%\n", color_names[active], root_probs[0] * 100);
+    printf("  %-8s (self):   %.1f%%  [%.6f / %.6f / %.6f / %.6f]\n", 
+           color_names[active], root_probs[0] * 100, 
+           root_probs[0], root_probs[1], root_probs[2], root_probs[3]);
     printf("  %-8s (left):   %.1f%%\n", color_names[(active+1)%4], root_probs[1] * 100);
     printf("  %-8s (across): %.1f%%\n", color_names[(active+2)%4], root_probs[2] * 100);
     printf("  %-8s (right):  %.1f%%\n", color_names[(active+3)%4], root_probs[3] * 100);
@@ -250,6 +252,45 @@ static int nnueProbeMain(int argc, char* argv[]) {
 }
 
 // ============================================================
+// NNUE benchmark — measure evaluations per second
+// ============================================================
+static int nnueBenchMain(int argc, char* argv[]) {
+    std::string nnue_path;
+    for (int i = 1; i < argc; i++) {
+        if (std::string(argv[i]) == "--nnue" && i + 1 < argc)
+            nnue_path = argv[++i];
+    }
+
+    if (nnue_path.empty()) {
+        fprintf(stderr, "Usage: chaturaji.exe bench --nnue <path.nnue>\n");
+        return 1;
+    }
+
+    NNUEModel nnue;
+    if (!nnue.load(nnue_path)) return 1;
+
+    Board board;
+    board.reset();
+
+    const int iterations = 1000000;
+    printf("Benchmarking NNUE (%d iterations)...\n", iterations);
+
+    auto start = std::chrono::high_resolution_clock::now();
+    float output[NNUE_OUT_SIZE];
+    for (int i = 0; i < iterations; i++) {
+        nnue.evaluate(board, output);
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    double ms = std::chrono::duration<double, std::milli>(end - start).count();
+
+    double nps = (iterations * 1000.0) / ms;
+    printf("Completed in %.1f ms\n", ms);
+    printf("Speed: %.2f Mnps (million evaluations per second)\n", nps / 1e6);
+
+    return 0;
+}
+
+// ============================================================
 // Main
 // ============================================================
 int main(int argc, char* argv[]) {
@@ -264,6 +305,7 @@ int main(int argc, char* argv[]) {
             "  mcts       Run 1000 MCTS iterations and show best move\n"
             "  selfplay   Generate self-play training data (use selfplay --help for options)\n"
             "  probe      Rank moves by NNUE eval (probe --nnue <file> [--fen \"<fen>\"])\n"
+            "  bench      Measure NNUE evaluation speed (bench --nnue <file>)\n"
             "  --help     Show this help\n\n"
             "Perft reference (start position):\n"
             "  depth 1:        9\n"
@@ -284,6 +326,11 @@ int main(int argc, char* argv[]) {
     // probe mode
     if (argc > 1 && std::string(argv[1]) == "probe") {
         return nnueProbeMain(argc - 1, argv + 1);
+    }
+
+    // bench mode
+    if (argc > 1 && std::string(argv[1]) == "bench") {
+        return nnueBenchMain(argc - 1, argv + 1);
     }
     printf("=== Chaturaji Engine Tests ===\n\n");
 

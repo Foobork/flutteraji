@@ -25,6 +25,7 @@
 #include <cstring>
 #include <string>
 #include <vector>
+#include <immintrin.h>
 #include "board.h"
 
 // ---------------------------------------------------------------------------
@@ -223,40 +224,78 @@ static inline float nnue_clipped_relu(float x) {
     return x < 0.0f ? 0.0f : (x > 1.0f ? 1.0f : x);
 }
 
+// Horizontal sum of a 256-bit AVX register (8 floats)
+static inline float hsum_avx(__m256 v) {
+    __m128 vlow  = _mm256_castps256_ps128(v);
+    __m128 vhigh = _mm256_extractf128_ps(v, 1);
+    vlow = _mm_add_ps(vlow, vhigh);
+    __m128 shuf = _mm_movehdup_ps(vlow);
+    __m128 sums = _mm_add_ps(vlow, shuf);
+    shuf = _mm_movehl_ps(shuf, sums);
+    sums = _mm_add_ss(sums, shuf);
+    return _mm_cvtss_f32(sums);
+}
+
 inline void NNUEModel::evaluate(const Board& board, float output[NNUE_OUT_SIZE]) const {
     std::vector<int> indices;
     float dense[NNUE_DENSE_SIZE];
     nnue_collect_features(board, indices, dense);
 
     // 1. Accumulator = bias + sum of active feature rows
-    float acc[NNUE_ACC_SIZE];
-    memcpy(acc, acc_bias.data(), NNUE_ACC_SIZE * sizeof(float));
+    // acc is 256 floats = 32 blocks of 8
+    alignas(32) float acc[NNUE_ACC_SIZE];
+    
+    // Initialize with bias
+    for (int j = 0; j < NNUE_ACC_SIZE / 8; j++) {
+        _mm256_store_ps(acc + j * 8, _mm256_loadu_ps(acc_bias.data() + j * 8));
+    }
+
+    // Add active feature rows
     for (int fi : indices) {
         const float* row = acc_weight.data() + fi * NNUE_ACC_SIZE;
-        for (int j = 0; j < NNUE_ACC_SIZE; j++)
-            acc[j] += row[j];
+        for (int j = 0; j < NNUE_ACC_SIZE / 8; j++) {
+            __m256 v_acc = _mm256_load_ps(acc + j * 8);
+            __m256 v_row = _mm256_loadu_ps(row + j * 8);
+            _mm256_store_ps(acc + j * 8, _mm256_add_ps(v_acc, v_row));
+        }
     }
 
     // 2. ClippedReLU
-    for (int j = 0; j < NNUE_ACC_SIZE; j++)
-        acc[j] = nnue_clipped_relu(acc[j]);
+    __m256 v_zero = _mm256_setzero_ps();
+    __m256 v_one  = _mm256_set1_ps(1.0f);
+    for (int j = 0; j < NNUE_ACC_SIZE / 8; j++) {
+        __m256 v_acc = _mm256_load_ps(acc + j * 8);
+        v_acc = _mm256_max_ps(v_zero, _mm256_min_ps(v_one, v_acc));
+        _mm256_store_ps(acc + j * 8, v_acc);
+    }
 
     // 3. Concatenate [acc(256) | dense(9)] -> x(265)
-    float x[NNUE_HIDDEN_IN];
+    alignas(32) float x[272]; // Pad to 272 (multiple of 8) for easier SIMD
     memcpy(x, acc, NNUE_ACC_SIZE * sizeof(float));
     memcpy(x + NNUE_ACC_SIZE, dense, NNUE_DENSE_SIZE * sizeof(float));
+    memset(x + NNUE_ACC_SIZE + NNUE_DENSE_SIZE, 0, (272 - 265) * sizeof(float));
 
     // 4. Hidden layer + ClippedReLU
     float h[NNUE_HIDDEN_SIZE];
     for (int i = 0; i < NNUE_HIDDEN_SIZE; i++) {
-        float v = hid_bias[i];
+        __m256 v_sum = _mm256_setzero_ps();
         const float* row = hid_weight.data() + i * NNUE_HIDDEN_IN;
-        for (int j = 0; j < NNUE_HIDDEN_IN; j++)
-            v += row[j] * x[j];
+        
+        // Process 264 floats in blocks of 8
+        for (int j = 0; j < 33; j++) {
+            __m256 v_w = _mm256_loadu_ps(row + j * 8);
+            __m256 v_x = _mm256_load_ps(x + j * 8);
+            v_sum = _mm256_fmadd_ps(v_w, v_x, v_sum);
+        }
+        
+        // Sum up the register and add the 265th element + bias
+        float v = hsum_avx(v_sum) + hid_bias[i];
+        v += row[264] * x[264];
+        
         h[i] = nnue_clipped_relu(v);
     }
 
-    // 5. Output layer
+    // 5. Output layer (only 4 neurons, keep scalar for simplicity)
     float logits[NNUE_OUT_SIZE];
     for (int i = 0; i < NNUE_OUT_SIZE; i++) {
         float v = out_bias[i];
