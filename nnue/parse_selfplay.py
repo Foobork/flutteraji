@@ -17,7 +17,7 @@ Records (n_records × record_size bytes):
     n_active    : uint16           — actual number of active feature indices
     features    : uint16[40]       — active indices, rest padded with 0
     dense       : float32[9]       — normalised game state features
-    target      : uint8[4]         — raw rank points [6/4/2/0 or ties]
+    target      : uint8[4]         — rank points in CANONICAL order [self, left, across, right]
 
 Usage
 -----
@@ -44,7 +44,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 import numpy as np
-from chaturaji_board import ChaturajiBoard
+from chaturaji_board import ChaturajiBoard, ROTATION_MAP
 from features import encode
 
 # ---------------------------------------------------------------------------
@@ -144,10 +144,19 @@ def parse_selfplay(
                 )
                 indices = indices[:MAX_FEATURES]
 
+            # Canonicalize target: raw [r,b,y,g] → [self, left, across, right]
+            # This must match model output order (canonical rotation).
+            # For Red-to-move: ROTATION_MAP[RED] = [0,1,2,3] → no change.
+            # For Blue-to-move: ROTATION_MAP[BLUE] = [3,0,1,2] → [blue,yel,grn,red].
+            rmap = ROTATION_MAP[board.turn]
+            canon_target = [0] * 4
+            for orig_color, rank_pts in enumerate(target):
+                canon_target[rmap[orig_color]] = rank_pts
+
             # Pack record
             n_active = len(indices)
             padded   = indices + [0] * (MAX_FEATURES - n_active)
-            record   = struct.pack(RECORD_FMT, n_active, *padded, *dense.tolist(), *target)
+            record   = struct.pack(RECORD_FMT, n_active, *padded, *dense.tolist(), *canon_target)
             records.append(record)
 
     if errors:
@@ -196,7 +205,7 @@ def _print_sample(record_bytes: bytes) -> None:
     print(f"  features : {features[:8]}{'...' if n_active > 8 else ''}")
     print(f"  dense    : pts={[f'{d:.3f}' for d in dense[:4]]}  "
           f"alive={[int(a) for a in dense[4:8]]}  ply={dense[8]:.3f}")
-    print(f"  target   : {target}  (ranks r/b/y/g, sum={sum(target)})")
+    print(f"  target   : {target}  (canonical [self/left/across/right], sum={sum(target)})")
 
 
 # ---------------------------------------------------------------------------

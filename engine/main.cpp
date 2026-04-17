@@ -2,9 +2,12 @@
 #include <cstdio>
 #include <chrono>
 #include <string>
+#include <vector>
+#include <algorithm>
 #include "eval.h"
 #include "mcts.h"
 #include "selfplay.h"
+#include "nnue.h"
 #define CHATURAJI_BUILD_DLL  // needed when api.cpp is compiled inline into the exe
 #include "api.h"
 #include "api.cpp"  // compile API directly into exe for testing
@@ -126,6 +129,127 @@ static void testMakeUnmakeDepth(int depth) {
 }
 
 // ============================================================
+// NNUE probe — depth-1 move ranking
+// ============================================================
+static int nnueProbeMain(int argc, char* argv[]) {
+    // Usage: probe --nnue <path.nnue> [--fen "<fen>"]
+    std::string nnue_path;
+    std::string fen = "";
+
+    for (int i = 1; i < argc; i++) {
+        if (std::string(argv[i]) == "--nnue" && i + 1 < argc)
+            nnue_path = argv[++i];
+        else if (std::string(argv[i]) == "--fen" && i + 1 < argc)
+            fen = argv[++i];
+    }
+
+    if (nnue_path.empty()) {
+        fprintf(stderr, "Usage: chaturaji.exe probe --nnue <path.nnue> [--fen \"<fen>\"]\n");
+        return 1;
+    }
+
+    NNUEModel nnue;
+    if (!nnue.load(nnue_path)) return 1;
+    printf("Loaded NNUE: %s\n", nnue_path.c_str());
+
+    Board board;
+    if (fen.empty()) {
+        board.reset();
+    } else {
+        board.load(fen);
+    }
+    printf("FEN: %s\n", board.generateFen().c_str());
+
+    const char* color_names[4] = {"Red", "Blue", "Yellow", "Green"};
+    int active = board.turn;
+    printf("Active player: %s\n\n", color_names[active]);
+
+    // Evaluate the current position
+    float root_probs[NNUE_OUT_SIZE];
+    nnue.evaluate(board, root_probs);
+    printf("Position eval (before any move):\n");
+    printf("  %-8s (self):   %.1f%%\n", color_names[active], root_probs[0] * 100);
+    printf("  %-8s (left):   %.1f%%\n", color_names[(active+1)%4], root_probs[1] * 100);
+    printf("  %-8s (across): %.1f%%\n", color_names[(active+2)%4], root_probs[2] * 100);
+    printf("  %-8s (right):  %.1f%%\n", color_names[(active+3)%4], root_probs[3] * 100);
+    printf("\nDepth-1 move ranking (by active player's winning probability after move):\n");
+    printf("  %-8s  %6s  %s\n", "Move", "Self%", "Probs [self / left / across / right]");
+    printf("  %s\n", std::string(68, '-').c_str());
+
+    // Generate moves, evaluate each
+    Move moves[MAX_MOVES];
+    int moveCount = board.generateMoves(moves);
+
+    struct MoveResult {
+        Move move;
+        float self_prob;
+        float probs[4];
+    };
+    std::vector<MoveResult> results;
+    results.reserve(moveCount);
+
+    for (int i = 0; i < moveCount; i++) {
+        board.makeMove(moves[i]);
+        MoveResult r;
+        r.move = moves[i];
+        // After the move, ask for active player's probability in the new position.
+        // board.turn has advanced to the next player; use player_value() to get
+        // the value for the original active player.
+        if (board.turn == GAME_OVER) {
+            // Game ended — active player won (they were last standing) if their
+            // king is still alive, otherwise rank by points.
+            // Simple heuristic: if board.turn == GAME_OVER due to resignation,
+            // the active player gets 0; otherwise normalise points.
+            float total = 0;
+            for (int p = 0; p < 4; p++) total += board.points[p];
+            r.self_prob = total > 0 ? board.points[active] / total : 0.25f;
+            for (int p = 0; p < 4; p++)
+                r.probs[p] = total > 0 ? board.points[p] / total : 0.25f;
+        } else {
+            // Evaluate with NNUE — extract active player's probability
+            nnue.evaluate(board, r.probs);
+            r.self_prob = nnue.player_value(board, active);
+            // Reorder probs relative to original active player for display
+            float display[4];
+            for (int p = 0; p < 4; p++)
+                display[NNUE_RELATION[active][p]] = r.probs[NNUE_RELATION[board.turn][p]];
+            // Actually just recompute simply: prob for each player from root perspective
+            // probs are in board.turn's canonical frame; we want root-player (active) = index 0
+            float repr[4];
+            for (int p = 0; p < 4; p++)
+                repr[p] = r.probs[NNUE_RELATION[board.turn][(active + p) % 4]];
+            for (int p = 0; p < 4; p++) r.probs[p] = repr[p];
+        }
+        board.unmakeMove();
+        results.push_back(r);
+    }
+
+    // Sort descending by active player's probability
+    std::sort(results.begin(), results.end(),
+        [](const MoveResult& a, const MoveResult& b) {
+            return a.self_prob > b.self_prob;
+        });
+
+    for (const auto& r : results) {
+        char move_str[16];
+        if (r.move == RESIGN_MOVE) {
+            snprintf(move_str, sizeof(move_str), "resign  ");
+        } else {
+            int fc = r.move.from & 7, fr = 8 - (r.move.from >> 4);
+            int tc = r.move.to   & 7, tr = 8 - (r.move.to   >> 4);
+            snprintf(move_str, sizeof(move_str), "%c%d%c%d",
+                     'a'+fc, fr, 'a'+tc, tr);
+        }
+        printf("  %-8s  %5.1f%%  [%.1f%% / %.1f%% / %.1f%% / %.1f%%]\n",
+               move_str,
+               r.probs[0] * 100,
+               r.probs[0] * 100, r.probs[1] * 100,
+               r.probs[2] * 100, r.probs[3] * 100);
+    }
+    return 0;
+}
+
+// ============================================================
 // Main
 // ============================================================
 int main(int argc, char* argv[]) {
@@ -139,6 +263,7 @@ int main(int argc, char* argv[]) {
             "  eval       Print hand-crafted evaluation for start position\n"
             "  mcts       Run 1000 MCTS iterations and show best move\n"
             "  selfplay   Generate self-play training data (use selfplay --help for options)\n"
+            "  probe      Rank moves by NNUE eval (probe --nnue <file> [--fen \"<fen>\"])\n"
             "  --help     Show this help\n\n"
             "Perft reference (start position):\n"
             "  depth 1:        9\n"
@@ -151,9 +276,14 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    // selfplay mode — dispatch immediately, pass remaining args
+    // selfplay mode
     if (argc > 1 && std::string(argv[1]) == "selfplay") {
         return selfPlayMain(argc - 1, argv + 1);
+    }
+
+    // probe mode
+    if (argc > 1 && std::string(argv[1]) == "probe") {
+        return nnueProbeMain(argc - 1, argv + 1);
     }
     printf("=== Chaturaji Engine Tests ===\n\n");
 
