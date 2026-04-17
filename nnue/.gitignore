@@ -1,0 +1,17 @@
+# Python virtual environment
+.venv/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Pytest cache
+.pytest_cache/
+
+# Training artefacts (large binary files)
+*.bin
+*.nnue
+
+# Selfplay data copies
+*.txt.gz

@@ -56,9 +56,14 @@ constexpr Move RESIGN_MOVE = {-1, -1};
 constexpr int MAX_MOVES = 256;
 
 // --- Capture point values ---
+// Dead pieces score 0, EXCEPT dead kings which are still worth 3 points.
+// Live piece values: pawn=1, knight=3, bishop=5, rook=5, king=3.
 inline int capturePoints(uint8_t piece) {
-    uint8_t type = piece & PIECE_MASK;
-    switch (type) {
+    if (piece & DEAD) {
+        // Only dead kings retain their point value
+        return (piece & PIECE_MASK) == KING ? 3 : 0;
+    }
+    switch (piece & PIECE_MASK) {
         case PAWN:   return 1;
         case KNIGHT: return 3;
         case BISHOP: return 5;

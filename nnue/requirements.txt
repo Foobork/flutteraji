@@ -1,0 +1,20 @@
+# Chaturaji NNUE — Python dependencies
+#
+# Environment: Python 3.14, AMD GPU (no CUDA/ROCm configured) — CPU training only
+#
+# Install:
+#   python -m venv .venv
+#   .venv\Scripts\pip install --index-url https://download.pytorch.org/whl/cpu torch numpy
+#   .venv\Scripts\pip install pytest
+#
+# To switch to CUDA in future:
+#   pip install torch --index-url https://download.pytorch.org/whl/cu121
+
+# PyTorch CPU build
+torch==2.11.0+cpu
+
+# Numerics
+numpy==2.4.3
+
+# Testing
+pytest==9.0.3
