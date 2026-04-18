@@ -252,14 +252,14 @@ class ChaturajiBoard:
 def _rotate(row: int, col: int, active: int) -> tuple[int, int]:
     """Rotate (row, col) so that `active` player's king-side becomes south."""
     if active == BLUE:
-        # 90° CCW: south side becomes Blue's starting edge
-        return col, 7 - row
+        # 90° CCW: Blue (West) -> South
+        return 7 - col, row
     elif active == YELLOW:
         # 180°
         return 7 - row, 7 - col
     elif active == GREEN:
-        # 90° CW
-        return 7 - col, row
+        # 90° CW: Green (East) -> South
+        return col, 7 - row
     return row, col   # RED: no rotation
 
 

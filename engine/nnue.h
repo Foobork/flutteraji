@@ -148,9 +148,9 @@ static inline int nnue_canonical_sq(int sq0x88, int active) {
     int col = sq0x88 & 0x0F;
     switch (active) {
         case RED:    return row       * 8 + col;        // no rotation
-        case BLUE:   return col       * 8 + (7 - row);  // 90 deg CCW
+        case BLUE:   return (7 - col) * 8 + row;         // 90 deg CCW
         case YELLOW: return (7 - row) * 8 + (7 - col);  // 180 deg
-        case GREEN:  return (7 - col) * 8 + row;         // 90 deg CW
+        case GREEN:  return col       * 8 + (7 - row);  // 90 deg CW
         default:     return row       * 8 + col;
     }
 }
