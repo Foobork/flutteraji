@@ -257,7 +257,7 @@ class HomePageState extends State<HomePage> {
   }
 
   void _mcts() {
-    _controller.runMCTS(10000); // Increased iterations per click
+    _controller.runMCTS(1000000);
   }
 
   void _rotate() {

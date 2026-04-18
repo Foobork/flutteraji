@@ -83,8 +83,13 @@ bool Board::load(const std::string& fen) {
         points[i] = std::stoi(tok);
     }
 
-    // Parse turn
+    // Parse turn and optional ply
     turn = charToColor(turnStr[0]);
+    if (iss >> tok) {
+        ply = std::stoi(tok);
+    } else {
+        ply = 0;
+    }
 
     return true;
 }
@@ -129,6 +134,10 @@ std::string Board::generateFen() const {
     // Turn
     fen += ' ';
     fen += colorToChar(turn);
+
+    // Ply
+    fen += ' ';
+    fen += std::to_string(ply);
 
     return fen;
 }
@@ -288,6 +297,7 @@ void Board::makeMove(const Move& move) {
             turn = (turn + 1) & COLOR_MASK;
         } while (!isColorLive(turn));
     }
+    ply++;
 }
 
 // ============================================================
@@ -299,6 +309,7 @@ void Board::unmakeMove() {
     turn = undo.turn;
     liveColors = undo.liveColors;
     memcpy(points, undo.points, sizeof(points));
+    ply--;
 
     if (undo.move != RESIGN_MOVE) {
         // Undo promotion

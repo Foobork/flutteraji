@@ -192,7 +192,7 @@ static void nnue_collect_features(
         dense[i]     = canon_pts[i];
         dense[4 + i] = canon_alive[i];
     }
-    dense[8] = 0.0f;  // ply unknown at C++ inference time
+    dense[8] = (float)board.ply / 512.0f;
 
     // --- Sparse feature indices ---
     for (int sq = SQ_A8; sq <= SQ_H1; sq++) {

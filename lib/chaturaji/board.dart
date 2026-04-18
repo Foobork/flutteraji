@@ -75,6 +75,7 @@ class Board {
   List<int> points = [0, 0, 0, 0];
   Set<int> liveColors = {red, blue, yellow, green};
   int turn = red;
+  int ply = 0;
 
   /// empty constructor
   Board();
@@ -85,6 +86,7 @@ class Board {
     points = List<int>.from(other.points);
     liveColors = Set<int>.from(other.liveColors);
     turn = other.turn;
+    ply = other.ply;
   }
 
   /// reset to start position
@@ -149,6 +151,11 @@ class Board {
     points[green] = int.parse(pointStr[3]);
 
     turn = colors[tokens[2]]!;
+    if (tokens.length > 3) {
+      ply = int.parse(tokens[3]);
+    } else {
+      ply = 0;
+    }
 
     return true;
   }
@@ -191,7 +198,7 @@ class Board {
 
     final turnStr = colorSymbols[turn]!;
 
-    return [fen, pointsStr, turnStr].join(' ');
+    return [fen, pointsStr, turnStr, ply.toString()].join(' ');
   }
 
   void clear() {
@@ -199,6 +206,7 @@ class Board {
     points = [0, 0, 0, 0];
     liveColors = {};
     turn = red;
+    ply = 0;
   }
 
   List<Move> generateMoves() {
@@ -333,6 +341,7 @@ class Board {
     }
 
     // Change turn
+    ply++;
     if (liveColors.length == 1) {
       deadKingPoints(liveColors.first);
       turn = gameOver;

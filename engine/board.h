@@ -92,6 +92,7 @@ public:
     int points[4];
     uint32_t liveColors;    // bitmask: bit 0=red, 1=blue, 2=yellow, 3=green
     uint8_t turn;
+    int ply;
 
     // Undo stack
     UndoInfo undoStack[512];
@@ -107,6 +108,7 @@ public:
         liveColors = 0;
         turn = RED;
         undoCount = 0;
+        ply = 0;
     }
 
     void reset() {
