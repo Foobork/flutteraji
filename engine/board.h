@@ -168,7 +168,7 @@ public:
     int getMaterial(uint8_t color) const;
 
 private:
-    void markDead(uint8_t deadColor, const NNUEModel* nnue = nullptr);
+    void markDead(uint8_t deadColor, const NNUEModel* nnue = nullptr, int skip_sq = -1);
     void deadKingPoints(uint8_t color);
     static bool isDigit(char c) { return c >= '0' && c <= '9'; }
 };

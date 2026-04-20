@@ -339,6 +339,7 @@ int main(int argc, char* argv[]) {
     if (argc > 1 && std::string(argv[1]) == "bench") {
         return nnueBenchMain(argc - 1, argv + 1);
     }
+
     printf("=== Chaturaji Engine Tests ===\n\n");
 
     // Basic tests

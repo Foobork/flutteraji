@@ -47,9 +47,10 @@ Building an NNUE (Efficiently Updatable Neural Network) for Chaturaji — a four
 - [x] NNUE inference in C++
 - [x] Load `.nnue` file at startup
 - [x] SIMD optimization: AVX2 intrinsics
-- [x] **Incremental accumulator updates** (Optimized for Gen 2/3 speed)
+- [x] **Incremental accumulator updates** (Verified with 1000-ply consistency test)
 - [x] Plug NNUE into MCTS
 - [x] Clean build (Fixed MSVC C4996 warnings)
+- [x] Fixed king-capture double-update bug in incremental logic
 
 ---
 
