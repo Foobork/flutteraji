@@ -12,12 +12,13 @@
 // Self-play configuration
 // ============================================================
 struct SelfPlayConfig {
-    int  games      = 100;   // number of games to play
-    int  iters      = 400;   // MCTS iterations per move
-    int  tempPlies  = 8;     // plies with temperature > 0 (opening diversity)
-    int  seed       = 42;
-    const char* outFile = "selfplay.txt";
-    bool verbose    = false; // print game summaries to stderr
+    int         games      = 100;   // number of games to play
+    int         iters      = 400;   // MCTS iterations per move
+    int         tempPlies  = 8;     // plies with temperature > 0 (opening diversity)
+    int         seed       = 42;
+    const char* outFile    = "selfplay.txt";
+    const char* nnuePath   = nullptr;
+    bool        verbose    = false; // print game summaries to stderr
 };
 
 // ============================================================
@@ -33,14 +34,14 @@ struct PositionRecord {
 // (FEN at each ply before the move, plus final rank-points)
 // ============================================================
 static std::vector<PositionRecord> playSingleGame(
-    const SelfPlayConfig& cfg, std::mt19937& rng, int gameIdx)
+    const SelfPlayConfig& cfg, std::mt19937& rng, int gameIdx, NNUEModel* nnueModel)
 {
     Board board;
     board.reset();
     std::vector<PositionRecord> records;
     int ply = 0;
 
-    MCTS mcts(rng());  // use parent rng for child seed
+    MCTS mcts(rng(), nnueModel);  // use parent rng for child seed
 
     while (board.turn != GAME_OVER) {
         // Record the position before the move
@@ -120,15 +121,26 @@ static int runSelfPlay(const SelfPlayConfig& cfg) {
         return 1;
     }
 
+    NNUEModel nnue;
+    if (cfg.nnuePath) {
+        if (!nnue.load(cfg.nnuePath)) {
+            fprintf(stderr, "Error: failed to load NNUE from: %s\n", cfg.nnuePath);
+            fclose(out);
+            return 1;
+        }
+    }
+
     std::mt19937 rng(cfg.seed);
     long long totalPositions = 0;
 
     fprintf(stderr, "Self-play: %d games, %d iters/move, %d temp-plies, seed=%d\n",
             cfg.games, cfg.iters, cfg.tempPlies, cfg.seed);
-    fprintf(stderr, "Output: %s\n\n", cfg.outFile);
+    if (cfg.nnuePath) fprintf(stderr, "Model:     %s\n", cfg.nnuePath);
+    else              fprintf(stderr, "Model:     Hand-crafted evaluator (baseline)\n");
+    fprintf(stderr, "Output:    %s\n\n", cfg.outFile);
 
     for (int g = 0; g < cfg.games; g++) {
-        auto records = playSingleGame(cfg, rng, g);
+        auto records = playSingleGame(cfg, rng, g, nnue.loaded ? &nnue : nullptr);
 
         // Write all positions for this game
         for (const auto& rec : records) {
@@ -155,7 +167,7 @@ static int runSelfPlay(const SelfPlayConfig& cfg) {
 // ============================================================
 // Parse self-play CLI arguments
 //   selfplay [--games N] [--iters N] [--temp-plies N]
-//            [--out FILE] [--seed N] [--verbose]
+//            [--out FILE] [--seed N] [--nnue FILE] [--verbose]
 // ============================================================
 static int selfPlayMain(int argc, char* argv[]) {
     SelfPlayConfig cfg;
@@ -170,6 +182,8 @@ static int selfPlayMain(int argc, char* argv[]) {
             cfg.tempPlies = std::stoi(argv[++i]);
         } else if ((arg == "--out" || arg == "-o") && i + 1 < argc) {
             cfg.outFile = argv[++i];
+        } else if ((arg == "--nnue") && i + 1 < argc) {
+            cfg.nnuePath = argv[++i];
         } else if ((arg == "--seed") && i + 1 < argc) {
             cfg.seed = std::stoi(argv[++i]);
         } else if (arg == "--verbose" || arg == "-v") {
@@ -182,6 +196,7 @@ static int selfPlayMain(int argc, char* argv[]) {
                 "  --iters N       MCTS iterations per move (default: 400)\n"
                 "  --temp-plies N  Opening plies with sampling (default: 8)\n"
                 "  --out FILE      Output file path (default: selfplay.txt)\n"
+                "  --nnue FILE      NNUE model file (.nnue)\n"
                 "  --seed N        Random seed (default: 42)\n"
                 "  --verbose       Print game summaries to stderr\n\n"
                 "Output format (one line per position):\n"

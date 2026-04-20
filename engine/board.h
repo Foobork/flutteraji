@@ -83,6 +83,12 @@ struct UndoInfo {
     uint8_t turn;           // turn before move
     uint32_t liveColors;    // bitmask of live colors before move
     int newChecks;          // check bonus awarded (to undo points)
+    
+    // Tracking colors marked dead during this move (resignation or king capture)
+    // There can be up to 2 (active player resigning + an opponent king captured, 
+    // or just an opponent king captured).
+    uint8_t deadCount;
+    uint8_t deadColors[4];
 };
 
 // --- Board ---
@@ -95,7 +101,7 @@ public:
     int ply;
 
     // Undo stack
-    UndoInfo undoStack[512];
+    UndoInfo undoStack[1024];
     int undoCount;
 
     Board() : undoCount(0) {

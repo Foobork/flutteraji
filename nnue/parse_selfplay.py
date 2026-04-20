@@ -27,9 +27,9 @@ Usage
 
     # With options:
     nnue\\.venv\\Scripts\\python nnue\\parse_selfplay.py \\
-        --input engine/selfplay.txt \\
-        --output nnue/data/gen0.bin \\
-        --skip-opening 8          # skip first N plies of each game
+        --input engine/selfplay_gen1.txt \\
+        --output nnue/data/gen1.bin \\
+        --skip-opening 8
 """
 
 from __future__ import annotations
@@ -51,7 +51,7 @@ from features import encode
 # Binary format constants
 # ---------------------------------------------------------------------------
 MAGIC        = b'CHT1'
-MAX_FEATURES = 32          # exact maximum: 4 players × 8 pieces each, pieces only leave the board
+MAX_FEATURES = 40          # exact maximum is lower, but 40 is safe padding
 DENSE_SIZE   = 9
 TARGET_SIZE  = 4
 
@@ -93,9 +93,6 @@ def parse_selfplay(
     skipped = 0
     errors  = 0
 
-    prev_turn  = None   # used to detect game boundaries
-    game_ply   = 0      # ply counter within the current game
-
     with open(input_path, encoding='utf-8') as f:
         for lineno, line in enumerate(f, 1):
             line = line.strip()
@@ -108,28 +105,32 @@ def parse_selfplay(
                 errors += 1
                 continue
 
-            fen    = parts[0].strip()
-            target = list(map(int, parts[1].strip().split()))
+            fen_full = parts[0].strip()
+            target_str = parts[1].strip()
 
-            # Detect game boundary: if the new turn is <= prev_turn
-            # (e.g. goes from g→r) a new game has started.
-            # selfplay.txt has turns r→b→y→g→r→... sequentially within each game.
-            turn_char = fen.strip().split()[-1]
-            turn_idx  = {'r': 0, 'b': 1, 'y': 2, 'g': 3}.get(turn_char, -1)
-            if prev_turn is not None and turn_idx <= prev_turn:
-                game_ply = 0   # new game started
-            prev_turn = turn_idx
+            # New FEN format: <pieces> <points> <turn_char> <ply>
+            # Example: ... 0/0/0/0 r 0
+            fen_parts = fen_full.split()
+            if len(fen_parts) < 4:
+                 print(f"  Warning: line {lineno} FEN incomplete, skipping", file=sys.stderr)
+                 errors += 1
+                 continue
+            
+            try:
+                game_ply = int(fen_parts[3])
+            except ValueError:
+                 print(f"  Warning: line {lineno} ply not an int, skipping", file=sys.stderr)
+                 errors += 1
+                 continue
 
             # Opening skip
             if game_ply < skip_opening:
-                game_ply += 1
-                skipped  += 1
+                skipped += 1
                 continue
-            game_ply += 1
 
             # Encode position
             try:
-                board = ChaturajiBoard.from_fen(fen, ply=game_ply)
+                board = ChaturajiBoard.from_fen(fen_full)
                 indices, dense = encode(board)
             except Exception as e:
                 print(f"  Error at line {lineno}: {e}", file=sys.stderr)
@@ -138,19 +139,26 @@ def parse_selfplay(
 
             # Validate
             if len(indices) > MAX_FEATURES:
-                print(
-                    f"  Warning: line {lineno} has {len(indices)} features > MAX_FEATURES={MAX_FEATURES}, "
-                    f"truncating", file=sys.stderr
-                )
+                if verbose:
+                    print(
+                        f"  Warning: line {lineno} has {len(indices)} features > MAX_FEATURES={MAX_FEATURES}, "
+                        f"truncating", file=sys.stderr
+                    )
                 indices = indices[:MAX_FEATURES]
 
             # Canonicalize target: raw [r,b,y,g] → [self, left, across, right]
-            # This must match model output order (canonical rotation).
-            # For Red-to-move: ROTATION_MAP[RED] = [0,1,2,3] → no change.
-            # For Blue-to-move: ROTATION_MAP[BLUE] = [3,0,1,2] → [blue,yel,grn,red].
+            try:
+                target_ints = list(map(int, target_str.split()))
+                if len(target_ints) != 4:
+                    raise ValueError(f"Expected 4 target points, got {len(target_ints)}")
+            except ValueError as e:
+                print(f"  Error parsing target at line {lineno}: {e}", file=sys.stderr)
+                errors += 1
+                continue
+
             rmap = ROTATION_MAP[board.turn]
             canon_target = [0] * 4
-            for orig_color, rank_pts in enumerate(target):
+            for orig_color, rank_pts in enumerate(target_ints):
                 canon_target[rmap[orig_color]] = rank_pts
 
             # Pack record

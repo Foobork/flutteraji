@@ -141,18 +141,28 @@ struct NNUEModel {
 // Feature encoding — mirrors Python features.py exactly
 // ---------------------------------------------------------------------------
 
-// Map a 0x88 square + active player to the canonical Python square (row*8+col).
-// Python canonical() rotates the board so the active player is always "south".
+// Map a 0x88 square + active player to the canonical square (row*8+col).
+// In the canonical frame, the active player is always at the BOTTOM (South).
+//
+// 0x88 board: row 0 = North, row 7 = South
+//             col 0 = West,  col 7 = East
+//
+// RED    (South): (r, c) -> (r, c)
+// BLUE   (West):  (r, c) -> (7-c, r)
+// YELLOW (North): (r, c) -> (7-r, 7-c)
+// GREEN  (East):  (r, c) -> (c, 7-r)
 static inline int nnue_canonical_sq(int sq0x88, int active) {
-    int row = sq0x88 >> 4;
-    int col = sq0x88 & 0x0F;
+    int r = sq0x88 >> 4;
+    int c = sq0x88 & 0x0F;
+    int nr, nc;
     switch (active) {
-        case RED:    return row       * 8 + col;        // no rotation
-        case BLUE:   return (7 - col) * 8 + row;         // 90 deg CCW
-        case YELLOW: return (7 - row) * 8 + (7 - col);  // 180 deg
-        case GREEN:  return col       * 8 + (7 - row);  // 90 deg CW
-        default:     return row       * 8 + col;
+        case RED:    nr = r;     nc = c;     break;
+        case BLUE:   nr = 7 - c; nc = r;     break;
+        case YELLOW: nr = 7 - r; nc = 7 - c; break;
+        case GREEN:  nr = c;     nc = 7 - r; break;
+        default:     nr = r;     nc = c;     break;
     }
+    return nr * 8 + nc;
 }
 
 // Piece type (PIECE_MASK bits) to Python piece index 0-4.

@@ -7,6 +7,7 @@
 #include "eval.h"
 #include "mcts.h"
 #include "selfplay.h"
+#include "match.h"
 #include "nnue.h"
 #define CHATURAJI_BUILD_DLL  // needed when api.cpp is compiled inline into the exe
 #include "api.h"
@@ -304,6 +305,7 @@ int main(int argc, char* argv[]) {
             "  eval       Print hand-crafted evaluation for start position\n"
             "  mcts       Run 1000 MCTS iterations and show best move\n"
             "  selfplay   Generate self-play training data (use selfplay --help for options)\n"
+            "  match      Run a match between two NNUE models\n"
             "  probe      Rank moves by NNUE eval (probe --nnue <file> [--fen \"<fen>\"])\n"
             "  bench      Measure NNUE evaluation speed (bench --nnue <file>)\n"
             "  --help     Show this help\n\n"
@@ -321,6 +323,11 @@ int main(int argc, char* argv[]) {
     // selfplay mode
     if (argc > 1 && std::string(argv[1]) == "selfplay") {
         return selfPlayMain(argc - 1, argv + 1);
+    }
+
+    // match mode
+    if (argc > 1 && std::string(argv[1]) == "match") {
+        return matchMain(argc - 1, argv + 1);
     }
 
     // probe mode

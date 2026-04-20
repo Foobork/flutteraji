@@ -216,6 +216,8 @@ int Board::generateMoves(Move* moves) const {
 // Make Move
 // ============================================================
 void Board::makeMove(const Move& move) {
+    if (undoCount >= 1024) return; // Safety check
+
     UndoInfo& undo = undoStack[undoCount++];
     undo.move = move;
     memcpy(undo.points, points, sizeof(points));
@@ -225,6 +227,7 @@ void Board::makeMove(const Move& move) {
     undo.movedPiece = EMPTY;
     undo.promoted = 0;
     undo.newChecks = 0;
+    undo.deadCount = 0;
 
     // Identify kings in check BEFORE move
     uint32_t kingsInCheckBefore = 0;
@@ -237,6 +240,7 @@ void Board::makeMove(const Move& move) {
 
     if (move == RESIGN_MOVE) {
         markDead(turn);
+        undo.deadColors[undo.deadCount++] = turn;
     } else {
         undo.captured = board[move.to];
         undo.movedPiece = board[move.from];
@@ -247,8 +251,10 @@ void Board::makeMove(const Move& move) {
         }
 
         // King capture → mark that color dead
-        if ((board[move.to] & (DEAD | PIECE_MASK)) == KING) {
-            markDead(board[move.to] & COLOR_MASK);
+        if ((board[move.to] & PIECE_MASK) == KING && !(board[move.to] & DEAD)) {
+            uint8_t dc = board[move.to] & COLOR_MASK;
+            markDead(dc);
+            undo.deadColors[undo.deadCount++] = dc;
         }
 
         // Move the piece
@@ -302,9 +308,21 @@ void Board::makeMove(const Move& move) {
 
 // ============================================================
 // Unmake Move
-// ============================================================
+// ============================================
 void Board::unmakeMove() {
+    if (undoCount <= 0) return;
     UndoInfo& undo = undoStack[--undoCount];
+
+    // Restore board state for any colors marked dead
+    for (int d = 0; d < undo.deadCount; d++) {
+        uint8_t deadColor = undo.deadColors[d];
+        for (int i = 0; i < 128; i++) {
+            if (i & 0x88) { i += 7; continue; }
+            if (board[i] != EMPTY && (board[i] & COLOR_MASK) == deadColor) {
+                board[i] &= ~DEAD;
+            }
+        }
+    }
 
     turn = undo.turn;
     liveColors = undo.liveColors;
@@ -320,37 +338,6 @@ void Board::unmakeMove() {
         // Move piece back
         board[undo.move.from] = undo.movedPiece;
         board[undo.move.to] = undo.captured;
-
-        // Restore dead flags on captured king's army
-        // (already handled by restoring liveColors and board state above,
-        //  but we need to un-mark dead pieces too)
-        // Actually: we restored liveColors, but the DEAD flags on individual
-        // pieces were set by markDead(). We need to undo those.
-        // For now, the simplest correct approach: if a king was captured,
-        // un-dead all pieces of that color.
-        if (undo.captured != EMPTY &&
-            (undo.captured & (DEAD | PIECE_MASK)) == KING) {
-            uint8_t deadColor = undo.captured & COLOR_MASK;
-            for (int i = SQ_A8; i <= SQ_H1; i++) {
-                if ((i & 0x88) != 0) { i += 7; continue; }
-                if (board[i] != EMPTY &&
-                    (board[i] & COLOR_MASK) == deadColor &&
-                    (board[i] & DEAD)) {
-                    board[i] &= ~DEAD;
-                }
-            }
-        }
-    } else {
-        // Undo resign: un-dead all pieces of the resigning color
-        uint8_t deadColor = undo.turn;
-        for (int i = SQ_A8; i <= SQ_H1; i++) {
-            if ((i & 0x88) != 0) { i += 7; continue; }
-            if (board[i] != EMPTY &&
-                (board[i] & COLOR_MASK) == deadColor &&
-                (board[i] & DEAD)) {
-                board[i] &= ~DEAD;
-            }
-        }
     }
 }
 
