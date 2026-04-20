@@ -105,7 +105,7 @@ private:
         Node* node = &root;
         while (node->expanded && board.turn != GAME_OVER) {
             node = selectChild(node, board.turn);
-            board.makeMove(node->move);
+            board.makeMove(node->move, nnueModel_);
         }
 
         // ---- 2. Expansion: add all children of a non-terminal node ----
@@ -124,7 +124,7 @@ private:
                 int pick = std::uniform_int_distribution<int>(
                     0, static_cast<int>(node->children.size()) - 1)(rng_);
                 node = node->children[pick].get();
-                board.makeMove(node->move);
+                board.makeMove(node->move, nnueModel_);
             }
         }
 

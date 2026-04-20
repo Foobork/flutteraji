@@ -222,7 +222,7 @@ int engine_apply_move(void* engine, const char* moveStr) {
     }
     if (!found) return 0;
 
-    e->board.makeMove(move);
+    e->board.makeMove(move, &e->nnue);
     // Invalidate cached results
     memset(e->evalScores, 0, sizeof(e->evalScores));
     strncpy(e->bestMoveStr, "resign", sizeof(e->bestMoveStr));

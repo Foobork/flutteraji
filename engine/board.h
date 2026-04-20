@@ -3,6 +3,7 @@
 #include <cstring>
 #include <string>
 #include <vector>
+#include "nnue.h"
 
 // --- Piece encoding (matches Dart engine bit layout) ---
 constexpr uint8_t COLOR_MASK = 0x03;
@@ -100,6 +101,9 @@ public:
     uint8_t turn;
     int ply;
 
+    // Incremental NNUE
+    mutable Accumulator nnue_acc;
+
     // Undo stack
     UndoInfo undoStack[1024];
     int undoCount;
@@ -115,6 +119,7 @@ public:
         turn = RED;
         undoCount = 0;
         ply = 0;
+        nnue_acc.zero();
     }
 
     void reset() {
@@ -151,8 +156,8 @@ public:
     int generateMoves(Move* moves) const;
 
     // --- Make / Unmake ---
-    void makeMove(const Move& move);
-    void unmakeMove();
+    void makeMove(const Move& move, const NNUEModel* nnue = nullptr);
+    void unmakeMove(const NNUEModel* nnue = nullptr);
 
     // --- King / Check ---
     int getKingSquare(uint8_t color) const;
@@ -163,7 +168,7 @@ public:
     int getMaterial(uint8_t color) const;
 
 private:
-    void markDead(uint8_t deadColor);
+    void markDead(uint8_t deadColor, const NNUEModel* nnue = nullptr);
     void deadKingPoints(uint8_t color);
     static bool isDigit(char c) { return c >= '0' && c <= '9'; }
 };

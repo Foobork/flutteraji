@@ -1,38 +1,19 @@
 cmake_minimum_required(VERSION 3.10)
-project(ChaturajiEngine LANGUAGES CXX)
+project(ChaturajiEngine CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Optimization flags for MSVC
+# Enable AVX2 and FMA for NNUE
 if(MSVC)
-    add_compile_options(/W3 /O2 /nologo /EHsc /arch:AVX2)
+    add_compile_options(/arch:AVX2 /O2)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+else()
+    add_compile_options(-mavx2 -mfma -O3)
 endif()
 
-# CLI Executable
-# main.cpp includes api.cpp directly, so we only need to list board.cpp and main.cpp
-add_executable(chaturaji_cli 
-    board.cpp 
-    main.cpp
-)
-set_target_properties(chaturaji_cli PROPERTIES OUTPUT_NAME "chaturaji")
+# Shared library for Dart FFI
+add_library(chaturaji_engine SHARED api.cpp board.cpp nnue.cpp)
 
-# Shared Library for Flutter FFI
-add_library(chaturaji_lib SHARED 
-    board.cpp 
-    api.cpp
-)
-target_compile_definitions(chaturaji_lib PRIVATE CHATURAJI_BUILD_DLL)
-set_target_properties(chaturaji_lib PROPERTIES OUTPUT_NAME "chaturaji")
-
-# Ensure artifacts are placed directly in the engine/ folder (matches previous build behavior)
-# We set per-configuration properties to avoid MSVC's default subfolder behavior
-foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
-    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG_UPPER)
-    set_target_properties(chaturaji_cli chaturaji_lib PROPERTIES 
-        RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG_UPPER} "${CMAKE_CURRENT_SOURCE_DIR}"
-        LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG_UPPER} "${CMAKE_CURRENT_SOURCE_DIR}"
-        ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG_UPPER} "${CMAKE_CURRENT_SOURCE_DIR}"
-    )
-endforeach()
+# CLI for testing
+add_executable(chaturaji_cli main.cpp board.cpp nnue.cpp)

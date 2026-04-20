@@ -16,7 +16,7 @@
 // ============================================================
 // Perft — exhaustive move enumeration for correctness testing
 // ============================================================
-static uint64_t perft(Board& board, int depth) {
+static uint64_t perft(Board& board, int depth, const NNUEModel* nnue = nullptr) {
     if (depth == 0) return 1;
     if (board.turn == GAME_OVER) return 1;
 
@@ -25,24 +25,24 @@ static uint64_t perft(Board& board, int depth) {
     uint64_t nodes = 0;
 
     for (int i = 0; i < moveCount; i++) {
-        board.makeMove(moves[i]);
-        nodes += perft(board, depth - 1);
-        board.unmakeMove();
+        board.makeMove(moves[i], nnue);
+        nodes += perft(board, depth - 1, nnue);
+        board.unmakeMove(nnue);
     }
 
     return nodes;
 }
 
 // Divided perft — shows per-move breakdown at root
-static uint64_t perftDivide(Board& board, int depth) {
+static uint64_t perftDivide(Board& board, int depth, const NNUEModel* nnue = nullptr) {
     Move moves[MAX_MOVES];
     int moveCount = board.generateMoves(moves);
     uint64_t total = 0;
 
     for (int i = 0; i < moveCount; i++) {
-        board.makeMove(moves[i]);
-        uint64_t nodes = perft(board, depth - 1);
-        board.unmakeMove();
+        board.makeMove(moves[i], nnue);
+        uint64_t nodes = perft(board, depth - 1, nnue);
+        board.unmakeMove(nnue);
 
         // Print move and count
         if (moves[i] == RESIGN_MOVE) {
@@ -95,8 +95,8 @@ static void testMakeUnmake() {
     // Make and unmake each move — board should be identical after
     bool allPass = true;
     for (int i = 0; i < moveCount; i++) {
-        board.makeMove(moves[i]);
-        board.unmakeMove();
+        board.makeMove(moves[i], nullptr);
+        board.unmakeMove(nullptr);
         std::string fenAfter = board.generateFen();
         if (fenAfter != fenBefore) {
             printf("[FAIL] Make/Unmake move %d: FEN mismatch\n  before: %s\n  after:  %s\n",
@@ -192,7 +192,7 @@ static int nnueProbeMain(int argc, char* argv[]) {
     results.reserve(moveCount);
 
     for (int i = 0; i < moveCount; i++) {
-        board.makeMove(moves[i]);
+        board.makeMove(moves[i], &nnue);
         MoveResult r;
         r.move = moves[i];
         // After the move, ask for active player's probability in the new position.
@@ -223,7 +223,7 @@ static int nnueProbeMain(int argc, char* argv[]) {
                 repr[p] = r.probs[NNUE_RELATION[board.turn][(active + p) % 4]];
             for (int p = 0; p < 4; p++) r.probs[p] = repr[p];
         }
-        board.unmakeMove();
+        board.unmakeMove(&nnue);
         results.push_back(r);
     }
 

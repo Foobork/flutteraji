@@ -91,6 +91,8 @@ bool Board::load(const std::string& fen) {
         ply = 0;
     }
 
+    nnue_acc.zero();
+
     return true;
 }
 
@@ -215,7 +217,7 @@ int Board::generateMoves(Move* moves) const {
 // ============================================================
 // Make Move
 // ============================================================
-void Board::makeMove(const Move& move) {
+void Board::makeMove(const Move& move, const NNUEModel* nnue) {
     if (undoCount >= 1024) return; // Safety check
 
     UndoInfo& undo = undoStack[undoCount++];
@@ -229,6 +231,11 @@ void Board::makeMove(const Move& move) {
     undo.newChecks = 0;
     undo.deadCount = 0;
 
+    // Initialize accumulator if needed
+    if (nnue && !nnue_acc.initialized) {
+        nnue->refresh_accumulator(*this, nnue_acc);
+    }
+
     // Identify kings in check BEFORE move
     uint32_t kingsInCheckBefore = 0;
     for (uint8_t color = 0; color < 4; color++) {
@@ -239,11 +246,19 @@ void Board::makeMove(const Move& move) {
     }
 
     if (move == RESIGN_MOVE) {
-        markDead(turn);
+        markDead(turn, nnue);
         undo.deadColors[undo.deadCount++] = turn;
     } else {
         undo.captured = board[move.to];
         undo.movedPiece = board[move.from];
+
+        // NNUE: remove moved piece and captured piece
+        if (nnue) {
+            nnue->update_feature(nnue_acc, board[move.from] & COLOR_MASK, board[move.from] & PIECE_MASK, move.from, false, false);
+            if (board[move.to] != EMPTY) {
+                nnue->update_feature(nnue_acc, board[move.to] & COLOR_MASK, board[move.to] & PIECE_MASK, move.to, (board[move.to] & DEAD) != 0, false);
+            }
+        }
 
         // Points for capture
         if (board[move.to] != EMPTY) {
@@ -253,7 +268,7 @@ void Board::makeMove(const Move& move) {
         // King capture → mark that color dead
         if ((board[move.to] & PIECE_MASK) == KING && !(board[move.to] & DEAD)) {
             uint8_t dc = board[move.to] & COLOR_MASK;
-            markDead(dc);
+            markDead(dc, nnue);
             undo.deadColors[undo.deadCount++] = dc;
         }
 
@@ -274,6 +289,11 @@ void Board::makeMove(const Move& move) {
                 undo.promoted = board[move.to];
                 board[move.to] = (board[move.to] & COLOR_MASK) | ROOK;
             }
+        }
+
+        // NNUE: add piece at new location
+        if (nnue) {
+            nnue->update_feature(nnue_acc, board[move.to] & COLOR_MASK, board[move.to] & PIECE_MASK, move.to, false, true);
         }
 
         // Check bonuses
@@ -309,7 +329,7 @@ void Board::makeMove(const Move& move) {
 // ============================================================
 // Unmake Move
 // ============================================
-void Board::unmakeMove() {
+void Board::unmakeMove(const NNUEModel* nnue) {
     if (undoCount <= 0) return;
     UndoInfo& undo = undoStack[--undoCount];
 
@@ -319,8 +339,22 @@ void Board::unmakeMove() {
         for (int i = 0; i < 128; i++) {
             if (i & 0x88) { i += 7; continue; }
             if (board[i] != EMPTY && (board[i] & COLOR_MASK) == deadColor) {
+                // NNUE: piece was DEAD, now ALIVE again
+                if (nnue && (board[i] & DEAD)) {
+                    nnue->update_feature(nnue_acc, board[i] & COLOR_MASK, board[i] & PIECE_MASK, i, true, false);
+                    nnue->update_feature(nnue_acc, board[i] & COLOR_MASK, board[i] & PIECE_MASK, i, false, true);
+                }
                 board[i] &= ~DEAD;
             }
+        }
+    }
+
+    // NNUE: Remove piece from move.to and restore move.from and move.to contents
+    if (undo.move != RESIGN_MOVE && nnue) {
+        nnue->update_feature(nnue_acc, board[undo.move.to] & COLOR_MASK, board[undo.move.to] & PIECE_MASK, undo.move.to, false, false);
+        nnue->update_feature(nnue_acc, undo.movedPiece & COLOR_MASK, undo.movedPiece & PIECE_MASK, undo.move.from, false, true);
+        if (undo.captured != EMPTY) {
+            nnue->update_feature(nnue_acc, undo.captured & COLOR_MASK, undo.captured & PIECE_MASK, undo.move.to, (undo.captured & DEAD) != 0, true);
         }
     }
 
@@ -449,10 +483,15 @@ int Board::getMaterial(uint8_t color) const {
 // ============================================================
 // Internal helpers
 // ============================================================
-void Board::markDead(uint8_t deadColor) {
+void Board::markDead(uint8_t deadColor, const NNUEModel* nnue) {
     for (int i = SQ_A8; i <= SQ_H1; i++) {
         if ((i & 0x88) != 0) { i += 7; continue; }
         if (board[i] != EMPTY && (board[i] & COLOR_MASK) == deadColor) {
+            // NNUE: piece becomes DEAD
+            if (nnue && !(board[i] & DEAD)) {
+                nnue->update_feature(nnue_acc, board[i] & COLOR_MASK, board[i] & PIECE_MASK, i, false, false);
+                nnue->update_feature(nnue_acc, board[i] & COLOR_MASK, board[i] & PIECE_MASK, i, true, true);
+            }
             board[i] |= DEAD;
         }
     }
