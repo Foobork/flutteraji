@@ -19,10 +19,12 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
   ChaturajiController._(this.game) : super(game) {
     try {
       engine = ChaturajiEngine();
-      final nnuePath = p.join(Directory.current.path, 'nnue', 'checkpoints', 'gen1.nnue');
+      final nnuePath = p.join(Directory.current.path, 'nnue', 'checkpoints', 'gen2_full.nnue');
       if (File(nnuePath).existsSync()) {
         useNNUE = engine!.loadNNUE(nnuePath);
-        print("NNUE loaded: $useNNUE");
+        print("NNUE loaded: $useNNUE (Gen 2)");
+      } else {
+        print("NNUE file not found at $nnuePath");
       }
       _syncEngine();
     } catch (e) {
@@ -81,6 +83,10 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
   }
 
   void runMCTS(int iterations) {
+    if (game.board.turn == gameOver) {
+      print("Game is over, search cancelled.");
+      return;
+    }
     // Ensure all legal moves are in the graph so they show up in the UI
     String fen = game.generateFen();
     var vertex = graph.addVertex(fen);

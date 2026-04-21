@@ -28,7 +28,8 @@ Building an NNUE (Efficiently Updatable Neural Network) for Chaturaji — a four
 | Training pipeline | ✅ Working | `nnue/train.py` |
 | Gen 0 (Bootstrap) | ✅ Complete | Distilled from 1.2M Baseline positions |
 | Gen 1 | ✅ Complete | Won **134-106** vs Gen 0 |
-| Dart FFI / UI | ✅ Working | Loading `gen1.nnue` by default |
+| Gen 2 | ✅ Complete | Won **285-195** vs Gen 1 |
+| Dart FFI / UI | ✅ Working | Loading `gen2_full.nnue` by default |
 
 ---
 
@@ -37,7 +38,8 @@ Building an NNUE (Efficiently Updatable Neural Network) for Chaturaji — a four
 ### Generation Strategy
 - **Gen 0 (bootstrap):** 1.2M positions from hand-crafted eval search. ✅
 - **Gen 1:** 1.0M positions using Gen 0 model for guidance. ✅
-- **Gen 2:** Next step. Use Gen 1 to generate even higher quality data.
+- **Gen 2:** 1.1M positions using Gen 1 model for guidance. ✅
+- **Gen 3:** Next step. Use Gen 2 to generate even higher quality data.
 
 ---
 
@@ -59,4 +61,5 @@ Building an NNUE (Efficiently Updatable Neural Network) for Chaturaji — a four
 | Generation | Training Data | Result vs Prev | Notes |
 |---|---|---|---|
 | **Gen 0** | 1.2M (Baseline Search) | 98-142 vs Baseline | Learned basic game mechanics. |
-| **Gen 1** | 1.0M (Gen 0 Search) | 134-106 vs Gen 0 | First clear improvement cycle. ✅ |
+| **Gen 1** | 1.0M (Gen 0 Search) | 134-106 vs Gen 0 | First clear improvement cycle. |
+| **Gen 2** | 1.1M (Gen 1 Search) | 285-195 vs Gen 1 | Massive jump after bug fix and data scale-up. ✅ |

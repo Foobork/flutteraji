@@ -177,6 +177,15 @@ float engine_get_eval(void* engine, int player) {
 // ============================================================
 void engine_evaluate(void* engine) {
     auto* e = asEngine(engine);
+    if (e->board.turn == GAME_OVER) {
+        float total = 0;
+        for (int c = 0; c < 4; c++) total += e->board.points[c];
+        for (int c = 0; c < 4; c++) {
+            e->evalScores[c] = total > 0 ? (e->board.points[c] / total) * 12.0f : 3.0f;
+        }
+        return;
+    }
+
     if (e->nnue.loaded) {
         float probs[NNUE_OUT_SIZE];
         e->nnue.evaluate(e->board, probs);
