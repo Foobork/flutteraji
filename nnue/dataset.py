@@ -65,8 +65,16 @@ class SelfplayDataset(Dataset):
     Use the static collate() method as the DataLoader's collate_fn.
     """
 
-    def __init__(self, bin_path: str | Path) -> None:
+    def __init__(self, bin_path: str | Path, q_weight: float = 0.0) -> None:
+        """
+        Args:
+            bin_path: Path to .bin file
+            q_weight: How much to weight MCTS Q-values vs Game Result (0.0 to 1.0).
+                      Target = (1 - q_weight) * result + q_weight * Q
+        """
         self.path = Path(bin_path)
+        self.q_weight = q_weight
+        
         if not self.path.exists():
             raise FileNotFoundError(f"Dataset not found: {self.path}")
 
@@ -104,11 +112,19 @@ class SelfplayDataset(Dataset):
         features = list(unpacked[1: 1 + MAX_FEATURES])[:n_active]
         dense    = np.array(unpacked[1 + MAX_FEATURES: 1 + MAX_FEATURES + DENSE_SIZE],
                             dtype=np.float32)
-        raw_target = np.array(unpacked[1 + MAX_FEATURES + DENSE_SIZE:],
-                              dtype=np.float32)
 
-        # Normalise target: raw rank points sum to 12; divide → [0,1] probability
-        target = raw_target / 12.0
+        # Result target (canonical rank points [6/4/2/0])
+        raw_res = np.array(unpacked[1 + MAX_FEATURES + DENSE_SIZE: 1 + MAX_FEATURES + DENSE_SIZE + TARGET_SIZE],
+                           dtype=np.float32)
+        res_target = raw_res / 12.0
+
+        # Q target (MCTS evaluations)
+        raw_q = np.array(unpacked[1 + MAX_FEATURES + DENSE_SIZE + TARGET_SIZE:],
+                         dtype=np.float32)
+        q_target = raw_q / 12.0
+
+        # Blend targets
+        target = (1.0 - self.q_weight) * res_target + self.q_weight * q_target
 
         return features, dense, target
 

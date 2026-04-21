@@ -27,6 +27,7 @@ struct SelfPlayConfig {
 struct PositionRecord {
     char   fen[256];
     int    rankPoints[4];   // filled in at game end: 6/4/2/0
+    float  rootQ[4];        // MCTS evaluation (average outcome) after search
 };
 
 // ============================================================
@@ -44,17 +45,28 @@ static std::vector<PositionRecord> playSingleGame(
     MCTS mcts(rng(), nnueModel);  // use parent rng for child seed
 
     while (board.turn != GAME_OVER) {
+        // Run MCTS from this position
+        Node root;
+        mcts.search(root, board, cfg.iters);
+
         // Record the position before the move
         PositionRecord rec;
         std::string fen = board.generateFen();
         strncpy(rec.fen, fen.c_str(), sizeof(rec.fen) - 1);
         rec.fen[sizeof(rec.fen) - 1] = '\0';
         memset(rec.rankPoints, 0, sizeof(rec.rankPoints));
-        records.push_back(rec);
+        
+        // Store MCTS evaluations (root Q-values)
+        if (root.visitCount > 0) {
+            for (int c = 0; c < 4; c++) {
+                rec.rootQ[c] = static_cast<float>(root.qSum[c] / root.visitCount);
+            }
+        } else {
+            // Should not happen, but fallback to 3.0 (uniform)
+            for (int c = 0; c < 4; c++) rec.rootQ[c] = 3.0f;
+        }
 
-        // Run MCTS from this position
-        Node root;
-        mcts.search(root, board, cfg.iters);
+        records.push_back(rec);
 
         // Move selection:
         // - during opening (ply < tempPlies): sample proportional to visit^1 (temperature=1)
@@ -109,10 +121,10 @@ static std::vector<PositionRecord> playSingleGame(
 // Run self-play and write output file
 // ============================================================
 // Output format (text, one line per position):
-//   <FEN> | <rank_r> <rank_b> <rank_y> <rank_g>
+//   <FEN> | <rank_r> <rank_b> <rank_y> <rank_g> | <q_r> <q_b> <q_y> <q_g>
 //
 // For example:
-//   bRbP2yK.../rRrNrBrK 0/0/0/0 r | 6 4 0 2
+//   bRbP2yK.../rRrNrBrK 0/0/0/0 r | 6 4 0 2 | 5.2 4.1 0.5 2.2
 // ============================================================
 static int runSelfPlay(const SelfPlayConfig& cfg) {
     FILE* out = fopen(cfg.outFile, "w");
@@ -144,10 +156,12 @@ static int runSelfPlay(const SelfPlayConfig& cfg) {
 
         // Write all positions for this game
         for (const auto& rec : records) {
-            fprintf(out, "%s | %d %d %d %d\n",
+            fprintf(out, "%s | %d %d %d %d | %.3f %.3f %.3f %.3f\n",
                     rec.fen,
                     rec.rankPoints[0], rec.rankPoints[1],
-                    rec.rankPoints[2], rec.rankPoints[3]);
+                    rec.rankPoints[2], rec.rankPoints[3],
+                    rec.rootQ[0], rec.rootQ[1],
+                    rec.rootQ[2], rec.rootQ[3]);
         }
 
         totalPositions += static_cast<long long>(records.size());

@@ -50,7 +50,7 @@ from features import encode
 # ---------------------------------------------------------------------------
 # Binary format constants
 # ---------------------------------------------------------------------------
-MAGIC        = b'CHT1'
+MAGIC        = b'CHT2'
 MAX_FEATURES = 40          # exact maximum is lower, but 40 is safe padding
 DENSE_SIZE   = 9
 TARGET_SIZE  = 4
@@ -60,9 +60,9 @@ TARGET_SIZE  = 4
 HEADER_FMT  = '<4sIHBBI'
 HEADER_SIZE = struct.calcsize(HEADER_FMT)   # 16 bytes
 
-# Record: n_active(H) features(40H) dense(9f) target(4B)
-RECORD_FMT  = f'<H{MAX_FEATURES}H{DENSE_SIZE}f{TARGET_SIZE}B'
-RECORD_SIZE = struct.calcsize(RECORD_FMT)   # 2 + 80 + 36 + 4 = 122 bytes
+# Record: n_active(H) features(40H) dense(9f) target(4B) q_target(4f)
+RECORD_FMT  = f'<H{MAX_FEATURES}H{DENSE_SIZE}f{TARGET_SIZE}B4f'
+RECORD_SIZE = struct.calcsize(RECORD_FMT)   # 2 + 80 + 36 + 4 + 16 = 138 bytes
 
 
 # ---------------------------------------------------------------------------
@@ -100,13 +100,14 @@ def parse_selfplay(
                 continue
 
             parts = line.split(' | ')
-            if len(parts) != 2:
+            if len(parts) < 2:
                 print(f"  Warning: line {lineno} unexpected format, skipping", file=sys.stderr)
                 errors += 1
                 continue
 
             fen_full = parts[0].strip()
             target_str = parts[1].strip()
+            q_str = parts[2].strip() if len(parts) > 2 else None
 
             # New FEN format: <pieces> <points> <turn_char> <ply>
             # Example: ... 0/0/0/0 r 0
@@ -161,10 +162,22 @@ def parse_selfplay(
             for orig_color, rank_pts in enumerate(target_ints):
                 canon_target[rmap[orig_color]] = rank_pts
 
+            # Canonicalize Q-values
+            canon_q = [0.0] * 4
+            if q_str:
+                try:
+                    q_floats = list(map(float, q_str.split()))
+                    for orig_color, q_val in enumerate(q_floats):
+                        canon_q[rmap[orig_color]] = q_val
+                except ValueError:
+                    canon_q = [3.0] * 4
+            else:
+                canon_q = [float(x) for x in canon_target]
+
             # Pack record
             n_active = len(indices)
             padded   = indices + [0] * (MAX_FEATURES - n_active)
-            record   = struct.pack(RECORD_FMT, n_active, *padded, *dense.tolist(), *canon_target)
+            record   = struct.pack(RECORD_FMT, n_active, *padded, *dense.tolist(), *canon_target, *canon_q)
             records.append(record)
 
     if errors:
@@ -208,12 +221,15 @@ def _print_sample(record_bytes: bytes) -> None:
     n_active = unpacked[0]
     features = list(unpacked[1:1 + MAX_FEATURES])[:n_active]
     dense    = list(unpacked[1 + MAX_FEATURES: 1 + MAX_FEATURES + DENSE_SIZE])
-    target   = list(unpacked[1 + MAX_FEATURES + DENSE_SIZE:])
+    target   = list(unpacked[1 + MAX_FEATURES + DENSE_SIZE: 1 + MAX_FEATURES + DENSE_SIZE + TARGET_SIZE])
+    q_target = list(unpacked[1 + MAX_FEATURES + DENSE_SIZE + TARGET_SIZE:])
+    
     print(f"  n_active : {n_active}")
     print(f"  features : {features[:8]}{'...' if n_active > 8 else ''}")
     print(f"  dense    : pts={[f'{d:.3f}' for d in dense[:4]]}  "
           f"alive={[int(a) for a in dense[4:8]]}  ply={dense[8]:.3f}")
-    print(f"  target   : {target}  (canonical [self/left/across/right], sum={sum(target)})")
+    print(f"  target   : {target}  (canonical result [self/left/across/right], sum={sum(target)})")
+    print(f"  q_target : {[f'{q:.2f}' for q in q_target]} (MCTS Q-values)")
 
 
 # ---------------------------------------------------------------------------

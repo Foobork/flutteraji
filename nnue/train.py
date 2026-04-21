@@ -77,13 +77,14 @@ def train(
     batch_size: int   = 256,
     lr:         float = 1e-3,
     val_split:  float = 0.1,
+    q_weight:   float = 0.0,
     seed:       int   = 42,
 ) -> None:
     torch.manual_seed(seed)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     # --- Dataset split ---
-    full_ds = SelfplayDataset(data_path)
+    full_ds = SelfplayDataset(data_path, q_weight=q_weight)
     n_val   = max(1, int(len(full_ds) * val_split))
     n_train = len(full_ds) - n_val
     train_ds, val_ds = random_split(
@@ -102,7 +103,7 @@ def train(
 
     print(f"Dataset : {len(full_ds):,} positions  "
           f"(train {n_train:,} / val {n_val:,})")
-    print(f"Epochs  : {epochs}   Batch: {batch_size}   LR: {lr}")
+    print(f"Epochs  : {epochs}   Batch: {batch_size}   LR: {lr}   Q-Weight: {q_weight}")
     print(f"Output  : {out_path}\n")
 
     # --- Model ---
@@ -190,6 +191,7 @@ def main() -> None:
     parser.add_argument('--batch',     type=int,   default=256)
     parser.add_argument('--lr',        type=float, default=1e-3)
     parser.add_argument('--val-split', type=float, default=0.1)
+    parser.add_argument('--q-weight',  type=float, default=0.0, help='Weight for MCTS Q-values (0.0=Result, 1.0=Q)')
     parser.add_argument('--seed',      type=int,   default=42)
     args = parser.parse_args()
 
@@ -200,6 +202,7 @@ def main() -> None:
         batch_size = args.batch,
         lr         = args.lr,
         val_split  = args.val_split,
+        q_weight   = args.q_weight,
         seed       = args.seed,
     )
 
