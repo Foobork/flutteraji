@@ -155,7 +155,7 @@ class HomePageState extends State<HomePage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 4),
-        _text("N: ${v.N} | Q: ${v.Q[0]}, ${v.Q[1]}, ${v.Q[2]}, ${v.Q[3]}"),
+        _text("N: ${v.N} | Q: ${v.Q[0].toStringAsFixed(2)}, ${v.Q[1].toStringAsFixed(2)}, ${v.Q[2].toStringAsFixed(2)}, ${v.Q[3].toStringAsFixed(2)}"),
         _text("E: $qnRow"),
         const SizedBox(height: 16),
       ],
@@ -174,7 +174,7 @@ class HomePageState extends State<HomePage> {
           _moveButton(info.move),
           _text("${info.count}"),
           _text(
-            "E: ${qn.toStringAsFixed(2)} | N: ${info.childN} | Q: ${info.childQ[0]}, ${info.childQ[1]}, ${info.childQ[2]}, ${info.childQ[3]}",
+            "E: ${qn.toStringAsFixed(2)} | N: ${info.childN} | Q: ${info.childQ[0].toStringAsFixed(2)}, ${info.childQ[1].toStringAsFixed(2)}, ${info.childQ[2].toStringAsFixed(2)}, ${info.childQ[3].toStringAsFixed(2)}",
             style: _textStyle.copyWith(fontSize: 14),
           ),
         ],
@@ -261,7 +261,7 @@ class HomePageState extends State<HomePage> {
   }
 
   void _mcts() {
-    _controller.runMCTS(1000000);
+    _controller.runMCTS(100000);
   }
 
   void _rotate() {
