@@ -28,7 +28,7 @@ void importGraph(String filename) {
 
         var vertex = graph.addVertex(currentFen);
         vertex.N = int.parse(nStr);
-        vertex.Q = qStr.split('/').map(int.parse).toList();
+        vertex.Q = qStr.split('/').map(double.parse).toList();
       } else {
         var edgeMatch = edgeRegex.firstMatch(line);
         if (edgeMatch != null) {

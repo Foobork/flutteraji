@@ -114,7 +114,7 @@ class HomePageState extends State<HomePage> {
   }
 
   dynamic _nnueSection() {
-    if (!_controller.useNNUE || _controller.engine == null) {
+    if (!_controller.useNNUE || _controller.engine == null || _controller.game.board.turn == gameOver) {
       return const SizedBox.shrink();
     }
 
@@ -165,7 +165,10 @@ class HomePageState extends State<HomePage> {
   dynamic _movesTable() {
     var rows = _knownMoves.map((MoveInfo info) {
       int turn = _controller.game.board.turn;
-      double qn = info.childN == 0 ? 0 : info.childQ[turn] / info.childN;
+      double qn = 0;
+      if (turn != gameOver && info.childN > 0) {
+        qn = info.childQ[turn] / info.childN;
+      }
       return TableRow(
         children: [
           _moveButton(info.move),
@@ -214,15 +217,16 @@ class HomePageState extends State<HomePage> {
         final childFen = b.generateFen();
         final childV = graph.v[childFen];
         final childN = childV?.N ?? 0;
-        final childQ = childV?.Q ?? [0, 0, 0, 0];
+        final childQ = childV?.Q ?? [0.0, 0.0, 0.0, 0.0];
         return MoveInfo(move.toSan(), count, childN, childQ);
       }).toList();
 
       // Sort by win rate for current color: childQ[board.turn] / childN
-      if (board.turn != gameOver) {
+      if (board.turn != gameOver && board.turn < 4) {
         _knownMoves.sort((a, b) {
-          double scoreA = a.childN == 0 ? 0 : a.childQ[board.turn] / a.childN;
-          double scoreB = b.childN == 0 ? 0 : b.childQ[board.turn] / b.childN;
+          int t = board.turn;
+          double scoreA = a.childN == 0 ? 0 : a.childQ[t] / a.childN;
+          double scoreB = b.childN == 0 ? 0 : b.childQ[t] / b.childN;
           return scoreB.compareTo(scoreA); // Descending: best move on top
         });
       }
@@ -283,6 +287,6 @@ class MoveInfo {
   String move;
   int count;
   int childN;
-  List<int> childQ;
+  List<double> childQ;
   MoveInfo(this.move, this.count, this.childN, this.childQ);
 }

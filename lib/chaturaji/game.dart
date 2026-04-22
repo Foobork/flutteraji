@@ -64,7 +64,7 @@ class ChaturajiGame {
 
     // Convert raw points to rank-based points with tie averaging
     // Ranks: 1st=6, 2nd=4, 3rd=2, 4th=0; ties share the average of tied places
-    List<int> rankPoints = _calculateRankPoints(finalPoints);
+    List<double> rankPoints = _calculateRankPoints(finalPoints);
 
     print(
       "Game Over! Final points: Red=${finalPoints[0]}, Blue=${finalPoints[1]}, Yellow=${finalPoints[2]}, Green=${finalPoints[3]}",
@@ -106,7 +106,7 @@ class ChaturajiGame {
   }
 
   // Compute rank-based points with tie averaging
-  List<int> _calculateRankPoints(List<int> finalPoints) {
+  List<double> _calculateRankPoints(List<int> finalPoints) {
     const List<int> placePoints = [6, 4, 2, 0];
 
     // Create list of (index, score)
@@ -114,7 +114,7 @@ class ChaturajiGame {
     // Sort descending by score
     indexed.sort((a, b) => b.value.compareTo(a.value));
 
-    List<int> result = List.filled(4, 0);
+    List<double> result = List.filled(4, 0.0);
 
     int i = 0;
     while (i < 4) {
@@ -124,11 +124,11 @@ class ChaturajiGame {
         j++;
       }
       // Places covered are i..j-1 (0-based). Average corresponding placePoints.
-      int sum = 0;
+      double sum = 0;
       for (int p = i; p < j; p++) {
         sum += placePoints[p];
       }
-      int avg = sum ~/ (j - i);
+      double avg = sum / (j - i);
       for (int p = i; p < j; p++) {
         result[indexed[p].key] = avg;
       }

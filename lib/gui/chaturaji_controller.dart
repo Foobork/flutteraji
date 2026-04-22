@@ -102,7 +102,7 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
       // Update root vertex
       vertex.N += iterations;
       for (int i = 0; i < 4; i++) {
-        vertex.Q[i] += (engine!.getEval(i) * iterations).round();
+        vertex.Q[i] += (engine!.getEval(i) * iterations);
       }
 
       // Update child vertices with move-specific stats
@@ -121,7 +121,7 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
           
           childVertex.N += n;
           for (int i = 0; i < 4; i++) {
-            childVertex.Q[i] += (qMeans[i] * n).round();
+            childVertex.Q[i] += (qMeans[i] * n);
           }
 
           // Also update the edge count from parent
