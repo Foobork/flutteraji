@@ -19,10 +19,10 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
   ChaturajiController._(this.game) : super(game) {
     try {
       engine = ChaturajiEngine();
-      final nnuePath = p.join(Directory.current.path, 'nnue', 'checkpoints', 'gen3.nnue');
+      final nnuePath = p.join(Directory.current.path, 'nnue', 'checkpoints', 'gen4.nnue');
       if (File(nnuePath).existsSync()) {
         useNNUE = engine!.loadNNUE(nnuePath);
-        print("NNUE loaded: $useNNUE (Gen 3)");
+        print("NNUE loaded: $useNNUE (Gen 4)");
       } else {
         print("NNUE file not found at $nnuePath");
       }

@@ -29,7 +29,7 @@ Building an NNUE (Efficiently Updatable Neural Network) for Chaturaji — a four
 | Gen 0 (Bootstrap) | ✅ Complete | Distilled from 1.2M Baseline positions |
 | Gen 1 | ✅ Complete | Won **134-106** vs Gen 0 |
 | Gen 2 | ✅ Complete | Won **285-195** vs Gen 1 |
-| Dart FFI / UI | ✅ Working | Loading `gen2_full.nnue` by default |
+| Dart FFI / UI | ✅ Working | Loading `gen4.nnue` by default |
 
 ---
 
@@ -39,7 +39,9 @@ Building an NNUE (Efficiently Updatable Neural Network) for Chaturaji — a four
 - **Gen 0 (bootstrap):** 1.2M positions from hand-crafted eval search. ✅
 - **Gen 1:** 1.0M positions using Gen 0 model for guidance. ✅
 - **Gen 2:** 1.1M positions using Gen 1 model for guidance. ✅
-- **Gen 3:** **Hybrid Training.** Use Gen 2 model to generate 1.1M+ positions including root Q-values for cleaner signal. (In progress)
+- **Gen 3:** **Hybrid Training.** Use Gen 2 model to generate 1.1M+ positions including root Q-values for cleaner signal. ✅
+- **Gen 4:** **Hybrid Training.** Use Gen 3 model to generate 1M+ positions. ✅
+- **Gen 5:** Next step. (Planned)
 
 ---
 
@@ -64,4 +66,5 @@ Building an NNUE (Efficiently Updatable Neural Network) for Chaturaji — a four
 | **Gen 0** | 1.2M (Baseline Search) | 98-142 vs Baseline | Learned basic game mechanics. |
 | Gen 1 | 1.0M (Gen 0 Search) | 134-106 vs Gen 0 | First clear improvement cycle. |
 | **Gen 2** | 1.1M (Gen 1 Search) | 285-195 vs Gen 1 | Massive jump after bug fix and data scale-up. |
-| **Gen 3** | 0.9M (Gen 2 Hybrid) | 278-202 vs Gen 2 | **Hybrid Q+Result Training.** Significant gain; smarter opening/tactics. ✅ |
+| **Gen 3** | 0.9M (Gen 2 Hybrid) | 278-202 vs Gen 2 | **Hybrid Q+Result Training.** Significant gain; smarter opening/tactics. |
+| **Gen 4** | 1.1M (Gen 3 Hybrid) | 304-176 vs Gen 3 | **Hybrid Q+Result Training.** Continued massive growth. ✅ |
