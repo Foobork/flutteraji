@@ -29,7 +29,7 @@ Building an NNUE (Efficiently Updatable Neural Network) for Chaturaji — a four
 | Gen 0 (Bootstrap) | ✅ Complete | Distilled from 1.2M Baseline positions |
 | Gen 1 | ✅ Complete | Won **134-106** vs Gen 0 |
 | Gen 2 | ✅ Complete | Won **285-195** vs Gen 1 |
-| Dart FFI / UI | ✅ Working | Loading `gen4.nnue` by default |
+| Dart FFI / UI | ✅ Working | Loading `gen4.nnue` (Latest Champion) |
 
 ---
 
@@ -41,7 +41,7 @@ Building an NNUE (Efficiently Updatable Neural Network) for Chaturaji — a four
 - **Gen 2:** 1.1M positions using Gen 1 model for guidance. ✅
 - **Gen 3:** **Hybrid Training.** Use Gen 2 model to generate 1.1M+ positions including root Q-values for cleaner signal. ✅
 - **Gen 4:** **Hybrid Training.** Use Gen 3 model to generate 1M+ positions. ✅
-- **Gen 5:** Next step. (Planned)
+- **Gen 5:** **Hybrid Training.** Use Gen 4 model to generate 1M+ positions. (Failed to beat Gen 4)
 
 ---
 
@@ -68,3 +68,22 @@ Building an NNUE (Efficiently Updatable Neural Network) for Chaturaji — a four
 | **Gen 2** | 1.1M (Gen 1 Search) | 285-195 vs Gen 1 | Massive jump after bug fix and data scale-up. |
 | **Gen 3** | 0.9M (Gen 2 Hybrid) | 278-202 vs Gen 2 | **Hybrid Q+Result Training.** Significant gain; smarter opening/tactics. |
 | **Gen 4** | 1.1M (Gen 3 Hybrid) | 304-176 vs Gen 3 | **Hybrid Q+Result Training.** Continued massive growth. ✅ |
+| **Gen 5** | 1.1M (Gen 4 Hybrid) | 236-244 vs Gen 4 | **Stagnation.** Failed to beat Gen 4; potential data saturation or noise. |
+
+---
+
+## Future Directions & Experimentation
+
+### Data Quality & Diversity
+- **Increase Search Depth:** Move from 1000 to 2000+ iterations during self-play to provide a cleaner target for the network.
+- **Forced Opening Diversity:** Use a randomized set of starting positions or force random moves for the first $N$ plies.
+- **Root Temperature Tuning:** Increase exploration in early-game moves to ensure a broader variety of positions are recorded.
+
+### Training Improvements
+- **Loss Function Balance:** Tune the weighting between MCTS Q-values and final game results (currently Hybrid).
+- **Learning Rate Decay:** Implement a dynamic scheduler (e.g., Cosine Annealing or ReduceLROnPlateau) to push past stagnation.
+- **Architecture Scaling:** Evaluate if the 1,408 sparse features are hitting a capacity limit; consider adding deeper interaction terms.
+
+### Engine Polish
+- **Threading Support:** Parallelize self-play data generation (current bottle-neck).
+- **Time Management:** Implement a proper clock-based search time allocator for real-world play.
