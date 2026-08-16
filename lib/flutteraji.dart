@@ -86,28 +86,33 @@ class HomePageState extends State<HomePage> {
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final double side = constraints.maxWidth < constraints.maxHeight
-                  ? constraints.maxWidth
-                  : constraints.maxHeight;
+              const double scoreRowsHeight = 52.0; // 24px top + 24px bottom + 4px spacing
+              final double maxW = constraints.maxWidth;
+              final double maxH = constraints.maxHeight;
+
+              final double maxBoardByHeight = maxH - scoreRowsHeight;
+              final double boardSide = (maxW < maxBoardByHeight ? maxW : maxBoardByHeight).clamp(150.0, double.infinity);
 
               return Center(
-                child: SizedBox(
-                  width: side,
-                  height: side,
-                  child: Column(
-                    children: [
-                      _pointsRow(blue, yellow),
-                      const SizedBox(height: 2),
-                      Expanded(
-                        child: AspectRatio(
-                          aspectRatio: 1.0,
-                          child: board,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      _pointsRow(red, green),
-                    ],
-                  ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: boardSide,
+                      child: _pointsRow(blue, yellow),
+                    ),
+                    const SizedBox(height: 2),
+                    SizedBox(
+                      width: boardSide,
+                      height: boardSide,
+                      child: board,
+                    ),
+                    const SizedBox(height: 2),
+                    SizedBox(
+                      width: boardSide,
+                      child: _pointsRow(red, green),
+                    ),
+                  ],
                 ),
               );
             },
