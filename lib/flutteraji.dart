@@ -83,7 +83,6 @@ class HomePageState extends State<HomePage> {
             _button("rotate", _rotate),
             _button("import", _import),
             _button("export", _export),
-            _button("backprop", _backprop),
             _button("mcts", _mcts),
           ],
         ),
@@ -321,10 +320,6 @@ class HomePageState extends State<HomePage> {
         );
       }
     }
-  }
-
-  void _backprop() {
-    _controller.game.manualBackpropagate();
   }
 
   void _mcts() {
