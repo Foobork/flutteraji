@@ -42,11 +42,15 @@ class HomePageState extends State<HomePage> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _boardColumn(),
-              const SizedBox(width: 32),
               Expanded(
+                flex: 5,
+                child: _boardColumn(),
+              ),
+              const SizedBox(width: 24),
+              Expanded(
+                flex: 5,
                 child: _movesColumn(),
               ),
             ],
@@ -77,54 +81,56 @@ class HomePageState extends State<HomePage> {
       ),
     );
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        const double nonBoardHeight = 200.0;
-        final double maxH = constraints.maxHeight;
-        final double boardSide = (maxH - nonBoardHeight).clamp(200.0, double.infinity);
+    return Column(
+      children: [
+        Expanded(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final double side = constraints.maxWidth < constraints.maxHeight
+                  ? constraints.maxWidth
+                  : constraints.maxHeight;
 
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
+              return Center(
+                child: SizedBox(
+                  width: side,
+                  height: side,
+                  child: Column(
+                    children: [
+                      _pointsRow(blue, yellow),
+                      const SizedBox(height: 2),
+                      Expanded(
+                        child: AspectRatio(
+                          aspectRatio: 1.0,
+                          child: board,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      _pointsRow(red, green),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 6),
+        turn,
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          alignment: WrapAlignment.center,
           children: [
-            SizedBox(
-              width: boardSide,
-              child: _pointsRow(blue, yellow),
-            ),
-            const SizedBox(height: 2),
-            SizedBox(
-              width: boardSide,
-              height: boardSide,
-              child: board,
-            ),
-            const SizedBox(height: 2),
-            SizedBox(
-              width: boardSide,
-              child: _pointsRow(red, green),
-            ),
-            const SizedBox(height: 4),
-            turn,
-            const SizedBox(height: 4),
-            SizedBox(
-              width: boardSide,
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                alignment: WrapAlignment.center,
-                children: [
-                  _button("resign", _resign),
-                  _button("reset", _reset),
-                  _button("back", _back),
-                  _button("rotate", _rotate),
-                  _button("import", _import),
-                  _button("export", _export),
-                  _button("mcts", _mcts),
-                ],
-              ),
-            ),
+            _button("resign", _resign),
+            _button("reset", _reset),
+            _button("back", _back),
+            _button("rotate", _rotate),
+            _button("import", _import),
+            _button("export", _export),
+            _button("mcts", _mcts),
           ],
-        );
-      },
+        ),
+      ],
     );
   }
 
