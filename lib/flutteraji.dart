@@ -40,17 +40,13 @@ class HomePageState extends State<HomePage> {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(12.0),
+          padding: const EdgeInsets.all(16.0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              _boardColumn(),
+              const SizedBox(width: 32),
               Expanded(
-                flex: 6,
-                child: _boardColumn(),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                flex: 4,
                 child: _movesColumn(),
               ),
             ],
@@ -81,42 +77,55 @@ class HomePageState extends State<HomePage> {
       ),
     );
 
-    return Column(
-      children: <Widget>[
-        Expanded(
-          child: Center(
-            child: AspectRatio(
-              aspectRatio: 1.0,
-              child: Column(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const double nonBoardHeight = 220.0;
+        final double maxH = constraints.maxHeight;
+        final double availableHeight = (maxH - nonBoardHeight).clamp(180.0, 700.0);
+        final double boardSide = availableHeight;
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: boardSide,
+              child: _pointsRow(blue, yellow),
+            ),
+            const SizedBox(height: 4),
+            SizedBox(
+              width: boardSide,
+              height: boardSide,
+              child: board,
+            ),
+            const SizedBox(height: 4),
+            SizedBox(
+              width: boardSide,
+              child: _pointsRow(red, green),
+            ),
+            const SizedBox(height: 8),
+            turn,
+            const SizedBox(height: 8),
+            SizedBox(
+              width: boardSide,
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                alignment: WrapAlignment.center,
                 children: [
-                  _pointsRow(blue, yellow),
-                  const SizedBox(height: 4),
-                  Expanded(child: board),
-                  const SizedBox(height: 4),
-                  _pointsRow(red, green),
+                  _button("resign", _resign),
+                  _button("reset", _reset),
+                  _button("back", _back),
+                  _button("rotate", _rotate),
+                  _button("import", _import),
+                  _button("export", _export),
+                  _button("mcts", _mcts),
                 ],
               ),
             ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        turn,
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 4,
-          alignment: WrapAlignment.center,
-          children: [
-            _button("resign", _resign),
-            _button("reset", _reset),
-            _button("back", _back),
-            _button("rotate", _rotate),
-            _button("import", _import),
-            _button("export", _export),
-            _button("mcts", _mcts),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 
