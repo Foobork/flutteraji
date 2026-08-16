@@ -40,7 +40,7 @@ class HomePageState extends State<HomePage> {
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -79,10 +79,9 @@ class HomePageState extends State<HomePage> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        const double nonBoardHeight = 220.0;
+        const double nonBoardHeight = 200.0;
         final double maxH = constraints.maxHeight;
-        final double availableHeight = (maxH - nonBoardHeight).clamp(180.0, 700.0);
-        final double boardSide = availableHeight;
+        final double boardSide = (maxH - nonBoardHeight).clamp(200.0, double.infinity);
 
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -92,20 +91,20 @@ class HomePageState extends State<HomePage> {
               width: boardSide,
               child: _pointsRow(blue, yellow),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             SizedBox(
               width: boardSide,
               height: boardSide,
               child: board,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             SizedBox(
               width: boardSide,
               child: _pointsRow(red, green),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             turn,
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             SizedBox(
               width: boardSide,
               child: Wrap(
