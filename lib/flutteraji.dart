@@ -114,8 +114,18 @@ class HomePageState extends State<HomePage> {
   }
 
   dynamic _nnueSection() {
-    if (!_controller.useNNUE || _controller.engine == null || _controller.game.board.turn == gameOver) {
+    if (_controller.game.board.turn == gameOver) {
       return const SizedBox.shrink();
+    }
+
+    if (!_controller.useNNUE || _controller.engine == null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _text("NNUE: Loading Gen 4 model...", style: _textStyle.copyWith(fontSize: 14, color: Colors.grey)),
+          const SizedBox(height: 16),
+        ],
+      );
     }
 
     _controller.engine!.evaluate();
@@ -129,7 +139,7 @@ class HomePageState extends State<HomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _text("NNUE: $nnueRow", style: _textStyle.copyWith(fontSize: 16, color: Colors.blueGrey)),
+        _text("NNUE: $nnueRow", style: _textStyle.copyWith(fontSize: 16, color: Colors.blueGrey, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
       ],
     );
@@ -194,13 +204,24 @@ class HomePageState extends State<HomePage> {
     );
   }
 
-  HomePageState() {
-    _update();
+  @override
+  void initState() {
+    super.initState();
     _controller.addListener(_boardListener);
+    _update();
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_boardListener);
+    _controller.dispose();
+    super.dispose();
   }
 
   void _boardListener() {
-    setState(_update);
+    if (mounted) {
+      setState(_update);
+    }
   }
 
   void _update() {

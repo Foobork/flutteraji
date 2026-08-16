@@ -1,14 +1,12 @@
-// ignore_for_file: avoid_print
-
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutteraji/chaturaji/board.dart';
 import 'package:flutteraji/chaturaji/game.dart';
 import 'package:flutteraji/chaturaji/move.dart';
 import 'package:flutteraji/graph/graph.dart';
 import 'package:flutteraji/engine/chaturaji_engine.dart';
 import 'package:flutteraji/engine/engine_loader.dart';
-
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutteraji/engine/chaturaji_engine_dart.dart';
 
 class ChaturajiController extends ValueNotifier<ChaturajiGame> {
@@ -35,7 +33,12 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
 
   Future<void> _loadNNUEFromBundle() async {
     try {
-      final byteData = await rootBundle.load('nnue/checkpoints/gen4.nnue');
+      ByteData? byteData;
+      try {
+        byteData = await rootBundle.load('nnue/checkpoints/gen4.nnue');
+      } catch (_) {
+        byteData = await rootBundle.load('assets/nnue/checkpoints/gen4.nnue');
+      }
       final bytes = byteData.buffer.asUint8List(
         byteData.offsetInBytes,
         byteData.lengthInBytes,
