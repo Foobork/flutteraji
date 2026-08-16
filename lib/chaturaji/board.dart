@@ -23,7 +23,13 @@ const int dead = 0x40;
 
 const int gameOver = 0x80;
 
-Map<String, int> colors = {'r': red, 'b': blue, 'y': yellow, 'g': green};
+Map<String, int> colors = {
+  'r': red,
+  'b': blue,
+  'y': yellow,
+  'g': green,
+  '*': gameOver,
+};
 Map<int, String> colorSymbols = {
   red: 'r',
   blue: 'b',
@@ -150,7 +156,7 @@ class Board {
     points[yellow] = int.parse(pointStr[2]);
     points[green] = int.parse(pointStr[3]);
 
-    turn = colors[tokens[2]]!;
+    turn = colors[tokens[2]] ?? gameOver;
     if (tokens.length > 3) {
       ply = int.parse(tokens[3]);
     } else {
@@ -173,7 +179,7 @@ class Board {
           fen += emptyCount.toString();
           emptyCount = 0;
         }
-        var deadMarker = board[i] & dead == dead ? '*' : '';
+        var deadMarker = (board[i] & dead) == dead ? '*' : '';
         var color = colorSymbols[board[i] & colorMask]!;
         var type = pieceSymbols[board[i] & pieceMask]!;
         fen += deadMarker + color + type;
@@ -294,7 +300,7 @@ class Board {
       points[turn] += (capturePoints[board[to]] ?? 0);
 
       // King capture
-      if (board[to] & (dead | pieceMask) == king) {
+      if ((board[to] & (dead | pieceMask)) == king) {
         markDead(board[to] & colorMask);
       }
 
@@ -303,7 +309,7 @@ class Board {
       board[from] = empty;
 
       // Check for promotion
-      if (board[to] & pieceMask == pawn) {
+      if ((board[to] & pieceMask) == pawn) {
         switch (board[to] & colorMask) {
           case red:
             if (to <= 7) board[to] = red | rook;
@@ -359,7 +365,7 @@ class Board {
         i += 7; // skip to next row
         continue;
       }
-      if (board[i] & (dead | pieceMask) == dead | king) {
+      if ((board[i] & (dead | pieceMask)) == (dead | king)) {
         points[color] += 3;
       }
     }
@@ -372,7 +378,7 @@ class Board {
         i += 7; // skip to next row
         continue;
       }
-      if (board[i] != empty && board[i] & colorMask == deadColor) {
+      if (board[i] != empty && (board[i] & colorMask) == deadColor) {
         board[i] |= dead;
       }
     }
