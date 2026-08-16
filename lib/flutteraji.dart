@@ -1,12 +1,15 @@
-// ignore_for_file: avoid_print
-
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutteraji/chaturaji/board.dart';
 import 'package:flutteraji/chaturaji/move.dart';
 import 'package:flutteraji/graph/vertex.dart';
 import 'package:flutteraji/graph/graph.dart';
 import 'graph/graph_export.dart';
+import 'graph/graph_import.dart';
+import 'graph/file_io.dart';
 import 'gui/chaturaji_widget.dart';
 import 'gui/chaturaji_controller.dart';
 
@@ -78,6 +81,7 @@ class HomePageState extends State<HomePage> {
             _button("reset", _reset),
             _button("back", _back),
             _button("rotate", _rotate),
+            _button("import", _import),
             _button("export", _export),
             _button("backprop", _backprop),
             _button("mcts", _mcts),
@@ -273,8 +277,50 @@ class HomePageState extends State<HomePage> {
     _controller.makeMove(resignMove);
   }
 
-  void _export() {
-    exportGraph("data/Chaturaji.txt");
+  Future<void> _import() async {
+    try {
+      final files = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['txt'],
+        withData: true,
+      );
+      if (files.isNotEmpty) {
+        final file = files.first;
+        final bytes = await file.readAsBytes();
+        final content = utf8.decode(bytes);
+        final added = importGraphFromString(content);
+        _update();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Imported $added positions from ${file.name} (Total: ${graph.v.length})')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Import failed: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _export() async {
+    try {
+      final content = exportGraphToString();
+      await saveTextFile("Chaturaji.txt", content);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Exported ${graph.v.length} positions to Chaturaji.txt')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Export failed: $e')),
+        );
+      }
+    }
   }
 
   void _backprop() {
