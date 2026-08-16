@@ -39,25 +39,21 @@ class HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Center(
-            child: _padded(
-              Wrap(
-                spacing: 24,
-                runSpacing: 24,
-                crossAxisAlignment: WrapCrossAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 440,
-                    child: _boardColumn(),
-                  ),
-                  SizedBox(
-                    width: 480,
-                    child: _movesColumn(),
-                  ),
-                ],
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 6,
+                child: _boardColumn(),
               ),
-            ),
+              const SizedBox(width: 16),
+              Expanded(
+                flex: 4,
+                child: _movesColumn(),
+              ),
+            ],
           ),
         ),
       ),
@@ -76,7 +72,7 @@ class HomePageState extends State<HomePage> {
   }
 
   dynamic _boardColumn() {
-    var board = ChaturajiWidget(controller: _controller, size: 420);
+    var board = ChaturajiWidget(controller: _controller);
     var turn = _text(
       _turn,
       style: _textStyle.copyWith(
@@ -86,11 +82,17 @@ class HomePageState extends State<HomePage> {
     );
 
     return Column(
-      mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         _pointsRow(blue, yellow),
         const SizedBox(height: 4),
-        board,
+        Expanded(
+          child: Center(
+            child: AspectRatio(
+              aspectRatio: 1.0,
+              child: board,
+            ),
+          ),
+        ),
         const SizedBox(height: 4),
         _pointsRow(red, green),
         const SizedBox(height: 8),
@@ -115,15 +117,14 @@ class HomePageState extends State<HomePage> {
   }
 
   dynamic _pointsRow(int left, int right) {
-    return SizedBox(
-      width: 420,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _text("${colorNames[left]}: ${_controller.game.board.points[left]}", style: _textStyle.copyWith(fontSize: 16)),
+          _text("${colorNames[left]}: ${_controller.game.board.points[left]}"),
           _text(
             "${colorNames[right]}: ${_controller.game.board.points[right]}",
-            style: _textStyle.copyWith(fontSize: 16),
           ),
         ],
       ),

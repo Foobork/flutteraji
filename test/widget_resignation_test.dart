@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutteraji/flutteraji.dart';
-import 'package:flutteraji/chaturaji/board.dart';
 
 void main() {
   testWidgets('Clicking resign button 3 times updates the UI to Game over and turns Yellow grey', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
     await tester.pumpWidget(const Flutteraji());
     await tester.pumpAndSettle();
 
