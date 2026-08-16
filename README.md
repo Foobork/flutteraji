@@ -1,6 +1,10 @@
 # Flutteraji
 
+[![Deploy to GitHub Pages](https://github.com/Foobork/flutteraji/actions/workflows/deploy_web.yml/badge.svg)](https://github.com/Foobork/flutteraji/actions/workflows/deploy_web.yml)
+
 Chaturaji analysis tool and engine. Flutteraji combines a Flutter UI for exploring four-player Chaturaji with a C++ search engine and an NNUE value network trained via self-play.
+
+🎮 **[Play Live Web Demo (WASM)](https://foobork.github.io/flutteraji/)**
 
 ## Features
 
@@ -10,6 +14,7 @@ Chaturaji analysis tool and engine. Flutteraji combines a Flutter UI for explori
 - **FEN support**: Load and generate Forsyth–Edwards Notation adapted for four-player Chaturaji.
 - **C++ engine**: Fast 0x88 board, make/unmake, hand-crafted eval, MCTS, self-play, and head-to-head NNUE matches. Exposed to Dart via FFI (`chaturaji.dll`).
 - **NNUE**: Relative-perspective network used as the MCTS leaf evaluator. Gen 4 is the current champion loaded by the UI (`nnue/checkpoints/gen4.nnue`).
+- **WebAssembly**: Compiles to WebAssembly (Wasm-GC) for instant browser-based analysis on GitHub Pages.
 
 ## Getting Started
 

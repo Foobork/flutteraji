@@ -6,8 +6,7 @@ import 'package:flutteraji/chaturaji/game.dart';
 import 'package:flutteraji/chaturaji/move.dart';
 import 'package:flutteraji/graph/graph.dart';
 import 'package:flutteraji/engine/chaturaji_engine.dart';
-import 'dart:io';
-import 'package:path/path.dart' as p;
+import 'package:flutteraji/engine/engine_loader.dart';
 
 class ChaturajiController extends ValueNotifier<ChaturajiGame> {
   late ChaturajiGame game;
@@ -18,30 +17,9 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
 
   ChaturajiController._(this.game) : super(game) {
     try {
-      engine = ChaturajiEngine();
-      final exeDir = p.dirname(Platform.resolvedExecutable);
-      final candidateNNUEPaths = [
-        p.join(Directory.current.path, 'nnue', 'checkpoints', 'gen4.nnue'),
-        p.join(exeDir, 'nnue', 'checkpoints', 'gen4.nnue'),
-        p.join(exeDir, 'checkpoints', 'gen4.nnue'),
-        p.join(exeDir, 'gen4.nnue'),
-        p.join(exeDir, 'data', 'flutter_assets', 'nnue', 'checkpoints', 'gen4.nnue'),
-      ];
-
-      String nnuePath = '';
-      for (final path in candidateNNUEPaths) {
-        if (File(path).existsSync()) {
-          nnuePath = path;
-          break;
-        }
-      }
-
-      if (nnuePath.isNotEmpty && File(nnuePath).existsSync()) {
-        useNNUE = engine!.loadNNUE(nnuePath);
-        print("NNUE loaded: $useNNUE (Gen 4) from $nnuePath");
-      } else {
-        print("NNUE file not found in candidate paths");
-      }
+      final result = initPlatformEngine();
+      engine = result.engine;
+      useNNUE = result.useNNUE;
       _syncEngine();
     } catch (e) {
       print("Failed to initialize engine: $e");

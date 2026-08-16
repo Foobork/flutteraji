@@ -1,12 +1,12 @@
 {
-    "name": "flutteraji",
-    "short_name": "flutteraji",
+    "name": "Flutteraji — Chaturaji Analysis & Engine",
+    "short_name": "Flutteraji",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#1e1e1e",
+    "theme_color": "#1e1e1e",
+    "description": "Interactive four-player Chaturaji analysis board, legal move generator, scoring evaluator, and MCTS engine.",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {
