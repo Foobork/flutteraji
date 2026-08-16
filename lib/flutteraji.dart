@@ -37,27 +37,19 @@ const List<String> colorNames = ['Red', 'Blue', 'Yellow', 'Green'];
 class HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                flex: 5,
-                child: _boardColumn(),
-              ),
-              const SizedBox(width: 24),
-              Expanded(
-                flex: 5,
-                child: _movesColumn(),
-              ),
-            ],
-          ),
+    var body = Center(
+      child: _padded(
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _boardColumn(),
+            Expanded(child: _movesColumn()),
+          ],
         ),
       ),
     );
+
+    return Scaffold(body: body);
   }
 
   final _controller = ChaturajiController();
@@ -73,58 +65,17 @@ class HomePageState extends State<HomePage> {
 
   dynamic _boardColumn() {
     var board = ChaturajiWidget(controller: _controller);
-    var turn = _text(
-      _turn,
-      style: _textStyle.copyWith(
-        fontWeight: FontWeight.bold,
-        color: _turn == "Game over" ? Colors.purple : null,
-      ),
-    );
+    var turn = _text(_turn);
 
     return Column(
-      children: [
-        Expanded(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              const double scoreRowsHeight = 52.0; // 24px top + 24px bottom + 4px spacing
-              final double maxW = constraints.maxWidth;
-              final double maxH = constraints.maxHeight;
-
-              final double maxBoardByHeight = maxH - scoreRowsHeight;
-              final double boardSide = (maxW < maxBoardByHeight ? maxW : maxBoardByHeight).clamp(150.0, double.infinity);
-
-              return Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: boardSide,
-                      child: _pointsRow(blue, yellow),
-                    ),
-                    const SizedBox(height: 2),
-                    SizedBox(
-                      width: boardSide,
-                      height: boardSide,
-                      child: board,
-                    ),
-                    const SizedBox(height: 2),
-                    SizedBox(
-                      width: boardSide,
-                      child: _pointsRow(red, green),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: 6),
+      children: <Widget>[
+        _pointsRow(blue, yellow),
+        Expanded(child: board),
+        _pointsRow(red, green),
         turn,
-        const SizedBox(height: 6),
         Wrap(
           spacing: 8,
           runSpacing: 4,
-          alignment: WrapAlignment.center,
           children: [
             _button("resign", _resign),
             _button("reset", _reset),
@@ -140,14 +91,17 @@ class HomePageState extends State<HomePage> {
   }
 
   dynamic _pointsRow(int left, int right) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _text("${colorNames[left]}: ${_controller.game.board.points[left]}"),
-        _text(
-          "${colorNames[right]}: ${_controller.game.board.points[right]}",
-        ),
-      ],
+    return SizedBox(
+      width: 380,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _text("${colorNames[left]}: ${_controller.game.board.points[left]}"),
+          _text(
+            "${colorNames[right]}: ${_controller.game.board.points[right]}",
+          ),
+        ],
+      ),
     );
   }
 
