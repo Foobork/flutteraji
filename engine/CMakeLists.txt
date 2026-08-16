@@ -14,6 +14,9 @@ endif()
 
 # Shared library for Dart FFI
 add_library(chaturaji_engine SHARED api.cpp board.cpp nnue.cpp)
+set_target_properties(chaturaji_engine PROPERTIES OUTPUT_NAME "chaturaji")
 
 # CLI for testing
 add_executable(chaturaji_cli main.cpp board.cpp nnue.cpp)
+set_target_properties(chaturaji_cli PROPERTIES OUTPUT_NAME "chaturaji")
+

@@ -19,12 +19,28 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
   ChaturajiController._(this.game) : super(game) {
     try {
       engine = ChaturajiEngine();
-      final nnuePath = p.join(Directory.current.path, 'nnue', 'checkpoints', 'gen4.nnue');
-      if (File(nnuePath).existsSync()) {
+      final exeDir = p.dirname(Platform.resolvedExecutable);
+      final candidateNNUEPaths = [
+        p.join(Directory.current.path, 'nnue', 'checkpoints', 'gen4.nnue'),
+        p.join(exeDir, 'nnue', 'checkpoints', 'gen4.nnue'),
+        p.join(exeDir, 'checkpoints', 'gen4.nnue'),
+        p.join(exeDir, 'gen4.nnue'),
+        p.join(exeDir, 'data', 'flutter_assets', 'nnue', 'checkpoints', 'gen4.nnue'),
+      ];
+
+      String nnuePath = '';
+      for (final path in candidateNNUEPaths) {
+        if (File(path).existsSync()) {
+          nnuePath = path;
+          break;
+        }
+      }
+
+      if (nnuePath.isNotEmpty && File(nnuePath).existsSync()) {
         useNNUE = engine!.loadNNUE(nnuePath);
-        print("NNUE loaded: $useNNUE (Gen 4)");
+        print("NNUE loaded: $useNNUE (Gen 4) from $nnuePath");
       } else {
-        print("NNUE file not found at $nnuePath");
+        print("NNUE file not found in candidate paths");
       }
       _syncEngine();
     } catch (e) {

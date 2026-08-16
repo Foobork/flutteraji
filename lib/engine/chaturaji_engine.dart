@@ -66,13 +66,28 @@ class ChaturajiEngine {
   late EngineGetMoveStats _getMoveStats;
 
   ChaturajiEngine() {
+    final String libName = Platform.isWindows
+        ? 'chaturaji.dll'
+        : (Platform.isMacOS ? 'libchaturaji.dylib' : 'libchaturaji.so');
+
+    final exeDir = p.dirname(Platform.resolvedExecutable);
+    final candidatePaths = [
+      p.join(Directory.current.path, 'engine', libName),
+      p.join(Directory.current.path, libName),
+      p.join(exeDir, libName),
+      p.join(exeDir, 'engine', libName),
+      p.join(exeDir, 'data', 'flutter_assets', 'engine', libName),
+    ];
+
     String libraryPath = '';
-    if (Platform.isWindows) {
-      libraryPath = p.join(Directory.current.path, 'engine', 'chaturaji.dll');
-    } else if (Platform.isLinux) {
-      libraryPath = p.join(Directory.current.path, 'engine', 'libchaturaji.so');
-    } else if (Platform.isMacOS) {
-      libraryPath = p.join(Directory.current.path, 'engine', 'libchaturaji.dylib');
+    for (final path in candidatePaths) {
+      if (File(path).existsSync()) {
+        libraryPath = path;
+        break;
+      }
+    }
+    if (libraryPath.isEmpty) {
+      libraryPath = candidatePaths.first;
     }
 
     _lib = DynamicLibrary.open(libraryPath);
