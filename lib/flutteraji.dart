@@ -37,19 +37,31 @@ const List<String> colorNames = ['Red', 'Blue', 'Yellow', 'Green'];
 class HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
-    var body = Center(
-      child: _padded(
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _boardColumn(),
-            Expanded(child: _movesColumn()),
-          ],
+    return Scaffold(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Center(
+            child: _padded(
+              Wrap(
+                spacing: 24,
+                runSpacing: 24,
+                crossAxisAlignment: WrapCrossAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 440,
+                    child: _boardColumn(),
+                  ),
+                  SizedBox(
+                    width: 480,
+                    child: _movesColumn(),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
-
-    return Scaffold(body: body);
   }
 
   final _controller = ChaturajiController();
@@ -64,18 +76,30 @@ class HomePageState extends State<HomePage> {
   }
 
   dynamic _boardColumn() {
-    var board = ChaturajiWidget(controller: _controller);
-    var turn = _text(_turn);
+    var board = ChaturajiWidget(controller: _controller, size: 420);
+    var turn = _text(
+      _turn,
+      style: _textStyle.copyWith(
+        fontWeight: FontWeight.bold,
+        color: _turn == "Game over" ? Colors.purple : null,
+      ),
+    );
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         _pointsRow(blue, yellow),
-        Expanded(child: board),
+        const SizedBox(height: 4),
+        board,
+        const SizedBox(height: 4),
         _pointsRow(red, green),
+        const SizedBox(height: 8),
         turn,
+        const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 4,
+          alignment: WrapAlignment.center,
           children: [
             _button("resign", _resign),
             _button("reset", _reset),
@@ -92,13 +116,14 @@ class HomePageState extends State<HomePage> {
 
   dynamic _pointsRow(int left, int right) {
     return SizedBox(
-      width: 300,
+      width: 420,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _text("${colorNames[left]}: ${_controller.game.board.points[left]}"),
+          _text("${colorNames[left]}: ${_controller.game.board.points[left]}", style: _textStyle.copyWith(fontSize: 16)),
           _text(
             "${colorNames[right]}: ${_controller.game.board.points[right]}",
+            style: _textStyle.copyWith(fontSize: 16),
           ),
         ],
       ),

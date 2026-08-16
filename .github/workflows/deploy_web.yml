@@ -38,7 +38,7 @@ jobs:
         run: flutter test
 
       - name: Build Web (WebAssembly with JS fallback)
-        run: flutter build web --wasm --base-href "/flutteraji/" --release
+        run: flutter build web --wasm --pwa-strategy=none --base-href "/flutteraji/" --release
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v5
