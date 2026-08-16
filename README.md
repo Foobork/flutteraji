@@ -47,7 +47,6 @@ On Windows desktop the app loads `engine/chaturaji.dll` and, if present, `nnue/c
 | `engine/` | C++ engine (board, MCTS, NNUE inference, self-play, match) |
 | `nnue/` | Training pipeline (features, model, dataset, export, tests) |
 | `nnue/checkpoints/` | Exported `.nnue` / `.pt` weights by generation |
-| `chaturbot/` | Selenium automation for Chess.com Chaturaji play |
 | `test/` | Dart unit and perft tests |
 | `tool/` | Helper scripts (e.g. perft compare) |
 

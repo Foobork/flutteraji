@@ -49,7 +49,7 @@ Map<int, String> pieceSymbols = {
 };
 
 const String startPosition =
-    'bRbP2yKyByNyR/bNbP2yPyPyPyP/bBbP6/bKbP6/6gPgK/6gPgB/rPrPrPrP2gPgN/rRrNrBrK2gPgR 0/0/0/0 r';
+    'bRbP2yKyByNyR/bNbP2yPyPyPyP/bBbP6/bKbP6/6gPgK/6gPgB/rPrPrPrP2gPgN/rRrNrBrK2gPgR 0/0/0/0 r 0';
 
 const int squaresA8 = 0;
 const int squaresH8 = 7;

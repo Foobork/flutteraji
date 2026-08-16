@@ -12,6 +12,7 @@ __pycache__/
 # Training artefacts (large binary files)
 *.bin
 *.nnue
+!checkpoints/*.nnue
 
 # Selfplay data copies
 *.txt.gz

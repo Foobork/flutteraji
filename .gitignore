@@ -51,3 +51,26 @@ app.*.map.json
 /engine/*.exp
 /engine/*.lib
 /engine/*.pdb
+/engine/selfplay*.txt
+/engine/*_match_result.txt
+/engine/test_selfplay.txt
+/engine/*.log
+
+# Large datasets, training dumps, and benchmarks
+/data/
+*.bak
+*.bin
+/bench.txt
+/test_gen1.txt
+/test_graph.txt
+
+# Secrets and environment configs
+**/.env
+*.env
+!*.env.example
+
+# Python virtual environment and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
