@@ -8,6 +8,9 @@ import 'package:flutteraji/graph/graph.dart';
 import 'package:flutteraji/engine/chaturaji_engine.dart';
 import 'package:flutteraji/engine/engine_loader.dart';
 
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutteraji/engine/chaturaji_engine_dart.dart';
+
 class ChaturajiController extends ValueNotifier<ChaturajiGame> {
   late ChaturajiGame game;
   ChaturajiEngine? engine;
@@ -23,6 +26,31 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
       _syncEngine();
     } catch (e) {
       print("Failed to initialize engine: $e");
+    }
+
+    if (!useNNUE) {
+      _loadNNUEFromBundle();
+    }
+  }
+
+  Future<void> _loadNNUEFromBundle() async {
+    try {
+      final byteData = await rootBundle.load('nnue/checkpoints/gen4.nnue');
+      final bytes = byteData.buffer.asUint8List(
+        byteData.offsetInBytes,
+        byteData.lengthInBytes,
+      );
+      engine ??= ChaturajiEngineDart();
+      if (engine is ChaturajiEngineDart) {
+        if ((engine as ChaturajiEngineDart).loadFromBytes(bytes)) {
+          useNNUE = true;
+          _syncEngine();
+          notifyListeners();
+          print("NNUE model loaded from bundle assets (Gen 4)");
+        }
+      }
+    } catch (e) {
+      print("Bundle NNUE load: $e");
     }
   }
 

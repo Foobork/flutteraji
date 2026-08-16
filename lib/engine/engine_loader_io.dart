@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:path/path.dart' as p;
 import 'chaturaji_engine.dart';
+import 'chaturaji_engine_dart.dart';
 
 class EngineInitResult {
   final ChaturajiEngine? engine;
@@ -36,6 +38,28 @@ EngineInitResult initPlatformEngine() {
     }
     return EngineInitResult(engine, useNNUE);
   } catch (e) {
-    return EngineInitResult(null, false);
+    // Fallback to pure Dart engine
+    try {
+      final dartEngine = ChaturajiEngineDart();
+      final exeDir = p.dirname(Platform.resolvedExecutable);
+      final candidateNNUEPaths = [
+        p.join(Directory.current.path, 'nnue', 'checkpoints', 'gen4.nnue'),
+        p.join(exeDir, 'nnue', 'checkpoints', 'gen4.nnue'),
+        p.join(exeDir, 'checkpoints', 'gen4.nnue'),
+        p.join(exeDir, 'gen4.nnue'),
+        p.join(exeDir, 'data', 'flutter_assets', 'nnue', 'checkpoints', 'gen4.nnue'),
+      ];
+      for (final path in candidateNNUEPaths) {
+        if (File(path).existsSync()) {
+          final bytes = File(path).readAsBytesSync();
+          if (dartEngine.loadFromBytes(bytes)) {
+            return EngineInitResult(dartEngine, true);
+          }
+        }
+      }
+      return EngineInitResult(dartEngine, false);
+    } catch (_) {
+      return EngineInitResult(null, false);
+    }
   }
 }
