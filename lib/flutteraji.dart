@@ -83,18 +83,22 @@ class HomePageState extends State<HomePage> {
 
     return Column(
       children: <Widget>[
-        _pointsRow(blue, yellow),
-        const SizedBox(height: 4),
         Expanded(
           child: Center(
             child: AspectRatio(
               aspectRatio: 1.0,
-              child: board,
+              child: Column(
+                children: [
+                  _pointsRow(blue, yellow),
+                  const SizedBox(height: 4),
+                  Expanded(child: board),
+                  const SizedBox(height: 4),
+                  _pointsRow(red, green),
+                ],
+              ),
             ),
           ),
         ),
-        const SizedBox(height: 4),
-        _pointsRow(red, green),
         const SizedBox(height: 8),
         turn,
         const SizedBox(height: 8),
@@ -117,17 +121,14 @@ class HomePageState extends State<HomePage> {
   }
 
   dynamic _pointsRow(int left, int right) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _text("${colorNames[left]}: ${_controller.game.board.points[left]}"),
-          _text(
-            "${colorNames[right]}: ${_controller.game.board.points[right]}",
-          ),
-        ],
-      ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _text("${colorNames[left]}: ${_controller.game.board.points[left]}"),
+        _text(
+          "${colorNames[right]}: ${_controller.game.board.points[right]}",
+        ),
+      ],
     );
   }
 
