@@ -76,6 +76,7 @@ class HomePageState extends State<HomePage> {
         Wrap(
           spacing: 8,
           runSpacing: 4,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             _button("resign", _resign),
             _button("reset", _reset),
@@ -84,6 +85,7 @@ class HomePageState extends State<HomePage> {
             _button("import", _import),
             _button("export", _export),
             _button("mcts", _mcts),
+            _settingsMenu(),
           ],
         ),
       ],
@@ -210,6 +212,7 @@ class HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    _controller.loadPreferences();
     _controller.addListener(_boardListener);
     _update();
   }
@@ -342,6 +345,31 @@ class HomePageState extends State<HomePage> {
   Container _padded(dynamic child) {
     var padding = const EdgeInsets.symmetric(horizontal: 8, vertical: 8);
     return Container(padding: padding, child: child);
+  }
+
+  Widget _settingsMenu() {
+    return ValueListenableBuilder<bool>(
+      valueListenable: _controller.rotatePieces,
+      builder: (context, rotatePieces, _) {
+        return PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert, size: 22),
+          tooltip: "Settings",
+          padding: EdgeInsets.zero,
+          onSelected: (String value) {
+            if (value == 'toggle_rotation') {
+              _controller.setRotatePieces(!rotatePieces);
+            }
+          },
+          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+            CheckedPopupMenuItem<String>(
+              value: 'toggle_rotation',
+              checked: rotatePieces,
+              child: const Text('Pieces Face Center'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 

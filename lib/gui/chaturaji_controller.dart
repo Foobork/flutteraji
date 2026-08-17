@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutteraji/chaturaji/board.dart';
 import 'package:flutteraji/chaturaji/game.dart';
 import 'package:flutteraji/chaturaji/move.dart';
@@ -17,6 +18,9 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
   factory ChaturajiController() => ChaturajiController._(ChaturajiGame());
 
   ChaturajiController._(this.game) : super(game) {
+    try {
+      loadPreferences();
+    } catch (_) {}
     try {
       final result = initPlatformEngine();
       engine = result.engine;
@@ -101,6 +105,27 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
   }
 
   ValueNotifier<int> rotation = ValueNotifier<int>(0);
+  ValueNotifier<bool> rotatePieces = ValueNotifier<bool>(true);
+
+  Future<void> loadPreferences() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final val = prefs.getBool('rotate_pieces');
+      if (val != null) {
+        rotatePieces.value = val;
+      }
+    } catch (_) {}
+    notifyListeners();
+  }
+
+  Future<void> setRotatePieces(bool value) async {
+    rotatePieces.value = value;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('rotate_pieces', value);
+    } catch (_) {}
+    notifyListeners();
+  }
 
   void rotate() {
     rotation.value = (rotation.value + 1) % 4;
