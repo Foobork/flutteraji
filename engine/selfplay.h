@@ -1,9 +1,12 @@
 #pragma once
 #include <array>
+#include <atomic>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <mutex>
 #include <random>
+#include <thread>
 #include <vector>
 #include "board.h"
 #include "mcts.h"
@@ -16,6 +19,7 @@ struct SelfPlayConfig {
     int         iters      = 400;   // MCTS iterations per move
     int         tempPlies  = 8;     // plies with temperature > 0 (opening diversity)
     int         seed       = 42;
+    int         threads    = 6;     // parallel worker threads
     const char* outFile    = "selfplay.txt";
     const char* nnuePath   = nullptr;
     bool        verbose    = false; // print game summaries to stderr
@@ -118,13 +122,7 @@ static std::vector<PositionRecord> playSingleGame(
 }
 
 // ============================================================
-// Run self-play and write output file
-// ============================================================
-// Output format (text, one line per position):
-//   <FEN> | <rank_r> <rank_b> <rank_y> <rank_g> | <q_r> <q_b> <q_y> <q_g>
-//
-// For example:
-//   bRbP2yK.../rRrNrBrK 0/0/0/0 r | 6 4 0 2 | 5.2 4.1 0.5 2.2
+// Run self-play and write output file (Multi-threaded)
 // ============================================================
 static int runSelfPlay(const SelfPlayConfig& cfg) {
     FILE* out = fopen(cfg.outFile, "w");
@@ -142,46 +140,65 @@ static int runSelfPlay(const SelfPlayConfig& cfg) {
         }
     }
 
-    std::mt19937 rng(cfg.seed);
-    long long totalPositions = 0;
+    int numThreads = std::max(1, cfg.threads);
 
-    fprintf(stderr, "Self-play: %d games, %d iters/move, %d temp-plies, seed=%d\n",
-            cfg.games, cfg.iters, cfg.tempPlies, cfg.seed);
+    fprintf(stderr, "Self-play: %d games, %d iters/move, %d temp-plies, %d threads, seed=%d\n",
+            cfg.games, cfg.iters, cfg.tempPlies, numThreads, cfg.seed);
     if (cfg.nnuePath) fprintf(stderr, "Model:     %s\n", cfg.nnuePath);
     else              fprintf(stderr, "Model:     Hand-crafted evaluator (baseline)\n");
     fprintf(stderr, "Output:    %s\n\n", cfg.outFile);
 
-    for (int g = 0; g < cfg.games; g++) {
-        auto records = playSingleGame(cfg, rng, g, nnue.loaded ? &nnue : nullptr);
+    std::atomic<int> nextGame{0};
+    std::atomic<int> completedGames{0};
+    std::atomic<long long> totalPositions{0};
+    std::mutex outMutex;
 
-        // Write all positions for this game
-        for (const auto& rec : records) {
-            fprintf(out, "%s | %d %d %d %d | %.3f %.3f %.3f %.3f\n",
-                    rec.fen,
-                    rec.rankPoints[0], rec.rankPoints[1],
-                    rec.rankPoints[2], rec.rankPoints[3],
-                    rec.rootQ[0], rec.rootQ[1],
-                    rec.rootQ[2], rec.rootQ[3]);
+    auto worker = [&](int threadId) {
+        std::mt19937 rng(cfg.seed + threadId * 10007);
+        while (true) {
+            int g = nextGame.fetch_add(1);
+            if (g >= cfg.games) break;
+
+            auto records = playSingleGame(cfg, rng, g, nnue.loaded ? &nnue : nullptr);
+
+            {
+                std::lock_guard<std::mutex> lock(outMutex);
+                for (const auto& rec : records) {
+                    fprintf(out, "%s | %d %d %d %d | %.3f %.3f %.3f %.3f\n",
+                            rec.fen,
+                            rec.rankPoints[0], rec.rankPoints[1],
+                            rec.rankPoints[2], rec.rankPoints[3],
+                            rec.rootQ[0], rec.rootQ[1],
+                            rec.rootQ[2], rec.rootQ[3]);
+                }
+                fflush(out);
+            }
+
+            totalPositions += records.size();
+            int done = ++completedGames;
+
+            if (done % 10 == 0 || done == cfg.games) {
+                fprintf(stderr, "  completed %d/%d games  (%lld positions)\n",
+                        done, cfg.games, totalPositions.load());
+            }
         }
+    };
 
-        totalPositions += static_cast<long long>(records.size());
-
-        // Progress every 10 games
-        if ((g + 1) % 10 == 0 || g + 1 == cfg.games) {
-            fprintf(stderr, "  completed %d/%d games  (%lld positions)\n",
-                    g + 1, cfg.games, totalPositions);
-        }
+    std::vector<std::thread> threads;
+    for (int t = 0; t < numThreads; t++) {
+        threads.emplace_back(worker, t);
+    }
+    for (auto& th : threads) {
+        if (th.joinable()) th.join();
     }
 
     fclose(out);
-    fprintf(stderr, "\nDone. Wrote %lld positions to %s\n", totalPositions, cfg.outFile);
+    fprintf(stderr, "\nDone. Wrote %lld positions to %s\n", totalPositions.load(), cfg.outFile);
     return 0;
 }
 
 // ============================================================
 // Parse self-play CLI arguments
-//   selfplay [--games N] [--iters N] [--temp-plies N]
-//            [--out FILE] [--seed N] [--nnue FILE] [--verbose]
 // ============================================================
 static int selfPlayMain(int argc, char* argv[]) {
     SelfPlayConfig cfg;
@@ -194,6 +211,8 @@ static int selfPlayMain(int argc, char* argv[]) {
             cfg.iters = std::stoi(argv[++i]);
         } else if ((arg == "--temp-plies") && i + 1 < argc) {
             cfg.tempPlies = std::stoi(argv[++i]);
+        } else if ((arg == "--threads" || arg == "-t") && i + 1 < argc) {
+            cfg.threads = std::stoi(argv[++i]);
         } else if ((arg == "--out" || arg == "-o") && i + 1 < argc) {
             cfg.outFile = argv[++i];
         } else if ((arg == "--nnue") && i + 1 < argc) {
@@ -209,12 +228,11 @@ static int selfPlayMain(int argc, char* argv[]) {
                 "  --games N       Number of games to play (default: 100)\n"
                 "  --iters N       MCTS iterations per move (default: 400)\n"
                 "  --temp-plies N  Opening plies with sampling (default: 8)\n"
+                "  --threads N     Number of parallel worker threads (default: 6)\n"
                 "  --out FILE      Output file path (default: selfplay.txt)\n"
-                "  --nnue FILE      NNUE model file (.nnue)\n"
+                "  --nnue FILE     NNUE model file (.nnue)\n"
                 "  --seed N        Random seed (default: 42)\n"
-                "  --verbose       Print game summaries to stderr\n\n"
-                "Output format (one line per position):\n"
-                "  <FEN> | <rank_r> <rank_b> <rank_y> <rank_g>\n"
+                "  --verbose       Print game summaries to stderr\n"
             );
             return 0;
         }

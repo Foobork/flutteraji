@@ -81,6 +81,7 @@ class ChaturajiNNUE(nn.Module):
         feature_indices: torch.Tensor,  # (total_features,) LongTensor
         offsets: torch.Tensor,           # (batch_size,)    LongTensor
         dense: torch.Tensor,             # (batch_size, 9)  FloatTensor
+        return_logits: bool = False,
     ) -> torch.Tensor:                   # (batch_size, 4)  FloatTensor
 
         # 1. Accumulator: sparse sum → (batch_size, 256)
@@ -95,8 +96,10 @@ class ChaturajiNNUE(nn.Module):
         # 4. Hidden layer + ClippedReLU
         x = torch.clamp(self.hidden(x), 0.0, 1.0)
 
-        # 5. Value head + softmax → rank probability distribution
+        # 5. Value head
         logits = self.value_head(x)
+        if return_logits:
+            return logits
         return torch.softmax(logits, dim=1)
 
     # ------------------------------------------------------------------

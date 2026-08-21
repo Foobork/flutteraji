@@ -67,8 +67,10 @@ Self-play generations are trained in `nnue/` and evaluated with `engine` match m
 | 3 | 278–202 vs Gen 2 | Hybrid Q + result training |
 | 4 | 304–176 vs Gen 3 | Current champion (UI default) |
 | 5 | 236–244 vs Gen 4 | Did not beat Gen 4 |
+| 6 | 478–482 vs Gen 4 | Plateaued; opening noise |
+| 7 | 446–514 vs Gen 4 | Parallel self-play; offensive parity |
 
-Training details and next experiments live in `.antigravity/nnue_roadmap.md`.
+Training details, root-cause diagnosis, and future improvement roadmap live in [`.antigravity/nnue_roadmap.md`](.antigravity/nnue_roadmap.md).
 
 ## License
 
