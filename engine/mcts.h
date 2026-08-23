@@ -26,9 +26,10 @@ struct Node {
 
     // Expansion state
     bool   expanded = false;   // true once children have been generated
+    double prior    = 1.0;     // Tactical prior probability P(s, a)
 
     Node() : move(RESIGN_MOVE) {}
-    explicit Node(Move m, Node* p) : move(m), parent(p) {}
+    explicit Node(Move m, Node* p, double p_prior = 1.0) : move(m), parent(p), prior(p_prior) {}
 
     double q(int color) const {
         return visitCount > 0 ? qSum[color] / visitCount : 0.0;
@@ -60,6 +61,67 @@ inline std::array<int, 4> calculateRankPoints(const int finalPoints[4]) {
         i = j;
     }
     return result;
+}
+
+// ============================================================
+// Tactical Move Scorer (MVV-LVA, Checks, Promotions, Center)
+// ============================================================
+inline double scoreMove(const Board& board, const Move& move) {
+    if (move.from < 0 || move.to < 0) {
+        return 0.0001; // RESIGN_MOVE
+    }
+
+    double score = 1.0; // Base score for quiet moves
+    uint8_t movingPiece = board.board[move.from];
+    uint8_t targetPiece = board.board[move.to];
+    uint8_t movingType = movingPiece & PIECE_MASK;
+    uint8_t targetType = targetPiece & PIECE_MASK;
+
+    // 1. Captures (MVV-LVA)
+    if (targetPiece != EMPTY) {
+        int victimVal = capturePoints(targetPiece);
+        int attackerVal = capturePoints(movingPiece);
+        score += 50.0 + (victimVal * 20.0) - (attackerVal * 1.0);
+        if (targetType == KING) {
+            score += 100.0; // Extra bonus for capturing a King
+        }
+    }
+
+    // 2. Pawn Promotions
+    if (movingType == PAWN) {
+        int r = move.to >> 4;
+        int c = move.to & 0x0F;
+        bool isPromotion = false;
+        switch (board.turn) {
+            case RED:    isPromotion = (r == 0); break;
+            case BLUE:   isPromotion = (c == 7); break;
+            case YELLOW: isPromotion = (r == 7); break;
+            case GREEN:  isPromotion = (c == 0); break;
+        }
+        if (isPromotion) {
+            score += 40.0;
+        }
+    }
+
+    // 3. Center Control for Quiet Moves
+    int toRow = move.to >> 4;
+    int toCol = move.to & 0x0F;
+    if ((toRow == 3 || toRow == 4) && (toCol == 3 || toCol == 4)) {
+        score += 2.0;
+    } else if ((toRow >= 2 && toRow <= 5) && (toCol >= 2 && toCol <= 5)) {
+        score += 1.0;
+    }
+
+    // 4. King in check defense
+    if (board.isKingInCheck(board.turn)) {
+        if (movingType == KING) {
+            score += 30.0; // King evasion
+        } else if (targetPiece != EMPTY) {
+            score += 25.0; // Capture checking piece
+        }
+    }
+
+    return std::max(0.001, score);
 }
 
 // ============================================================
@@ -101,7 +163,7 @@ private:
     NNUEModel*   nnueModel_;
 
     void simulate(Node& root, Board& board) {
-        // ---- 1. Selection: walk down fully-expanded nodes using UCT ----
+        // ---- 1. Selection: walk down fully-expanded nodes using PUCT ----
         Node* node = &root;
         while (node->expanded && board.turn != GAME_OVER) {
             node = selectChild(node, board.turn);
@@ -112,18 +174,33 @@ private:
         if (board.turn != GAME_OVER && !node->expanded) {
             Move moves[MAX_MOVES];
             int count = board.generateMoves(moves);
-            node->children.reserve(count);
-            for (int i = 0; i < count; i++) {
-                auto child = std::make_unique<Node>(moves[i], node);
-                node->children.push_back(std::move(child));
+            if (count > 0) {
+                node->children.reserve(count);
+                std::vector<double> scores(count);
+                double scoreSum = 0.0;
+                for (int i = 0; i < count; i++) {
+                    scores[i] = scoreMove(board, moves[i]);
+                    scoreSum += scores[i];
+                }
+                if (scoreSum <= 0.0) scoreSum = 1.0;
+
+                for (int i = 0; i < count; i++) {
+                    double normalizedPrior = scores[i] / scoreSum;
+                    auto child = std::make_unique<Node>(moves[i], node, normalizedPrior);
+                    node->children.push_back(std::move(child));
+                }
+
+                // Sort children so highest prior is at index 0
+                std::sort(node->children.begin(), node->children.end(),
+                    [](const std::unique_ptr<Node>& a, const std::unique_ptr<Node>& b) {
+                        return a->prior > b->prior;
+                    });
             }
             node->expanded = true;
 
-            // Pick a random unexplored child to evaluate
+            // Pick highest tactical prior child to evaluate first
             if (!node->children.empty()) {
-                int pick = std::uniform_int_distribution<int>(
-                    0, static_cast<int>(node->children.size()) - 1)(rng_);
-                node = node->children[pick].get();
+                node = node->children[0].get();
                 board.makeMove(node->move, nnueModel_);
             }
         }
@@ -159,21 +236,26 @@ private:
         }
     }
 
-    // UCT child selection — picks highest UCT value for the player-to-move
+    // PUCT child selection — balances exploitation with tactical prior exploration
     Node* selectChild(Node* node, int turn) const {
-        double logN = std::log(std::max(1, node->visitCount));
         double bestVal = -1e18;
         Node* bestChild = nullptr;
+
+        double sumN = 0.0;
+        for (const auto& child : node->children) {
+            sumN += child->visitCount;
+        }
+        double sqrtSumN = std::sqrt(std::max(1.0, sumN));
 
         for (const auto& child : node->children) {
             double val;
             if (child->visitCount == 0) {
-                val = UNVISITED_BONUS +
-                      std::uniform_real_distribution<double>(0.0, 1.0)(
+                val = UNVISITED_BONUS + (child->prior * 1000.0) +
+                      std::uniform_real_distribution<double>(0.0, 0.01)(
                           const_cast<std::mt19937&>(rng_));
             } else {
                 double exploit = child->qSum[turn] / child->visitCount;
-                double explore = UCT_C * std::sqrt(logN / child->visitCount);
+                double explore = UCT_C * child->prior * (sqrtSumN / (1.0 + child->visitCount));
                 val = exploit + explore;
             }
             if (val > bestVal) {
@@ -181,6 +263,7 @@ private:
                 bestChild = child.get();
             }
         }
-        return bestChild;
+        return bestChild ? bestChild : (node->children.empty() ? nullptr : node->children[0].get());
     }
 };
+

@@ -42,7 +42,10 @@ class MCTS {
             .where((m) => !vertex.edges.containsKey(m))
             .toList();
         if (unexpandedMoves.isNotEmpty) {
-          Move move = unexpandedMoves[_random.nextInt(unexpandedMoves.length)];
+          // Sort unexpanded moves so that highest tactical score is picked first
+          unexpandedMoves.sort((a, b) =>
+              _scoreMove(board, b).compareTo(_scoreMove(board, a)));
+          Move move = unexpandedMoves.first;
           vertex.edges[move] = 0; // Initialize edge
           // Update path with the move taken from the LAST fen
           path.last.move = move;
@@ -67,36 +70,111 @@ class MCTS {
     }
   }
 
+  double _scoreMove(Board board, Move move) {
+    if (move.from < 0 || move.to < 0) return 0.0001; // RESIGN_MOVE
+
+    double score = 1.0;
+    int movingPiece = board.board[move.from];
+    int targetPiece = board.board[move.to];
+    int movingType = movingPiece & pieceMask;
+    int targetType = targetPiece & pieceMask;
+
+    // 1. Captures (MVV-LVA)
+    if (targetPiece != empty) {
+      int victimVal = capturePoints[targetPiece] ?? 0;
+      int attackerVal = capturePoints[movingPiece] ?? 0;
+      score += 50.0 + (victimVal * 20.0) - (attackerVal * 1.0);
+      if (targetType == king) {
+        score += 100.0;
+      }
+    }
+
+    // 2. Pawn Promotions
+    if (movingType == pawn) {
+      int to = move.to;
+      bool isPromotion = false;
+      switch (board.turn) {
+        case red:
+          isPromotion = (to <= 7);
+          break;
+        case blue:
+          isPromotion = (to % 8 == 7);
+          break;
+        case yellow:
+          isPromotion = (to >= 112);
+          break;
+        case green:
+          isPromotion = (to % 8 == 0);
+          break;
+      }
+      if (isPromotion) {
+        score += 40.0;
+      }
+    }
+
+    // 3. Center Control
+    int toRow = move.to >> 4;
+    int toCol = move.to & 0x07;
+    if ((toRow == 3 || toRow == 4) && (toCol == 3 || toCol == 4)) {
+      score += 2.0;
+    } else if ((toRow >= 2 && toRow <= 5) && (toCol >= 2 && toCol <= 5)) {
+      score += 1.0;
+    }
+
+    // 4. King Defense
+    if (board.isKingInCheck(board.turn)) {
+      if (movingType == king) {
+        score += 30.0;
+      } else if (targetPiece != empty) {
+        score += 25.0;
+      }
+    }
+
+    return max(0.001, score);
+  }
+
   Move _selectMove(Board board, Vertex vertex, List<Move> legalMoves) {
     double bestVal = -double.infinity;
     Move? bestMove;
     int turn = board.turn;
 
-    // Pre-calculate to avoid redundant math
-    double logN = log(max(1, vertex.N));
+    // Compute tactical move scores and sum for normalized priors
+    double scoreSum = 0.0;
+    List<double> scores = [];
+    for (Move m in legalMoves) {
+      double s = _scoreMove(board, m);
+      scores.add(s);
+      scoreSum += s;
+    }
+    if (scoreSum <= 0.0) scoreSum = 1.0;
 
-    for (Move move in legalMoves) {
+    double sqrtSumN = sqrt(max(1.0, vertex.N.toDouble()));
+
+    for (int i = 0; i < legalMoves.length; i++) {
+      Move move = legalMoves[i];
+      double prior = scores[i] / scoreSum;
+
       Board nextBoard = Board.copy(board);
       nextBoard.makeMove(move);
       String nextFen = nextBoard.generateFen();
       Vertex? child = graph.v[nextFen];
 
-      double uctValue;
+      double puctValue;
       if (child == null || child.N == 0) {
-        uctValue = 10000.0 + _random.nextDouble(); // High value for unvisited
+        puctValue = 10000.0 + (prior * 1000.0) + (_random.nextDouble() * 0.01);
       } else {
         double exploitation = child.Q[turn] / child.N.toDouble();
-        double exploration = 12.0 * sqrt(logN / child.N);
-        uctValue = exploitation + exploration;
+        double exploration = 12.0 * prior * (sqrtSumN / (1.0 + child.N));
+        puctValue = exploitation + exploration;
       }
 
-      if (uctValue > bestVal) {
-        bestVal = uctValue;
+      if (puctValue > bestVal) {
+        bestVal = puctValue;
         bestMove = move;
       }
     }
 
-    return bestMove ?? legalMoves[_random.nextInt(legalMoves.length)];
+    return bestMove ?? legalMoves.first;
   }
 
   void _backpropagate(List<SearchStep> path, List<int> rankPoints) {

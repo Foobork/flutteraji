@@ -1,0 +1,133 @@
+name: Train NNUE Model in Cloud
+
+on:
+  workflow_dispatch:
+    inputs:
+      model_tag:
+        description: 'Model generation tag (e.g. gen8)'
+        required: true
+        default: 'gen8'
+      games:
+        description: 'Number of self-play games'
+        required: true
+        default: '2500'
+      iters:
+        description: 'MCTS iterations per move'
+        required: true
+        default: '1500'
+      temp_plies:
+        description: 'Opening temperature plies'
+        required: true
+        default: '6'
+      q_weight:
+        description: 'MCTS Q-value target weight (0.0=Result, 1.0=Q)'
+        required: true
+        default: '0.35'
+      epochs:
+        description: 'Training epochs'
+        required: true
+        default: '30'
+      batch_size:
+        description: 'Training batch size'
+        required: true
+        default: '1024'
+      match_games:
+        description: 'Tournament evaluation games vs Gen 4'
+        required: true
+        default: '80'
+
+jobs:
+  train:
+    name: Self-Play, Train, and Evaluate (${{ github.event.inputs.model_tag }})
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch numpy
+
+      - name: Install C++ Build Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++ build-essential
+
+      - name: Build C++ Chaturaji Engine
+        run: |
+          cmake -B engine/build -S engine -DCMAKE_BUILD_TYPE=Release
+          cmake --build engine/build --config Release -j$(nproc)
+
+      - name: Validate C++ Engine
+        run: |
+          ./engine/build/chaturaji validate
+
+      - name: Run Multi-Threaded Self-Play (${{ github.event.inputs.games }} games @ ${{ github.event.inputs.iters }} iters)
+        run: |
+          ./engine/build/chaturaji selfplay \
+            --nnue nnue/checkpoints/gen4.nnue \
+            --games ${{ github.event.inputs.games }} \
+            --iters ${{ github.event.inputs.iters }} \
+            --temp-plies ${{ github.event.inputs.temp_plies }} \
+            --threads $(nproc) \
+            --seed 888 \
+            --out engine/selfplay_${{ github.event.inputs.model_tag }}.txt
+
+      - name: Parse Self-Play Dataset to Binary
+        run: |
+          python nnue/parse_selfplay.py \
+            --input engine/selfplay_${{ github.event.inputs.model_tag }}.txt \
+            --output nnue/data/${{ github.event.inputs.model_tag }}_fresh.bin \
+            --skip-opening 0
+
+      - name: Merge Replay Buffer
+        run: |
+          python nnue/merge_datasets.py \
+            --inputs nnue/data/${{ github.event.inputs.model_tag }}_fresh.bin nnue/data/gen4.bin \
+            --output nnue/data/${{ github.event.inputs.model_tag }}_combined.bin
+
+      - name: Train PyTorch NNUE Model (${{ github.event.inputs.epochs }} epochs)
+        run: |
+          python nnue/train.py \
+            --data nnue/data/${{ github.event.inputs.model_tag }}_combined.bin \
+            --out nnue/checkpoints/${{ github.event.inputs.model_tag }}.pt \
+            --epochs ${{ github.event.inputs.epochs }} \
+            --batch ${{ github.event.inputs.batch_size }} \
+            --lr 1e-3 \
+            --q-weight ${{ github.event.inputs.q_weight }} \
+            --threads $(nproc)
+
+      - name: Export NNUE Binary Weights
+        run: |
+          python nnue/export.py \
+            -c nnue/checkpoints/${{ github.event.inputs.model_tag }}.pt \
+            -o nnue/checkpoints/${{ github.event.inputs.model_tag }}.nnue
+
+      - name: Run Tournament Match vs Gen 4 (${{ github.event.inputs.match_games }} games)
+        run: |
+          ./engine/build/chaturaji match \
+            --nnue1 nnue/checkpoints/${{ github.event.inputs.model_tag }}.nnue \
+            --nnue2 nnue/checkpoints/gen4.nnue \
+            --games ${{ github.event.inputs.match_games }} \
+            --iters 1000 | tee engine/match_result_${{ github.event.inputs.model_tag }}.txt
+
+      - name: Analyze Tournament Match
+        run: |
+          python nnue/analyze_match.py engine/match_result_${{ github.event.inputs.model_tag }}.txt || true
+
+      - name: Upload Model Weights & Match Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.inputs.model_tag }}-artifacts
+          path: |
+            nnue/checkpoints/${{ github.event.inputs.model_tag }}.nnue
+            nnue/checkpoints/${{ github.event.inputs.model_tag }}.pt
+            engine/match_result_${{ github.event.inputs.model_tag }}.txt

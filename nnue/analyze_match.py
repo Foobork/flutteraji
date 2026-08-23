@@ -1,10 +1,18 @@
+import sys
 import re
+from pathlib import Path
+
+match_file = sys.argv[1] if len(sys.argv) > 1 else 'engine/gen7_match_result.txt'
+path = Path(match_file)
+if not path.exists():
+    print(f"File not found: {path}")
+    sys.exit(1)
 
 try:
-    with open('engine/gen7_match_result.txt', 'r', encoding='utf-16') as f:
+    with open(path, 'r', encoding='utf-8') as f:
         text = f.read()
 except Exception:
-    with open('engine/gen7_match_result.txt', 'r', encoding='utf-8') as f:
+    with open(path, 'r', encoding='utf-16') as f:
         text = f.read()
 
 games = re.findall(r'Game\s+(\d+):\s+(M[12]=R/Y),\s+M1 points:\s+(\d+),\s+M2 points:\s+(\d+)', text)
