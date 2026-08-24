@@ -13,7 +13,7 @@ Chaturaji analysis tool and engine. Flutteraji combines a Flutter UI for explori
 - **Graph-based exploration**: Track positions as a directed graph; export and import analysis graphs.
 - **FEN support**: Load and generate Forsyth–Edwards Notation adapted for four-player Chaturaji.
 - **C++ engine**: Fast 0x88 board, make/unmake, hand-crafted eval, MCTS, self-play, and head-to-head NNUE matches. Exposed to Dart via FFI (`chaturaji.dll`).
-- **NNUE**: Relative-perspective network used as the MCTS leaf evaluator. Gen 4 is the current champion loaded by the UI (`nnue/checkpoints/gen4.nnue`).
+- **NNUE**: Relative-perspective network used as the MCTS leaf evaluator. Gen 8 is the new champion loaded by the UI (`nnue/checkpoints/gen8.nnue`), defeating Gen 4 by 595 to 365.
 - **WebAssembly**: Compiles to WebAssembly (Wasm-GC) for instant browser-based analysis on GitHub Pages.
 
 ## Getting Started
@@ -39,7 +39,7 @@ flutter pub get
 flutter run -d windows
 ```
 
-On Windows desktop the app loads `engine/chaturaji.dll` and, if present, `nnue/checkpoints/gen4.nnue`. Without the DLL it falls back to the Dart board/MCTS path.
+On Windows desktop the app loads `engine/chaturaji.dll` and, if present, `nnue/checkpoints/gen8.nnue`. Without the DLL it falls back to the Dart board/MCTS path.
 
 ## Project Structure
 
@@ -65,10 +65,11 @@ Self-play generations are trained in `nnue/` and evaluated with `engine` match m
 | 1 | 134–106 vs Gen 0 | First clear gain |
 | 2 | 285–195 vs Gen 1 | Large jump after data/bug fixes |
 | 3 | 278–202 vs Gen 2 | Hybrid Q + result training |
-| 4 | 304–176 vs Gen 3 | Current champion (UI default) |
+| 4 | 304–176 vs Gen 3 | Long-standing champion |
 | 5 | 236–244 vs Gen 4 | Did not beat Gen 4 |
 | 6 | 478–482 vs Gen 4 | Plateaued; opening noise |
 | 7 | 446–514 vs Gen 4 | Parallel self-play; offensive parity |
+| **8** | **595–365 vs Gen 4** | **NEW CHAMPION.** Tactical Move Ordering & PUCT MCTS |
 
 Training details, root-cause diagnosis, and future improvement roadmap live in [`.antigravity/nnue_roadmap.md`](.antigravity/nnue_roadmap.md).
 

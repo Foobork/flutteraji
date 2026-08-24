@@ -39,9 +39,17 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
     try {
       ByteData? byteData;
       try {
-        byteData = await rootBundle.load('nnue/checkpoints/gen4.nnue');
+        byteData = await rootBundle.load('nnue/checkpoints/gen8.nnue');
       } catch (_) {
-        byteData = await rootBundle.load('assets/nnue/checkpoints/gen4.nnue');
+        try {
+          byteData = await rootBundle.load('assets/nnue/checkpoints/gen8.nnue');
+        } catch (_) {
+          try {
+            byteData = await rootBundle.load('nnue/checkpoints/gen4.nnue');
+          } catch (_) {
+            byteData = await rootBundle.load('assets/nnue/checkpoints/gen4.nnue');
+          }
+        }
       }
       final bytes = byteData.buffer.asUint8List(
         byteData.offsetInBytes,
@@ -53,7 +61,7 @@ class ChaturajiController extends ValueNotifier<ChaturajiGame> {
           useNNUE = true;
           _syncEngine();
           notifyListeners();
-          print("NNUE model loaded from bundle assets (Gen 4)");
+          print("NNUE model loaded from bundle assets (Gen 8)");
         }
       }
     } catch (e) {

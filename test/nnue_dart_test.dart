@@ -25,4 +25,25 @@ void main() {
     expect(probs[yellow], closeTo(0.25770, 0.001));
     expect(probs[green], closeTo(0.23585, 0.001));
   });
+
+  test('Pure Dart NNUE inference matches C++ on start position for Gen 8', () {
+    final model = NNUEModel();
+    final file = File('nnue/checkpoints/gen8.nnue');
+    expect(file.existsSync(), isTrue);
+
+    final bytes = file.readAsBytesSync();
+    expect(model.loadFromBytes(bytes), isTrue);
+
+    final board = Board();
+    board.load(startPosition);
+
+    final probs = model.evaluateColors(board);
+    print('Dart Gen 8 Start Position: $probs');
+
+    // C++ output: [0.266084, 0.247301, 0.248738, 0.237878]
+    expect(probs[red], closeTo(0.26608, 0.001));
+    expect(probs[blue], closeTo(0.24730, 0.001));
+    expect(probs[yellow], closeTo(0.24874, 0.001));
+    expect(probs[green], closeTo(0.23788, 0.001));
+  });
 }

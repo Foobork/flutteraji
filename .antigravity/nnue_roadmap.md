@@ -34,7 +34,9 @@ $$\text{Score}(M_2) = \text{Points}(\text{Blue}) + \text{Points}(\text{Green})$$
 | Pure Dart WebAssembly Inference | ✅ Complete | `lib/chaturaji/nnue.dart` | Zero-dependency forward pass for Web & Mobile |
 | Multi-Dataset Replay Merger | ✅ Complete | `nnue/merge_datasets.py` | Fast streaming `.bin` dataset merger |
 | Python Training Pipeline | ✅ Complete | `nnue/train.py` | Stable Log-Softmax KL loss & Cosine LR decay |
-| Default Production Model | ✅ Active | `nnue/checkpoints/gen4.nnue` | **Current Champion** |
+| Tactical Move Ordering (PUCT) | ✅ Complete | `engine/mcts.h`, `lib/chaturaji/mcts.dart` | MVV-LVA, Checks, Promotions, King Defense |
+| Cloud Training Workflow | ✅ Complete | `.github/workflows/train_nnue.yml` | 1-Click cloud pipeline on GitHub Actions |
+| Default Production Model | ✅ Active | `nnue/checkpoints/gen8.nnue` | **NEW CHAMPION (595 vs 365 against Gen 4)** |
 
 ---
 
@@ -46,10 +48,11 @@ $$\text{Score}(M_2) = \text{Points}(\text{Blue}) + \text{Points}(\text{Green})$$
 | **Gen 1** | 1.0M (Gen 0 Guided) | 134–106 vs Gen 0 | First clear evolutionary improvement. |
 | **Gen 2** | 1.1M (Gen 1 Guided) | 285–195 vs Gen 1 | Major jump after parser bug fixes and dataset scale-up. |
 | **Gen 3** | 0.9M (Gen 2 Hybrid) | 278–202 vs Gen 2 | Introduced MCTS Q-value target blending. |
-| **Gen 4** | 1.1M (Gen 3 Hybrid) | **304–176 vs Gen 3** | **Current Champion.** High tactical sharpness. |
+| **Gen 4** | 1.1M (Gen 3 Hybrid) | **304–176 vs Gen 3** | Long-standing champion. High tactical sharpness. |
 | **Gen 5** | 1.1M (Gen 4 Self-Play) | 236–244 vs Gen 4 | Plateaued. Narrow dataset distribution. |
 | **Gen 6** | 1.2M (2k iters, Temp 16) | 478–482 vs Gen 4 | Plateaued. Opening noise (`tempPlies = 16`) degraded opening play. |
-| **Gen 7** | 1.0M (1.5k iters, Multi-Threaded) | 446–514 vs Gen 4 | Outperformed Gen 4 on offense (259 vs 221), but lagged on defense. |
+| **Gen 7** | 1.0M (1.5k iters, Multi-Threaded) | 446–514 vs Gen 4 | Parallel self-play; offensive parity. |
+| **Gen 8** | **1.2M (Tactical PUCT MCTS)** | **595–365 vs Gen 4** | **NEW CHAMPION.** Decisive +230 pt win margin; won on offense and defense! 🏆 |
 
 ---
 

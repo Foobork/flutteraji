@@ -18,6 +18,11 @@ EngineInitResult initPlatformEngine() {
 
     final exeDir = p.dirname(Platform.resolvedExecutable);
     final candidateNNUEPaths = [
+      p.join(Directory.current.path, 'nnue', 'checkpoints', 'gen8.nnue'),
+      p.join(exeDir, 'nnue', 'checkpoints', 'gen8.nnue'),
+      p.join(exeDir, 'checkpoints', 'gen8.nnue'),
+      p.join(exeDir, 'gen8.nnue'),
+      p.join(exeDir, 'data', 'flutter_assets', 'nnue', 'checkpoints', 'gen8.nnue'),
       p.join(Directory.current.path, 'nnue', 'checkpoints', 'gen4.nnue'),
       p.join(exeDir, 'nnue', 'checkpoints', 'gen4.nnue'),
       p.join(exeDir, 'checkpoints', 'gen4.nnue'),
@@ -43,6 +48,11 @@ EngineInitResult initPlatformEngine() {
       final dartEngine = ChaturajiEngineDart();
       final exeDir = p.dirname(Platform.resolvedExecutable);
       final candidateNNUEPaths = [
+        p.join(Directory.current.path, 'nnue', 'checkpoints', 'gen8.nnue'),
+        p.join(exeDir, 'nnue', 'checkpoints', 'gen8.nnue'),
+        p.join(exeDir, 'checkpoints', 'gen8.nnue'),
+        p.join(exeDir, 'gen8.nnue'),
+        p.join(exeDir, 'data', 'flutter_assets', 'nnue', 'checkpoints', 'gen8.nnue'),
         p.join(Directory.current.path, 'nnue', 'checkpoints', 'gen4.nnue'),
         p.join(exeDir, 'nnue', 'checkpoints', 'gen4.nnue'),
         p.join(exeDir, 'checkpoints', 'gen4.nnue'),

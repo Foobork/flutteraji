@@ -72,6 +72,7 @@ flutter:
 
   assets:
     - images/chess_board.png
+    - nnue/checkpoints/gen8.nnue
     - nnue/checkpoints/gen4.nnue
 
   # An image asset can refer to one or more resolution-specific "variants", see
