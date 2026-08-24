@@ -19,8 +19,9 @@ class _MCTSNode {
   final _MCTSNode? parent;
   List<_MCTSNode> children = [];
   bool expanded = false;
+  double prior = 1.0;
 
-  _MCTSNode({this.move, this.parent});
+  _MCTSNode({this.move, this.parent, this.prior = 1.0});
 }
 
 class ChaturajiEngineDart implements ChaturajiEngine {
@@ -95,6 +96,69 @@ class ChaturajiEngineDart implements ChaturajiEngine {
     }
   }
 
+  double _scoreMove(Board board, Move move) {
+    if (move.from < 0 || move.to < 0) return 0.0001; // RESIGN_MOVE
+
+    double score = 1.0;
+    int movingPiece = board.board[move.from];
+    int targetPiece = board.board[move.to];
+    int movingType = movingPiece & pieceMask;
+    int targetType = targetPiece & pieceMask;
+
+    // 1. Captures (MVV-LVA)
+    if (targetPiece != empty) {
+      int victimVal = capturePoints[targetPiece] ?? 0;
+      int attackerVal = capturePoints[movingPiece] ?? 0;
+      score += 50.0 + (victimVal * 20.0) - (attackerVal * 1.0);
+      if (targetType == king) {
+        score += 100.0;
+      }
+    }
+
+    // 2. Pawn Promotions
+    if (movingType == pawn) {
+      int to = move.to;
+      bool isPromotion = false;
+      switch (board.turn) {
+        case red:
+          isPromotion = (to <= 7);
+          break;
+        case blue:
+          isPromotion = (to % 8 == 7);
+          break;
+        case yellow:
+          isPromotion = (to >= 112);
+          break;
+        case green:
+          isPromotion = (to % 8 == 0);
+          break;
+      }
+      if (isPromotion) {
+        score += 40.0;
+      }
+    }
+
+    // 3. Center Control
+    int toRow = move.to >> 4;
+    int toCol = move.to & 0x07;
+    if ((toRow == 3 || toRow == 4) && (toCol == 3 || toCol == 4)) {
+      score += 2.0;
+    } else if ((toRow >= 2 && toRow <= 5) && (toCol >= 2 && toCol <= 5)) {
+      score += 1.0;
+    }
+
+    // 4. King Defense
+    if (board.isKingInCheck(board.turn)) {
+      if (movingType == king) {
+        score += 30.0;
+      } else if (targetPiece != empty) {
+        score += 25.0;
+      }
+    }
+
+    return max(0.001, score);
+  }
+
   void _simulate(_MCTSNode root, Board board) {
     _MCTSNode node = root;
     while (node.expanded && board.turn != gameOver && node.children.isNotEmpty) {
@@ -106,14 +170,31 @@ class ChaturajiEngineDart implements ChaturajiEngine {
 
     if (board.turn != gameOver && !node.expanded) {
       final legalMoves = board.generateMoves();
-      for (final m in legalMoves) {
-        node.children.add(_MCTSNode(move: m, parent: node));
+      if (legalMoves.isNotEmpty) {
+        double scoreSum = 0.0;
+        final scores = <double>[];
+        for (final m in legalMoves) {
+          final s = _scoreMove(board, m);
+          scores.add(s);
+          scoreSum += s;
+        }
+        if (scoreSum <= 0.0) scoreSum = 1.0;
+
+        for (int i = 0; i < legalMoves.length; i++) {
+          node.children.add(_MCTSNode(
+            move: legalMoves[i],
+            parent: node,
+            prior: scores[i] / scoreSum,
+          ));
+        }
+
+        // Sort children so highest tactical prior is first
+        node.children.sort((a, b) => b.prior.compareTo(a.prior));
       }
       node.expanded = true;
 
       if (node.children.isNotEmpty) {
-        final pick = _rng.nextInt(node.children.length);
-        node = node.children[pick];
+        node = node.children.first;
         if (node.move != null) {
           board.makeMove(node.move!);
         }
@@ -153,20 +234,24 @@ class ChaturajiEngineDart implements ChaturajiEngine {
 
   _MCTSNode _selectChild(_MCTSNode parent, int turn) {
     _MCTSNode? best;
-    double bestUct = -double.infinity;
-    final logN = log(max(1, parent.visitCount));
+    double bestPuct = -double.infinity;
+    double sumN = 0.0;
+    for (final child in parent.children) {
+      sumN += child.visitCount;
+    }
+    final sqrtSumN = sqrt(max(1.0, sumN));
 
     for (final child in parent.children) {
-      double uct;
+      double puct;
       if (child.visitCount == 0) {
-        uct = 10000.0 + _rng.nextDouble();
+        puct = 10000.0 + (child.prior * 1000.0) + (_rng.nextDouble() * 0.01);
       } else {
         final double q = child.qSum[turn] / child.visitCount;
-        final double u = 12.0 * sqrt(logN / child.visitCount);
-        uct = q + u;
+        final double u = 12.0 * child.prior * (sqrtSumN / (1.0 + child.visitCount));
+        puct = q + u;
       }
-      if (uct > bestUct) {
-        bestUct = uct;
+      if (puct > bestPuct) {
+        bestPuct = puct;
         best = child;
       }
     }
