@@ -4,8 +4,9 @@ import zipfile
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DIST_DIR = REPO_ROOT / 'dist' / 'flutteraji-windows-x64'
-ZIP_PATH = REPO_ROOT / 'dist' / 'flutteraji-windows-x64-v1.0.0.zip'
+VERSION = "v1.3.0"
+DIST_DIR = REPO_ROOT / 'dist' / f'flutteraji-windows-x64-{VERSION}'
+ZIP_PATH = REPO_ROOT / 'dist' / f'flutteraji-windows-x64-{VERSION}.zip'
 
 if DIST_DIR.exists():
     shutil.rmtree(DIST_DIR)
@@ -20,31 +21,43 @@ for item in release_dir.iterdir():
         shutil.copy2(item, DIST_DIR / item.name)
 
 # 2. Copy Engine DLL and CLI executable
-shutil.copy2(REPO_ROOT / 'engine' / 'chaturaji.dll', DIST_DIR / 'chaturaji.dll')
-shutil.copy2(REPO_ROOT / 'engine' / 'chaturaji.exe', DIST_DIR / 'chaturaji.exe')
+engine_release_dir = REPO_ROOT / 'engine' / 'build' / 'Release'
+if (engine_release_dir / 'chaturaji.dll').exists():
+    shutil.copy2(engine_release_dir / 'chaturaji.dll', DIST_DIR / 'chaturaji.dll')
+    shutil.copy2(engine_release_dir / 'chaturaji.exe', DIST_DIR / 'chaturaji.exe')
+else:
+    shutil.copy2(REPO_ROOT / 'engine' / 'chaturaji.dll', DIST_DIR / 'chaturaji.dll')
+    shutil.copy2(REPO_ROOT / 'engine' / 'chaturaji.exe', DIST_DIR / 'chaturaji.exe')
 
 # 3. Copy NNUE model checkpoints
 nnue_dest = DIST_DIR / 'nnue' / 'checkpoints'
 nnue_dest.mkdir(parents=True, exist_ok=True)
-shutil.copy2(REPO_ROOT / 'nnue' / 'checkpoints' / 'gen4.nnue', nnue_dest / 'gen4.nnue')
+shutil.copy2(REPO_ROOT / 'nnue' / 'checkpoints' / 'gen8.nnue', nnue_dest / 'gen8.nnue')
+if (REPO_ROOT / 'nnue' / 'checkpoints' / 'gen4.nnue').exists():
+    shutil.copy2(REPO_ROOT / 'nnue' / 'checkpoints' / 'gen4.nnue', nnue_dest / 'gen4.nnue')
 
 # 4. Copy LICENSE and add README.txt
 shutil.copy2(REPO_ROOT / 'LICENSE', DIST_DIR / 'LICENSE')
 
-readme_content = """Flutteraji - Chaturaji Analysis Tool & Engine (v1.0.0)
+readme_content = f"""Flutteraji - Chaturaji Analysis Tool & Engine ({VERSION})
 =====================================================
 
 Quick Start:
 1. Double-click `flutteraji.exe` to launch the graphical analysis board.
 2. The app automatically loads the native C++ engine (`chaturaji.dll`)
-   and the Gen 4 NNUE neural network model (`nnue/checkpoints/gen4.nnue`).
+   and the Gen 8 NNUE neural network champion (`nnue/checkpoints/gen8.nnue`).
+
+What's New in {VERSION}:
+- 🏆 Generation 8 NNUE Champion (+85 Elo over Gen 4)
+- 🧠 Tactical Move Ordering & PUCT MCTS in both C++ and Dart
+- ⚙️ Persistent "Pieces Face Center" setting
 
 CLI Engine Usage:
   Open a terminal in this folder and run:
   - `chaturaji.exe validate`                       (run perft test suite)
-  - `chaturaji.exe mcts`                           (run MCTS search on start position)
-  - `chaturaji.exe probe --nnue nnue\\checkpoints\\gen4.nnue` (evaluate moves with NNUE)
-  - `chaturaji.exe bench --nnue nnue\\checkpoints\\gen4.nnue` (benchmark NNUE eval speed)
+  - `chaturaji.exe mcts`                           (run tactical MCTS search on start position)
+  - `chaturaji.exe probe --nnue nnue\\checkpoints\\gen8.nnue` (evaluate moves with NNUE)
+  - `chaturaji.exe bench --nnue nnue\\checkpoints\\gen8.nnue` (benchmark NNUE eval speed)
 
 GitHub Repository:
   https://github.com/Foobork/flutteraji
